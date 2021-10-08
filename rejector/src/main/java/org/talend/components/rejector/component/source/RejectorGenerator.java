@@ -55,11 +55,17 @@ public class RejectorGenerator implements Serializable {
         final Schema schema = uiServices.guessSchema(configuration.getDataSet());
         log.warn("[init] schema: {}", schema);
         List<Record> records = new ArrayList<>();
-        IntStream.range(1, configuration.getRecordsNumber()).forEach(
-                i -> records.add(recordBuilder.newRecordBuilder(schema).withString("nullStr", String.format("null-%03d", i))
-                        .withInt("inty", 12020 * i).withDouble("doubly", 20.4 * i).withFloat("floaty", 10.6664f * i)
-                        .withBoolean("booly", true).withDateTime("daty", ZonedDateTime.now().plusDays(i).plusHours(i))
-                        .withDateTime("daty2", ZonedDateTime.now().plusDays(i)).build()));
+        IntStream.range(1, configuration.getRecordsNumber())
+                .forEach(
+                        i -> records.add(recordBuilder.newRecordBuilder(schema)
+                                .withString("nullStr", String.format("null-%03d", i))
+                                .withInt("inty", 12020 * i)
+                                .withDouble("doubly", 20.4 * i)
+                                .withFloat("floaty", 10.6664f * i)
+                                .withBoolean("booly", true)
+                                .withDateTime("daty", ZonedDateTime.now().plusDays(i).plusHours(i))
+                                .withDateTime("daty2", ZonedDateTime.now().plusDays(i))
+                                .build()));
         log.warn("[init]generated {} records. {}", configuration.getRecordsNumber(), records);
         items = records.iterator();
     }
