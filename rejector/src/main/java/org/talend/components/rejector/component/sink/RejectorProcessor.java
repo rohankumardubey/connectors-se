@@ -15,7 +15,6 @@ package org.talend.components.rejector.component.sink;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -69,20 +68,24 @@ public class RejectorProcessor implements Serializable {
     @ElementListener
     public void bufferize(final Record data, @Output("main") OutputEmitter<Record> main,
             @Output("REJECT") OutputEmitter<Record> reject) {
-        log.warn("[bufferize] {} - (schema {}).", data, data.getSchema()
+        // log.warn("[bufferize] {} - (schema {}).", data, data.getSchema()
+        // .getEntries()
+        // .stream()
+        // .map(e -> String.format("%s/%s", e.getName(), e.getType()))
+        // .collect(Collectors.joining(",")));
+        data.getSchema()
                 .getEntries()
                 .stream()
-                .map(e -> String.format("%s/%s", e.getName(), e.getType()))
-                .collect(Collectors.joining(",")));
-        data.getSchema().getEntries().stream().filter(e -> e.getType().equals(Type.BYTES)).forEach(e -> {
-            final byte[] b = data.getBytes(e.getName());
-            List<Byte> f = new ArrayList();
-            for (int i = 0; i < b.length; i++) {
-                f.add(b[i]);
-            }
-            log.warn("==========> {} is BYTES {}.", e.getName(), f);
+                .filter(e -> e.getType().equals(Type.BYTES))
+                .forEach(e -> {
+                    final byte[] b = data.getBytes(e.getName());
+                    List<Byte> f = new ArrayList();
+                    for (int i = 0; i < b.length; i++) {
+                        f.add(b[i]);
+                    }
+                    log.warn("==========> {} is BYTES {}.", e.getName(), f);
 
-        });
+                });
         main.emit(data);
         reject.emit(data);
     }

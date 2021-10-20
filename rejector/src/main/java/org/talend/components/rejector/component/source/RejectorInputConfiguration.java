@@ -25,7 +25,10 @@ import lombok.Data;
 
 @Data
 @Documentation("Configuration for Input Rejector.")
-@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }) }) })
+@GridLayouts({ @GridLayout({ //
+        @GridLayout.Row({ "dataSet" }), //
+        @GridLayout.Row({ "recordsNumber" }) //
+}) })
 public class RejectorInputConfiguration implements Serializable {
 
     @Option
