@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,6 +15,7 @@ package org.talend.components.rejector.component.sink;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -68,11 +69,12 @@ public class RejectorProcessor implements Serializable {
     @ElementListener
     public void bufferize(final Record data, @Output("main") OutputEmitter<Record> main,
             @Output("REJECT") OutputEmitter<Record> reject) {
-        // log.warn("[bufferize] {} - (schema {}).", data, data.getSchema()
-        // .getEntries()
-        // .stream()
-        // .map(e -> String.format("%s/%s", e.getName(), e.getType()))
-        // .collect(Collectors.joining(",")));
+        if (configuration.getDisplayRowStuct()) {
+            log.warn("[bufferize] {} - (schema {}).", data, data.getSchema()
+                    .getAllEntries()
+                    .map(e -> String.format("\nschema for %s\t\t%s", e.getName(), e))
+                    .collect(Collectors.joining(",")));
+        }
         data.getSchema()
                 .getEntries()
                 .stream()

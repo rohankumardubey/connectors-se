@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -27,7 +27,10 @@ import lombok.Data;
 @Data
 @Version(1)
 @Documentation("Rejector Processor documentation.")
-@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "code" }) } //
+@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }),
+        @GridLayout.Row({ "code" }),
+        @GridLayout.Row({ "displayRowStuct" }),
+} //
         ) })
 public class RejectorProcessorConfiguration implements Serializable {
 
@@ -39,5 +42,9 @@ public class RejectorProcessorConfiguration implements Serializable {
     @Documentation("SQL Code.")
     @Code("SQL")
     private String code;
+
+    @Option
+    @Documentation("Display incoming rowStruct (incompatible w/ GuessSchema).")
+    private Boolean displayRowStuct = true;
 
 }
