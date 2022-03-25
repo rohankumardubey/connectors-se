@@ -60,7 +60,8 @@
     <distributionManagement>
         <snapshotRepository>
             <id>talend_nexus_deployment</id>
-            <url>${talend_oss_snapshots}</url>
+            <!-- url>${talend_oss_snapshots}</url -->
+            <url>${nexus_snapshots_pull_base_url}/${nexus_snapshots_repository}</url>
         </snapshotRepository>
         <repository>
             <id>talend_nexus_deployment</id>
@@ -123,8 +124,6 @@
 
         <json-smart.version>2.4.7</json-smart.version>
 
-        <talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/
-        </talend_oss_snapshots>
 
         <frontend.version>1.7.5</frontend.version>
         <node.version>v12.13.1</node.version>
@@ -161,6 +160,16 @@
         <talend-component.icon.skip>true</talend-component.icon.skip>
         <!-- TODO: replace with a 'validation.svg' -->
         <validation.metadata>true</validation.metadata>
+        <nexus_snapshots_pull_base_url>
+            <!--
+                Where the snapshots are searched for.
+                Can be changed to use smart-branch proxy when releasing snapshots.
+                See: https://wiki.talend.com/display/rd/Branch-specific+artifact+sharing
+            -->
+            https://artifacts-zl.talend.com/nexus/content/repositories
+        </nexus_snapshots_pull_base_url>
+        <nexus_snapshots_repository>TalendOpenSourceSnapshot</nexus_snapshots_repository>
+        <!-- talend_oss_snapshots>https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceSnapshot/</talend_oss_snapshots -->
     </properties>
 
     <dependencyManagement>
@@ -596,7 +605,8 @@
     <repositories>
         <repository>
             <id>talend.oss.snapshots</id>
-            <url>${talend_oss_snapshots}</url>
+            <!-- url>${talend_oss_snapshots}</url -->
+            <url>${nexus_snapshots_pull_base_url}/${nexus_snapshots_repository}</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -628,7 +638,8 @@
     <pluginRepositories>
         <pluginRepository>
             <id>talend.oss.snapshots</id>
-            <url>${talend_oss_snapshots}</url>
+            <!-- url>${talend_oss_snapshots}</url -->
+            <url>${nexus_snapshots_pull_base_url}/${nexus_snapshots_repository}</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
