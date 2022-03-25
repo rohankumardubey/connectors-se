@@ -10,14 +10,17 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.jdbc.row;
+package org.talend.components.jdbc.sp;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.row.JDBCRowConfig;
 import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.processor.*;
+import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.connection.Connection;
 import org.talend.sdk.component.api.standalone.DriverRunner;
 import org.talend.sdk.component.api.standalone.RunAtDriver;
@@ -25,18 +28,18 @@ import org.talend.sdk.component.api.standalone.RunAtDriver;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
+import java.sql.SQLException;
 
 @Slf4j
 @Version(1)
 @Icon(value = Icon.IconType.CUSTOM, custom = "datastore-connector")
-@DriverRunner(name = "Row")
-@Documentation("JDBC Row component.")
-// TODO processor is more suitable? or we need to support input/ouptut link to this standalone component in studio
-public class JDBCRowRuntime implements Serializable {
+@Processor(name = "SP")
+@Documentation("JDBC SP component.")
+public class JDBCSPProcessor implements Serializable {
 
     private static final long serialVersionUID = 1;
 
-    private final JDBCRowConfig configuration;
+    private final JDBCSPConfig configuration;
 
     private final JDBCService service;
 
@@ -45,7 +48,7 @@ public class JDBCRowRuntime implements Serializable {
     @Connection
     private transient java.sql.Connection connection;
 
-    public JDBCRowRuntime(@Option("configuration") final JDBCRowConfig configuration,
+    public JDBCSPProcessor(@Option("configuration") final JDBCSPConfig configuration,
             final JDBCService service) {
         this.configuration = configuration;
         this.service = service;
@@ -56,8 +59,9 @@ public class JDBCRowRuntime implements Serializable {
 
     }
 
-    @RunAtDriver
-    public void run() {
+    @ElementListener
+    public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success)
+            throws SQLException {
 
     }
 

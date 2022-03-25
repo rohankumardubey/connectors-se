@@ -24,6 +24,7 @@ import java.io.Serializable;
         @GridLayout.Row("close")
 })
 @Documentation("jdbc rollback")
+// TODO this should support flow input/output, so a processor?
 public class JDBCRollbackConfig implements Serializable {
 
     // TODO as jdbcconnection and jdbcclose is auto generated in studio, how we process the jdbccommit/rollback

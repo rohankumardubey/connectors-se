@@ -64,7 +64,8 @@ public class OutputProcessor implements Serializable {
     }
 
     @ElementListener
-    public void elementListener(@Input final Record record) throws SQLException {
+    public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success,
+            @Output("reject") final OutputEmitter<Record> reject) throws SQLException {
 
     }
 

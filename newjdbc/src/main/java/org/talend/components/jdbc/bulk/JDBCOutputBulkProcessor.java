@@ -14,10 +14,10 @@ package org.talend.components.jdbc.bulk;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.output.JDBCOutputConfig;
 import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
@@ -29,8 +29,7 @@ import java.sql.SQLException;
 @Slf4j
 @Getter
 @Version(1)
-// @Processor(name = "OutputBulk") //TODO fix this : The component
-// org.talend.components.jdbc.bulk.JDBCOutputBulkProcessor is missing a dataset in its configuration (see @DataSet)
+@Processor(name = "OutputBulk") // TODO fix this : The component
 @Icon(value = Icon.IconType.CUSTOM, custom = "datastore-connector")
 @Documentation("JDBC Output Bulk component")
 public class JDBCOutputBulkProcessor implements Serializable {
@@ -43,12 +42,13 @@ public class JDBCOutputBulkProcessor implements Serializable {
 
     // private transient boolean init;
 
-    public JDBCOutputBulkProcessor(final JDBCOutputBulkConfig outputConfig, final JDBCService jdbcService/*
-                                                                                                          * , final
-                                                                                                          * I18nMessage
-                                                                                                          * i18nMessage
-                                                                                                          */) {
-        this.configuration = outputConfig;
+    public JDBCOutputBulkProcessor(@Option("configuration") final JDBCOutputBulkConfig configuration,
+            final JDBCService jdbcService/*
+                                          * , final
+                                          * I18nMessage
+                                          * i18nMessage
+                                          */) {
+        this.configuration = configuration;
         this.jdbcService = jdbcService;
         // this.i18n = i18nMessage;
     }
@@ -59,7 +59,8 @@ public class JDBCOutputBulkProcessor implements Serializable {
     }
 
     @ElementListener
-    public void elementListener(@Input final Record record) throws SQLException {
+    public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success)
+            throws SQLException {
 
     }
 

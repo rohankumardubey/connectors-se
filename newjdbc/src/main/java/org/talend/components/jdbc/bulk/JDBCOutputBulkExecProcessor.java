@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
+import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
@@ -43,13 +44,14 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
 
     // private transient boolean init;
 
-    public JDBCOutputBulkExecProcessor(final JDBCOutputBulkExecConfig outputConfig, final JDBCService jdbcService/*
-                                                                                                                  * ,
-                                                                                                                  * final
-                                                                                                                  * I18nMessage
-                                                                                                                  * i18nMessage
-                                                                                                                  */) {
-        this.configuration = outputConfig;
+    public JDBCOutputBulkExecProcessor(@Option("configuration") final JDBCOutputBulkExecConfig configuration,
+            final JDBCService jdbcService/*
+                                          * ,
+                                          * final
+                                          * I18nMessage
+                                          * i18nMessage
+                                          */) {
+        this.configuration = configuration;
         this.jdbcService = jdbcService;
         // this.i18n = i18nMessage;
     }
@@ -60,7 +62,8 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
     }
 
     @ElementListener
-    public void elementListener(@Input final Record record) throws SQLException {
+    public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success)
+            throws SQLException {
 
     }
 

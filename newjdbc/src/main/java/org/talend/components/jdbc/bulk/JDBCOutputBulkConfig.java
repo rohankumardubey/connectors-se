@@ -30,6 +30,7 @@ import java.io.Serializable;
 @Documentation("jdbc output bulk file")
 public class JDBCOutputBulkConfig implements Serializable {
 
+    // seems this also generate "use existed connection" in studio, should not, TODO check it more
     @Option
     @Documentation("")
     private JDBCBulkCommonConfig bulkCommonConfig;
