@@ -47,6 +47,11 @@
             <version>${xbean-finder-shaded.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.calcite</groupId>
+            <artifactId>calcite-core</artifactId>
+            <version>1.30.0</version>
+        </dependency>
         <!-- test -->
         <dependency>
             <groupId>org.apache.commons</groupId>

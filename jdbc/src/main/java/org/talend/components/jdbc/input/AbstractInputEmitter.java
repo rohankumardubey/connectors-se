@@ -27,6 +27,8 @@ import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.calcite.sql.parser.SqlParseException;
+import org.apache.calcite.sql.parser.SqlParser;
 import org.talend.components.jdbc.configuration.InputConfig;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -76,7 +78,11 @@ public abstract class AbstractInputEmitter implements Serializable {
         if (query == null || query.trim().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyQuery());
         }
-        if (jdbcDriversService.isNotReadOnlySQLQuery(query)) {
+        try {
+            if (jdbcDriversService.isNotReadOnlySQLQuery(query) || SqlParser.create(query).parseStmtList().size() > 1) {
+                throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
+            }
+        } catch (SqlParseException e) {
             throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
         }
 
