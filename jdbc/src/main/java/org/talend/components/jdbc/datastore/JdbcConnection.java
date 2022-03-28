@@ -44,7 +44,7 @@ import lombok.ToString;
 @Data
 @Version(value = JdbcConnection.VERSION, migrationHandler = JdbcConnectionMigrationHandler.class)
 @ToString(exclude = { "password", "privateKey", "privateKeyPassword" })
-@GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("setRawUrl"), @GridLayout.Row("jdbcUrl"),
+@GridLayout({ @GridLayout.Row({ "aaaaaa", "dbType", "handler" }), @GridLayout.Row("setRawUrl"), @GridLayout.Row("jdbcUrl"),
         @GridLayout.Row("host"), @GridLayout.Row("port"), @GridLayout.Row("database"), @GridLayout.Row("parameters"),
         @GridLayout.Row("authenticationType"), @GridLayout.Row("userId"), @GridLayout.Row("password"),
         @GridLayout.Row("privateKey"), @GridLayout.Row("privateKeyPassword"), @GridLayout.Row("oauthTokenEndpoint"),
@@ -58,6 +58,11 @@ import lombok.ToString;
 public class JdbcConnection implements Serializable {
 
     public final static int VERSION = 3;
+
+    @Option
+    @Required
+    @Documentation("Aaaaaaaaaaaaaaaa.")
+    private String aaaaaa;
 
     @Option
     @Required
