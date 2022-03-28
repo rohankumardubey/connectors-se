@@ -58,6 +58,16 @@
             <groupId>org.talend.components</groupId>
             <artifactId>talend-mscrm</artifactId>
             <version>${talend-mscrm.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.reload4j</groupId>
+            <artifactId>reload4j</artifactId>
         </dependency>
     </dependencies>
 
