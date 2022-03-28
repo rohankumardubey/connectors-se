@@ -17,6 +17,7 @@
         <xbean-finder-shaded.version>4.8</xbean-finder-shaded.version>
         <HikariCP.version>3.4.2-talend20200325</HikariCP.version>
         <bouncycastle.version>1.69</bouncycastle.version>
+        <calcite.version>1.30.0</calcite.version>
         <!-- test version -->
         <derby.version>10.12.1.1</derby.version>
         <snowflake.version>3.13.1</snowflake.version>
@@ -50,7 +51,7 @@
         <dependency>
             <groupId>org.apache.calcite</groupId>
             <artifactId>calcite-core</artifactId>
-            <version>1.30.0</version>
+            <version>${calcite.version}</version>
         </dependency>
         <!-- test -->
         <dependency>
