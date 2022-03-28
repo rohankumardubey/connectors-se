@@ -68,6 +68,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>ch.qos.reload4j</groupId>
+      <artifactId>reload4j</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-streaming_2.12</artifactId>
       <scope>test</scope>
