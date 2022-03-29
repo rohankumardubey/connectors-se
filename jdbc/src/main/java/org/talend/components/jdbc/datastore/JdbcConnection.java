@@ -60,7 +60,6 @@ public class JdbcConnection implements Serializable {
     public final static int VERSION = 3;
 
     @Option
-    @Required
     @Documentation("Aaaaaaaaaaaaaaaa.")
     private String aaaaaa;
 
