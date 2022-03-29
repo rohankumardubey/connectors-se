@@ -27,9 +27,11 @@ import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.calcite.config.Lex;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.talend.components.jdbc.configuration.InputConfig;
+import org.talend.components.jdbc.dataset.BaseDataSet;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.input.Producer;
@@ -72,14 +74,16 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     @PostConstruct
     public void init() {
-        String query = inputConfig.getDataSet()
-                .getQuery(
-                        jdbcDriversService.getPlatformService().getPlatform(inputConfig.getDataSet().getConnection()));
+        BaseDataSet dataSet = inputConfig.getDataSet();
+        String query = dataSet.getQuery(
+                        jdbcDriversService.getPlatformService().getPlatform(dataSet.getConnection()));
         if (query == null || query.trim().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyQuery());
         }
         try {
-            if (jdbcDriversService.isNotReadOnlySQLQuery(query) || SqlParser.create(query).parseStmtList().size() > 1) {
+            if (jdbcDriversService.isNotReadOnlySQLQuery(query) ||
+                    SqlParser.create(query, jdbcDriversService
+                            .getParserConfig(dataSet.getConnection().getDbType())).parseStmtList().size() > 1) {
                 throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
             }
         } catch (SqlParseException e) {
@@ -87,10 +91,10 @@ public abstract class AbstractInputEmitter implements Serializable {
         }
 
         try {
-            dataSource = jdbcDriversService.createDataSource(inputConfig.getDataSet().getConnection());
+            dataSource = jdbcDriversService.createDataSource(dataSet.getConnection());
             connection = dataSource.getConnection();
             statement = connection.createStatement();
-            statement.setFetchSize(inputConfig.getDataSet().getFetchSize());
+            statement.setFetchSize(dataSet.getFetchSize());
             resultSet = statement.executeQuery(query);
 
             ResultSetMetaData metaData = resultSet.getMetaData();
