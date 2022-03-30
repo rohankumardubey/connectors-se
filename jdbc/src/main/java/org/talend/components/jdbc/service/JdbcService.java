@@ -12,17 +12,21 @@
  */
 package org.talend.components.jdbc.service;
 
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
-import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
-import static org.talend.sdk.component.api.record.Schema.Type.BOOLEAN;
-import static org.talend.sdk.component.api.record.Schema.Type.BYTES;
-import static org.talend.sdk.component.api.record.Schema.Type.DATETIME;
-import static org.talend.sdk.component.api.record.Schema.Type.DOUBLE;
-import static org.talend.sdk.component.api.record.Schema.Type.FLOAT;
-import static org.talend.sdk.component.api.record.Schema.Type.INT;
-import static org.talend.sdk.component.api.record.Schema.Type.LONG;
-import static org.talend.sdk.component.api.record.Schema.Type.STRING;
+import com.zaxxer.hikari.HikariDataSource;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.configuration.JdbcConfiguration;
+import org.talend.components.jdbc.configuration.JdbcConfiguration.Driver;
+import org.talend.components.jdbc.datastore.AuthenticationType;
+import org.talend.components.jdbc.datastore.JdbcConnection;
+import org.talend.components.jdbc.output.platforms.Platform;
+import org.talend.components.jdbc.output.platforms.PlatformService;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.dependency.Resolver;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -38,34 +42,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import com.zaxxer.hikari.HikariDataSource;
-
-import org.apache.calcite.config.Lex;
-import org.apache.calcite.sql.parser.SqlParser;
-import org.talend.components.jdbc.configuration.JdbcConfiguration;
-import org.talend.components.jdbc.configuration.JdbcConfiguration.Driver;
-import org.talend.components.jdbc.datastore.AuthenticationType;
-import org.talend.components.jdbc.datastore.JdbcConnection;
-import org.talend.components.jdbc.output.platforms.Platform;
-import org.talend.components.jdbc.output.platforms.PlatformService;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.dependency.Resolver;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
+import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
+import static org.talend.sdk.component.api.record.Schema.Type.*;
 
 @Slf4j
 @Service
 public class JdbcService {
 
     private static final String SNOWFLAKE_DATABASE_NAME = "Snowflake";
-    private static final String ORACLE_DATABASE_NAME = "Oracle";
-    private static final String MYSQL_DATABASE_NAME = "MySQL";
-    private static final String MARIA_DATABASE_NAME = "MariaDB";
 
     private static final Pattern READ_ONLY_QUERY_PATTERN = Pattern
             .compile(
@@ -95,18 +81,6 @@ public class JdbcService {
      */
     public boolean isNotReadOnlySQLQuery(final String query) {
         return query != null && !READ_ONLY_QUERY_PATTERN.matcher(query.trim()).matches();
-    }
-
-    public SqlParser.Config getParserConfig(final String dbType) {
-        switch (dbType) {
-            case ORACLE_DATABASE_NAME:
-                return SqlParser.config().withLex(Lex.ORACLE);
-            case MYSQL_DATABASE_NAME:
-            case MARIA_DATABASE_NAME:
-                return SqlParser.config().withLex(Lex.MYSQL);
-            default:
-                return SqlParser.config();
-        }
     }
 
     public static boolean checkTableExistence(final String tableName, final JdbcService.JdbcDatasource dataSource)
