@@ -15,7 +15,6 @@ package org.talend.components.jdbc.suite.containers;
 import org.junit.jupiter.api.Tag;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
 import org.talend.components.jdbc.containers.MSSQLServerTestContainer;
-import org.talend.components.jdbc.containers.MySQLTestContainer;
 import org.talend.components.jdbc.suite.JDBCBaseContainerTest;
 
 @Tag("IT")
