@@ -534,9 +534,13 @@ public abstract class JDBCBaseContainerTest {
         @Test
         @DisplayName("Query -  non authorized query (multiple queries)")
         void unauthorizedMultipleQueries() {
+            final String MULTIPLE_QUERIES_TEMPLATE = "SELECT * FROM %s; SELECT * FROM %s";
+            final JdbcConnection connection = newConnection();
+            final Platform platform = getJdbcService().getPlatformService().getPlatform(connection);
             final SqlQueryDataset dataset = new SqlQueryDataset();
-            dataset.setConnection(newConnection());
-            dataset.setSqlQuery("SELECT * FROM my_table; SELECT * FROM my_table;");
+            dataset.setConnection(connection);
+            dataset.setSqlQuery(String.format(MULTIPLE_QUERIES_TEMPLATE,
+                    platform.identifier("table1"), platform.identifier("table2")));
             final InputQueryConfig config = new InputQueryConfig();
             config.setDataSet(dataset);
             final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
