@@ -12,22 +12,12 @@
  */
 package org.talend.components.jdbc.input;
 
-import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
-import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
-
-import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
+import lombok.extern.slf4j.Slf4j;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
+import org.jooq.impl.ParserException;
 import org.talend.components.jdbc.configuration.InputConfig;
+import org.talend.components.jdbc.dataset.BaseDataSet;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.input.Producer;
@@ -35,7 +25,15 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.Serializable;
+import java.sql.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
+import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
 
 @Slf4j
 public abstract class AbstractInputEmitter implements Serializable {
@@ -70,21 +68,26 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     @PostConstruct
     public void init() {
-        String query = inputConfig.getDataSet()
-                .getQuery(
-                        jdbcDriversService.getPlatformService().getPlatform(inputConfig.getDataSet().getConnection()));
+        BaseDataSet dataSet = inputConfig.getDataSet();
+        String query = dataSet.getQuery(
+                        jdbcDriversService.getPlatformService().getPlatform(dataSet.getConnection()));
         if (query == null || query.trim().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyQuery());
         }
-        if (jdbcDriversService.isNotReadOnlySQLQuery(query)) {
+        try {
+            if (jdbcDriversService.isNotReadOnlySQLQuery(query) ||
+                    DSL.using(new DefaultConfiguration()).parser().parse(query).queries().length > 1) {
+                throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
+            }
+        } catch (ParserException e) {
             throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
         }
 
         try {
-            dataSource = jdbcDriversService.createDataSource(inputConfig.getDataSet().getConnection());
+            dataSource = jdbcDriversService.createDataSource(dataSet.getConnection());
             connection = dataSource.getConnection();
             statement = connection.createStatement();
-            statement.setFetchSize(inputConfig.getDataSet().getFetchSize());
+            statement.setFetchSize(dataSet.getFetchSize());
             resultSet = statement.executeQuery(query);
 
             ResultSetMetaData metaData = resultSet.getMetaData();
