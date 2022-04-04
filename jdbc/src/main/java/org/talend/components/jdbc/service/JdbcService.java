@@ -12,21 +12,17 @@
  */
 package org.talend.components.jdbc.service;
 
-import com.zaxxer.hikari.HikariDataSource;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.configuration.JdbcConfiguration;
-import org.talend.components.jdbc.configuration.JdbcConfiguration.Driver;
-import org.talend.components.jdbc.datastore.AuthenticationType;
-import org.talend.components.jdbc.datastore.JdbcConnection;
-import org.talend.components.jdbc.output.platforms.Platform;
-import org.talend.components.jdbc.output.platforms.PlatformService;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.dependency.Resolver;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
+import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
+import static org.talend.sdk.component.api.record.Schema.Type.BOOLEAN;
+import static org.talend.sdk.component.api.record.Schema.Type.BYTES;
+import static org.talend.sdk.component.api.record.Schema.Type.DATETIME;
+import static org.talend.sdk.component.api.record.Schema.Type.DOUBLE;
+import static org.talend.sdk.component.api.record.Schema.Type.FLOAT;
+import static org.talend.sdk.component.api.record.Schema.Type.INT;
+import static org.talend.sdk.component.api.record.Schema.Type.LONG;
+import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -42,10 +38,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
-import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
-import static org.talend.sdk.component.api.record.Schema.Type.*;
+import com.zaxxer.hikari.HikariDataSource;
+
+import org.talend.components.jdbc.configuration.JdbcConfiguration;
+import org.talend.components.jdbc.configuration.JdbcConfiguration.Driver;
+import org.talend.components.jdbc.datastore.AuthenticationType;
+import org.talend.components.jdbc.datastore.JdbcConnection;
+import org.talend.components.jdbc.output.platforms.Platform;
+import org.talend.components.jdbc.output.platforms.PlatformService;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.dependency.Resolver;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
