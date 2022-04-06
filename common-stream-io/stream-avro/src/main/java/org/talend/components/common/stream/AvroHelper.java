@@ -15,7 +15,7 @@ package org.talend.components.common.stream;
 import java.util.List;
 import org.apache.avro.Schema;
 import static java.util.stream.Collectors.toList;
-import static org.talend.components.common.stream.input.avro.Constants.AVRO_LOGICAL_TYPE;
+import static org.talend.components.common.stream.Constants.AVRO_LOGICAL_TYPE;
 
 public class AvroHelper {
 

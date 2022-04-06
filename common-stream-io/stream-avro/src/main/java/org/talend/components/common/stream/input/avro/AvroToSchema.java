@@ -12,7 +12,11 @@
  */
 package org.talend.components.common.stream.input.avro;
 
+import static org.talend.components.common.stream.Constants.BIGDECIMAL;
+
+import org.apache.avro.LogicalTypes;
 import org.talend.components.common.stream.AvroHelper;
+import org.talend.components.common.stream.Constants;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -64,12 +68,24 @@ public class AvroToSchema {
                 break;
             }
         case STRING:
-        case BYTES:
         case FLOAT:
         case DOUBLE:
         case BOOLEAN:
         case NULL:
             builder.withType(translateToRecordType(type));
+            break;
+        case BYTES:
+        case FIXED:
+            if (Constants.AVRO_LOGICAL_TYPE_DECIMAL.equals(logicalType)) {
+                LogicalTypes.Decimal decimalType =
+                        ((LogicalTypes.Decimal) AvroHelper.getUnionSchema(field.schema()).getLogicalType());
+                builder.withType(Schema.Type.STRING)
+                        .withProp(Constants.STUDIO_TYPE, BIGDECIMAL)
+                        .withProp(Constants.STUDIO_LENGTH, String.valueOf(decimalType.getPrecision()))
+                        .withProp(Constants.STUDIO_PRECISION, String.valueOf(decimalType.getScale()));
+            } else {
+                builder.withType(Schema.Type.BYTES);
+            }
             break;
         default:
             break;
@@ -111,6 +127,7 @@ public class AvroToSchema {
         case STRING:
             return Schema.Type.STRING;
         case BYTES:
+        case FIXED:
             return Schema.Type.BYTES;
         case INT:
             return Schema.Type.INT;

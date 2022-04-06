@@ -13,16 +13,16 @@
 package org.talend.components.common.stream.input.avro;
 
 import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
 
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.SchemaBuilder;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.generic.GenericData;
@@ -32,11 +32,10 @@ import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.avro.io.DatumReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.talend.components.common.stream.AvroHelper;
 import org.talend.components.common.stream.output.avro.RecordToAvro;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -106,8 +105,7 @@ class AvroToRecordTest {
         avro.put("arrayOfRecord", Arrays.asList(
                 new GenericRecordBuilder(getArrayRecord())
                         .set("f1", "value1")
-                        .build()
-        ));
+                        .build()));
     }
 
     @ParameterizedTest
@@ -123,7 +121,8 @@ class AvroToRecordTest {
                 .map(Entry::getName)
                 .collect(toList())
                 .containsAll(
-                        Stream.of("string", "int", "long", "double", "boolean", "array", "object", "arrayOfRecord").collect(toList())));
+                        Stream.of("string", "int", "long", "double", "boolean", "array", "object",
+                                "arrayOfRecord").collect(toList())));
     }
 
     @ParameterizedTest
@@ -150,6 +149,47 @@ class AvroToRecordTest {
 
         final Collection<Record> records = record.getArray(Record.class, "arrayOfRecord");
         assertEquals(1, records.size());
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideFactory")
+    void toDecimalRecord(final RecordBuilderFactory factory) {
+        final org.apache.avro.Schema schema = SchemaBuilder
+                .builder()
+                .record("sample")
+                .fields() //
+                .name("decimal")
+                .type(LogicalTypes.decimal(5, 2)
+                        .addToSchema(org.apache.avro.Schema.createFixed("decimal", null, null, 16)))
+                .noDefault() //
+                .name("decimalArray")
+                .type(org.apache.avro.Schema.createArray(LogicalTypes.decimal(10, 3)
+                        .addToSchema(
+                                org.apache.avro.Schema.createFixed(null, null, null, 16))))
+                .noDefault()
+                .endRecord();
+
+        GenericData.Record decimalRecord = new GenericData.Record(schema);
+
+        GenericData.Fixed fixedData1 =
+                new GenericData.Fixed(schema.getField("decimal").schema(), decimalToBytes(new BigDecimal("123.45")));
+        GenericData.Fixed fixedData2 = new GenericData.Fixed(
+                AvroHelper.getUnionSchema(schema.getField("decimalArray").schema().getElementType()),
+                decimalToBytes(new BigDecimal("1234.467")));
+        GenericData.Fixed fixedData3 = new GenericData.Fixed(
+                AvroHelper.getUnionSchema(schema.getField("decimalArray").schema().getElementType()),
+                decimalToBytes(new BigDecimal("12345.678")));
+
+        decimalRecord.put("decimal", fixedData1);
+        decimalRecord.put("decimalArray", Arrays.asList(fixedData2, fixedData3));
+
+        final AvroToRecord toRecord = new AvroToRecord(factory);
+        Record record = toRecord.toRecord(decimalRecord);
+        assertNotNull(record);
+        assertEquals("123.45", record.getString("decimal"));
+        final Collection<BigDecimal> records = record.getArray(BigDecimal.class, "decimalArray");
+        assertEquals(2, records.size());
+        assertEquals(Arrays.asList(new BigDecimal("1234.467"), new BigDecimal("12345.678")), records);
     }
 
     @ParameterizedTest
@@ -228,6 +268,22 @@ class AvroToRecordTest {
         Assertions.assertEquals(tckRecord.getSchema(), tckRecord2.getSchema());
     }
 
+    private byte[] decimalToBytes(BigDecimal decimal) {
+        byte fillByte = (byte) (decimal.signum() < 0 ? 0xFF : 0x00);
+        byte[] unscaled = decimal.unscaledValue().toByteArray();
+        byte[] bytes = new byte[16];
+        int offset = bytes.length - unscaled.length;
+
+        for (int i = 0; i < bytes.length; i += 1) {
+            if (i < offset) {
+                bytes[i] = fillByte;
+            } else {
+                bytes[i] = unscaled[i - offset];
+            }
+        }
+        return bytes;
+    }
+
     private static Stream<RecordBuilderFactory> provideFactory() {
         final RecordBuilderFactory factory1 = new RecordBuilderFactoryImpl("test");
 
@@ -236,8 +292,7 @@ class AvroToRecordTest {
         final RecordBuilderFactory factory2 = provider.apply("test");
         if (property == null) {
             System.clearProperty("talend.component.beam.record.factory.impl");
-        }
-        else {
+        } else {
             System.setProperty("talend.component.beam.record.factory.impl", property);
         }
         return Stream.of(factory1, factory2);
