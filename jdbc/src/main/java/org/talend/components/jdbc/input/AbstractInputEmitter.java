@@ -12,7 +12,21 @@
  */
 package org.talend.components.jdbc.input;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
+import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
+
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.ParserException;
@@ -25,15 +39,7 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.Serializable;
-import java.sql.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
-import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class AbstractInputEmitter implements Serializable {
