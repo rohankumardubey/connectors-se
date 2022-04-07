@@ -52,17 +52,29 @@ class AvroToRecordTest {
 
     private org.apache.avro.Schema getArrayInnerTypeAvroSchema() {
         final org.apache.avro.Schema schema = SchemaBuilder.array()
-                .items().unionOf()
-                .record("inner").fields()
-                    .name("f1").type().stringType().noDefault()
-                .endRecord().and().nullBuilder()
-                .endNull().endUnion();
+                .items()
+                .unionOf()
+                .record("inner")
+                .fields()
+                .name("f1")
+                .type()
+                .stringType()
+                .noDefault()
+                .endRecord()
+                .and()
+                .nullBuilder()
+                .endNull()
+                .endUnion();
         return schema;
     }
 
     private org.apache.avro.Schema getArrayRecord() {
-        return SchemaBuilder.record("inner").fields()
-                .name("f1").type().stringType().noDefault()
+        return SchemaBuilder.record("inner")
+                .fields()
+                .name("f1")
+                .type()
+                .stringType()
+                .noDefault()
                 .endRecord();
     }
 
@@ -72,20 +84,50 @@ class AvroToRecordTest {
                 .builder()
                 .record("sample")
                 .fields() //
-                    .name("string").type().stringType().noDefault() //
-                    .name("int").type().intType().noDefault() //
-                    .name("long").type().longType().noDefault() //
-                    .name("double").type().doubleType().noDefault() //
-                    .name("boolean").type().booleanType().noDefault() //
-                    .name("array").type().array().items().intType().noDefault() // Array of int
-                    .name("object").type().record("obj") // sub obj
-                    .fields()
-                        .name("f1").type().intType().noDefault() //
-                        .name("f2").type().stringType().noDefault() //
-                    .endRecord()
+                .name("string")
+                .type()
+                .stringType()
+                .noDefault() //
+                .name("int")
+                .type()
+                .intType()
+                .noDefault() //
+                .name("long")
+                .type()
+                .longType()
+                .noDefault() //
+                .name("double")
+                .type()
+                .doubleType()
+                .noDefault() //
+                .name("boolean")
+                .type()
+                .booleanType()
+                .noDefault() //
+                .name("array")
+                .type()
+                .array()
+                .items()
+                .intType()
+                .noDefault() // Array of int
+                .name("object")
+                .type()
+                .record("obj") // sub obj
+                .fields()
+                .name("f1")
+                .type()
+                .intType()
+                .noDefault() //
+                .name("f2")
+                .type()
+                .stringType()
+                .noDefault() //
+                .endRecord()
 
                 .noDefault()
-                .name("arrayOfRecord").type(this.getArrayInnerTypeAvroSchema()).noDefault()
+                .name("arrayOfRecord")
+                .type(this.getArrayInnerTypeAvroSchema())
+                .noDefault()
                 .endRecord();
 
         avro = new GenericData.Record(schema);
