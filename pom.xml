@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.32.2-SNAPSHOT</version>
+    <version>1.32.2</version>
     <packaging>pom</packaging>
 
     <name>Connectors SE</name>
@@ -74,8 +74,8 @@
 
     <properties>
         <!-- Why do you have those properties and we don't simply use ${project.version} ? -->
-        <connectors-test-bom.version>1.32.2-SNAPSHOT</connectors-test-bom.version>
-        <common.version>1.32.2-SNAPSHOT</common.version>
+        <connectors-test-bom.version>1.32.2</connectors-test-bom.version>
+        <common.version>1.32.2</common.version>
 
         <timestamp.year>${maven.build.timestamp}</timestamp.year>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
