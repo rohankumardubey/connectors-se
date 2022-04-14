@@ -12,15 +12,9 @@
  */
 package org.talend.components.common.stream.input.json;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
-
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -29,6 +23,13 @@ import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
+import javax.json.JsonValue.ValueType;
+
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -145,7 +146,7 @@ public class JsonToSchema {
     }
 
     private JsonObject merge(final JsonObject o1, final JsonObject o2) {
-        final Map<String, JsonValue> fields = new HashMap<>();
+        final Map<String, JsonValue> fields = new LinkedHashMap<>();
         this.put(fields, o1);
         this.put(fields, o2);
 
@@ -173,24 +174,20 @@ public class JsonToSchema {
 
     private JsonValue getMergedValue(final JsonValue value1, final JsonValue value2) {
         JsonValue value = null;
-        if (value1.getValueType() == JsonValue.ValueType.OBJECT
-                && value2.getValueType() == JsonValue.ValueType.OBJECT) {
-            final JsonObject mergedObject = this.merge(value1.asJsonObject(), value2.asJsonObject());
-            value = mergedObject;
-        } else if (value1.getValueType() == JsonValue.ValueType.ARRAY
-                && value2.getValueType() == JsonValue.ValueType.ARRAY) {
+        final ValueType valueType1 = value1.getValueType();
+        final ValueType valueType2 = value2.getValueType();
+        if (valueType1 == JsonValue.ValueType.OBJECT && valueType2 == JsonValue.ValueType.OBJECT) {
+            value = this.merge(value1.asJsonObject(), value2.asJsonObject());
+        } else if (valueType1 == JsonValue.ValueType.ARRAY && valueType2 == JsonValue.ValueType.ARRAY) {
             final JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
             value1.asJsonArray().forEach(arrayBuilder::add);
             value2.asJsonArray().forEach(arrayBuilder::add);
             value = arrayBuilder.build();
-        } else if (value1.getValueType() != value2.getValueType()) {
-            if ((value1.getValueType() == JsonValue.ValueType.TRUE
-                    && value2.getValueType() == JsonValue.ValueType.FALSE) ||
-                    (value1.getValueType() == JsonValue.ValueType.FALSE
-                            && value2.getValueType() == JsonValue.ValueType.TRUE)) {
+        } else if (valueType1 != valueType2) {
+            if ((valueType1 == JsonValue.ValueType.TRUE && valueType2 == JsonValue.ValueType.FALSE)
+                    || (valueType1 == JsonValue.ValueType.FALSE && valueType2 == JsonValue.ValueType.TRUE)) {
                 value = JsonValue.TRUE;
-            } else if (value1.getValueType() == JsonValue.ValueType.STRING
-                    || value2.getValueType() == JsonValue.ValueType.STRING) {
+            } else if (valueType1 == JsonValue.ValueType.STRING || valueType2 == JsonValue.ValueType.STRING) {
                 value = Json.createValue("a_String");
             }
         }

@@ -15,6 +15,7 @@ package org.talend.components.common.stream;
 import org.junit.jupiter.api.Disabled;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.talend.components.common.stream.input.json.JsonReaderSupplier;
 import org.talend.components.common.stream.output.json.JsonWriterSupplier;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.environment.Environment;
@@ -122,6 +124,27 @@ class JsonFormatTest {
         // Test if missing field (null) can be retrieve by get(class, key)
         final Record second = dataIterator.next();
         Assertions.assertNull(second.getRecord("latest_data").getRecord("calculated").get(Double.class, "death_rate"));
+    }
+
+    @EnvironmentalTest
+    void recordsInArrayHaveTheSameSchema() {
+        config.setJsonFile("arrayOfRecordWithNullElements.json");
+        final List<Record> records = runPipeline();
+        Assertions.assertEquals(1, records.size());
+
+        final Record wrapper = records.get(0);
+        Assertions.assertEquals(Schema.Type.RECORD, wrapper.getSchema().getType());
+
+        final List<Entry> wrapperEntries = wrapper.getSchema().getEntries();
+        Assertions.assertFalse(wrapperEntries.isEmpty());
+        Assertions.assertEquals(Schema.Type.ARRAY, wrapperEntries.get(0).getType());
+        final Schema arrayElementSchema = wrapperEntries.get(0).getElementSchema();
+        Assertions.assertEquals(Schema.Type.RECORD, arrayElementSchema.getType());
+
+        final List<Record> array = new ArrayList<>(wrapper.getArray(Record.class, "data"));
+        Assertions.assertEquals(2, array.size());
+        Assertions.assertEquals(arrayElementSchema, array.get(0).getSchema());
+        Assertions.assertEquals(arrayElementSchema, array.get(1).getSchema());
     }
 
     @EnvironmentalTest
