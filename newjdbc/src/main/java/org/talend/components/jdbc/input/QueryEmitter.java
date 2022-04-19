@@ -27,6 +27,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
+import java.sql.SQLException;
 
 @Slf4j
 @Version(1)
@@ -59,7 +60,14 @@ public class QueryEmitter implements Serializable {
 
     @PostConstruct
     public void init() {
-
+        if (connection == null) {
+            try {
+                connection = jdbcService.createConnection(configuration.getDataSet().getDataStore());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println(connection);
     }
 
     @Producer

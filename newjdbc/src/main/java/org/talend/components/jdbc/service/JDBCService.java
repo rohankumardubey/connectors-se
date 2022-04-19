@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.datastore.JDBCDataStore;
 import org.talend.sdk.component.api.configuration.Option;
@@ -27,6 +28,10 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.*;
@@ -133,14 +138,8 @@ public class JDBCService implements Serializable {
     }
 
     @CreateConnection
-    public Connection createConnection(@Option final JDBCDataStore dataStore) {
-        return connect(dataStore);
-    }
-
-    @CreateConnection
-    public Connection connect(@Option final JDBCDataStore dataStore) {
-        // TODO create jdbc connection
-        return null;
+    public Connection createConnection(@Option final JDBCDataStore dataStore) throws SQLException {
+        return createJDBCConnection(dataStore).getConnection();
     }
 
     @CloseConnection
@@ -180,7 +179,7 @@ public class JDBCService implements Serializable {
 
     public List<String> getSchemaNames(final JDBCDataStore dataStore) throws SQLException {
         List<String> result = new ArrayList<>();
-        try (Connection conn = connect(dataStore)) {
+        try (Connection conn = createConnection(dataStore)) {
             DatabaseMetaData dbMetaData = conn.getMetaData();
 
             Set<String> tableTypes = getAvailableTableTypes(dbMetaData);
@@ -240,5 +239,93 @@ public class JDBCService implements Serializable {
         }
 
         return availableTableTypes;
+    }
+
+    public JDBCConnection createJDBCConnection(final JDBCDataStore dataStore) throws SQLException {
+        return new JDBCConnection(this.resolver, dataStore);
+    }
+
+    public static class JDBCConnection implements AutoCloseable {
+
+        private final Resolver.ClassLoaderDescriptor classLoaderDescriptor;
+
+        private final Connection conn;
+
+        public JDBCConnection(final Resolver resolver, final JDBCDataStore dataStore) throws SQLException {
+            List<String> drivers = dataStore.getJdbcDriver();
+            this.classLoaderDescriptor = resolver.mapDescriptorToClassLoader(drivers);
+
+            final Thread thread = Thread.currentThread();
+            final ClassLoader prev = thread.getContextClassLoader();
+            try {
+                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+
+                Connection connection = DriverManager.getConnection(dataStore.getJdbcUrl(), dataStore.getUserId(),
+                        dataStore.getPassword());
+
+                conn = wrap(classLoaderDescriptor.asClassLoader(), connection, Connection.class);
+            } finally {
+                thread.setContextClassLoader(prev);
+            }
+        }
+
+        private Connection getConnection() {
+            return conn;
+        }
+
+        @Override
+        public void close() {
+            final Thread thread = Thread.currentThread();
+            final ClassLoader prev = thread.getContextClassLoader();
+            try {
+                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                conn.close();
+            } catch (SQLException e) {
+                // TODO process it
+                e.printStackTrace();
+            } finally {
+                thread.setContextClassLoader(prev);
+                try {
+                    classLoaderDescriptor.close();
+                } catch (final Exception e) {
+                    log.error("can't close driver classloader properly", e);
+                }
+            }
+        }
+
+        private static <T> T wrap(final ClassLoader classLoader, final Object delegate, final Class<T> api) {
+            return api
+                    .cast(
+                            Proxy
+                                    .newProxyInstance(classLoader, new Class<?>[] { api },
+                                            new ContextualDelegate(delegate, classLoader)));
+        }
+
+        @AllArgsConstructor
+        private static class ContextualDelegate implements InvocationHandler {
+
+            private final Object delegate;
+
+            private final ClassLoader classLoader;
+
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                final Thread thread = Thread.currentThread();
+                final ClassLoader prev = thread.getContextClassLoader();
+                thread.setContextClassLoader(classLoader);
+                try {
+                    final Object invoked = method.invoke(delegate, args);
+                    if (method.getReturnType().getName().startsWith("java.sql.")
+                            && method.getReturnType().isInterface()) {
+                        return wrap(classLoader, invoked, method.getReturnType());
+                    }
+                    return invoked;
+                } catch (final InvocationTargetException ite) {
+                    throw ite.getTargetException();
+                } finally {
+                    thread.setContextClassLoader(prev);
+                }
+            }
+        }
     }
 }
