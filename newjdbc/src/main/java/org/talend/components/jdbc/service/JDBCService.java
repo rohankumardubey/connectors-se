@@ -12,7 +12,9 @@
  */
 package org.talend.components.jdbc.service;
 
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.datastore.JDBCDataStore;
 import org.talend.sdk.component.api.configuration.Option;
@@ -39,6 +41,8 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 @Slf4j
 @Service
@@ -140,7 +144,7 @@ public class JDBCService implements Serializable {
 
     @CreateConnection
     public Connection createConnection(@Option("configuration") final JDBCDataStore dataStore) throws SQLException {
-        return createJDBCConnection(dataStore).getConnection();
+        return createJDBCConnection(dataStore);
     }
 
     @CloseConnection
@@ -242,48 +246,64 @@ public class JDBCService implements Serializable {
         return availableTableTypes;
     }
 
-    public JDBCConnection createJDBCConnection(final JDBCDataStore dataStore) throws SQLException {
-        return new JDBCConnection(this.resolver, dataStore);
+    public Connection createJDBCConnection(final JDBCDataStore dataStore) throws SQLException {
+        return new JDBCDataSource(this.resolver, dataStore).getConnection();
     }
 
-    public static class JDBCConnection implements AutoCloseable {
+    // copy from tck jdbc connector for cloud, TODO now for fast development, will unify them to one
+    public static class JDBCDataSource implements AutoCloseable {
 
         private final Resolver.ClassLoaderDescriptor classLoaderDescriptor;
 
-        private Connection conn;
+        private final HikariDataSource dataSource;
 
-        public JDBCConnection(final Resolver resolver, final JDBCDataStore dataStore) throws SQLException {
+        public JDBCDataSource(final Resolver resolver,
+                final JDBCDataStore dataStore) {
+            final Thread thread = Thread.currentThread();
+            final ClassLoader prev = thread.getContextClassLoader();
+
             List<org.talend.components.jdbc.common.Driver> drivers = dataStore.getJdbcDriver();
             List<String> paths = Optional.ofNullable(drivers)
                     .orElse(Collections.emptyList())
                     .stream()
                     .map(driver -> driver.getPath())
                     .collect(Collectors.toList());
-            this.classLoaderDescriptor = resolver.mapDescriptorToClassLoader(paths);
 
-            final Thread thread = Thread.currentThread();
-            final ClassLoader prev = thread.getContextClassLoader();
+            classLoaderDescriptor = resolver.mapDescriptorToClassLoader(paths);
+
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                dataSource = new HikariDataSource();
+                dataSource.setJdbcUrl(dataStore.getJdbcUrl());
+                dataSource.setDriverClassName(dataStore.getJdbcClass());
 
-                String clazz = dataStore.getJdbcClass();
+                // TODO consider no auth case
+                dataSource.setUsername(dataStore.getUserId());
+                dataSource.setPassword(dataStore.getPassword());
 
-                Class.forName(clazz, true, classLoaderDescriptor.asClassLoader());
+                dataSource.setAutoCommit(dataStore.isUseAutoCommit() && dataStore.isAutoCommit());
 
-                Connection connection = DriverManager.getConnection(dataStore.getJdbcUrl(), dataStore.getUserId(),
-                        dataStore.getPassword());
+                dataSource.setMaximumPoolSize(1);
 
-                conn = wrap(classLoaderDescriptor.asClassLoader(), connection, Connection.class);
-            } catch (ClassNotFoundException e) {
-                // TODO process
-                e.printStackTrace();
+                // mysql special property?
+                dataSource.addDataSourceProperty("rewriteBatchedStatements", "true");
+                // Security Issues with LOAD DATA LOCAL https://jira.talendforge.org/browse/TDI-42001
+                dataSource.addDataSourceProperty("allowLoadLocalInfile", "false"); // MySQL
+                dataSource.addDataSourceProperty("allowLocalInfile", "false"); // MariaDB
             } finally {
                 thread.setContextClassLoader(prev);
             }
         }
 
-        private Connection getConnection() {
-            return conn;
+        public Connection getConnection() throws SQLException {
+            final Thread thread = Thread.currentThread();
+            final ClassLoader prev = thread.getContextClassLoader();
+            try {
+                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                return wrap(classLoaderDescriptor.asClassLoader(), dataSource.getConnection(), Connection.class);
+            } finally {
+                thread.setContextClassLoader(prev);
+            }
         }
 
         @Override
@@ -292,10 +312,7 @@ public class JDBCService implements Serializable {
             final ClassLoader prev = thread.getContextClassLoader();
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
-                conn.close();
-            } catch (SQLException e) {
-                // TODO process it
-                e.printStackTrace();
+                dataSource.close();
             } finally {
                 thread.setContextClassLoader(prev);
                 try {
