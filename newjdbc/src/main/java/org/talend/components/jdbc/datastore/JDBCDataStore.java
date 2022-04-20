@@ -14,6 +14,7 @@ package org.talend.components.jdbc.datastore;
 
 import lombok.Data;
 import lombok.ToString;
+import org.talend.components.jdbc.common.Driver;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
@@ -61,7 +62,7 @@ public class JDBCDataStore implements Serializable {
     // TODO maybe change it to List<Bean> object
     @Option
     @Documentation("jdbc driver table")
-    private List<String> jdbcDriver;// TODO can't use Driver bean class as not editable if that in ui
+    private List<Driver> jdbcDriver;// TODO can't use Driver bean class as not editable if that in ui
 
     @Option
     @Required

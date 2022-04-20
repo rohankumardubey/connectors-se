@@ -17,22 +17,31 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
+import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
 @Data
-@OptionsOrder({ "driver" })
+@OptionsOrder({ "path", "name" })
+/*
+ * @GridLayout({
+ * 
+ * @GridLayout.Row("path")
+ * })
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Documentation("")
-// TODO seems no need this, remove it and use List<String> enough, but strange the ui is not editable if use this bean
-// class
 public class Driver implements Serializable {
 
-    // TODO use which widget? how to pass data? how to load class at runtime?
     @Option
     @Documentation("")
-    private String driver;
+    private String path;
+
+    // TODO remove, now only for test as a tup ui bug
+    @Option
+    @Documentation("")
+    private String name;
 
 }

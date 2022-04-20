@@ -38,6 +38,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -138,7 +139,7 @@ public class JDBCService implements Serializable {
     }
 
     @CreateConnection
-    public Connection createConnection(@Option final JDBCDataStore dataStore) throws SQLException {
+    public Connection createConnection(@Option("configuration") final JDBCDataStore dataStore) throws SQLException {
         return createJDBCConnection(dataStore).getConnection();
     }
 
@@ -249,21 +250,33 @@ public class JDBCService implements Serializable {
 
         private final Resolver.ClassLoaderDescriptor classLoaderDescriptor;
 
-        private final Connection conn;
+        private Connection conn;
 
         public JDBCConnection(final Resolver resolver, final JDBCDataStore dataStore) throws SQLException {
-            List<String> drivers = dataStore.getJdbcDriver();
-            this.classLoaderDescriptor = resolver.mapDescriptorToClassLoader(drivers);
+            List<org.talend.components.jdbc.common.Driver> drivers = dataStore.getJdbcDriver();
+            List<String> paths = Optional.ofNullable(drivers)
+                    .orElse(Collections.emptyList())
+                    .stream()
+                    .map(driver -> driver.getPath())
+                    .collect(Collectors.toList());
+            this.classLoaderDescriptor = resolver.mapDescriptorToClassLoader(paths);
 
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
 
+                String clazz = dataStore.getJdbcClass();
+
+                Class.forName(clazz, true, classLoaderDescriptor.asClassLoader());
+
                 Connection connection = DriverManager.getConnection(dataStore.getJdbcUrl(), dataStore.getUserId(),
                         dataStore.getPassword());
 
                 conn = wrap(classLoaderDescriptor.asClassLoader(), connection, Connection.class);
+            } catch (ClassNotFoundException e) {
+                // TODO process
+                e.printStackTrace();
             } finally {
                 thread.setContextClassLoader(prev);
             }
