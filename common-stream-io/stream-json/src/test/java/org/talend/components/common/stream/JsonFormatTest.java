@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream;
 
+import org.junit.jupiter.api.Disabled;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 import java.util.Arrays;
@@ -208,16 +209,16 @@ class JsonFormatTest {
         Assertions.assertEquals(1, records.size());
 
         final Record record = records.get(0);
-        Assertions.assertEquals(Schema.Type.ARRAY, record.getSchema().getEntries().get(0).getType());
-        Assertions
-                .assertEquals(Schema.Type.RECORD, record.getSchema().getEntries().get(0).getElementSchema().getType());
-        Assertions.assertEquals(4, record.getSchema().getEntries().get(0).getElementSchema().getEntries().size());
-        Assertions
-                .assertEquals(Schema.Type.STRING,
-                        record.getSchema().getEntries().get(0).getElementSchema().getEntries().get(2).getType());
-        Assertions
-                .assertEquals("ddd",
-                        record.getSchema().getEntries().get(0).getElementSchema().getEntries().get(2).getName());
+        final Schema.Entry arrayEntry = record.getSchema().getEntries().get(0);
+        Assertions.assertEquals(Schema.Type.ARRAY, arrayEntry.getType());
+        final Schema elementSchema = arrayEntry.getElementSchema();
+
+        Assertions.assertEquals(Schema.Type.RECORD, elementSchema.getType());
+        Assertions.assertEquals(4, elementSchema.getEntries().size());
+        Assertions.assertEquals(Schema.Type.STRING, elementSchema.getEntry("ddd").getType());
+        Assertions.assertEquals(Schema.Type.STRING, elementSchema.getEntry("aaa").getType());
+        Assertions.assertEquals(Schema.Type.STRING, elementSchema.getEntry("bbb").getType());
+        Assertions.assertEquals(Schema.Type.DOUBLE, elementSchema.getEntry("ccc").getType());
     }
 
     @EnvironmentalTest
@@ -269,8 +270,12 @@ class JsonFormatTest {
                 .getArray(Object.class, "is_array_of_int")
                 .stream()
                 .collect(Collectors.toList());
-        Assertions.assertEquals(Double.class, is_array_of_int.get(2).getClass()); // must be instance of Double, not
-                                                                                  // BigInteger
+        Assertions.assertEquals(forceDouble ? Double.class : Long.class, is_array_of_int.get(2).getClass()); // must be
+                                                                                                             // instance
+                                                                                                             // of
+                                                                                                             // Double,
+                                                                                                             // not
+        // BigInteger
 
         final List<Object> is_array_of_double = record
                 .getArray(Object.class, "is_array_of_double")
