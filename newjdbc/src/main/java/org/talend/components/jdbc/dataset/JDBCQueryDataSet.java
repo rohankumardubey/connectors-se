@@ -20,9 +20,12 @@ import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Code;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 @Data
 @GridLayout({
@@ -59,6 +62,17 @@ public class JDBCQueryDataSet implements Serializable {
     @Suggestable(value = "FETCH_TABLES", parameters = { "dataStore" })
     @Documentation("The table name")
     private String tableName;
+
+    /*
+     * @Option
+     * 
+     * @Suggestable(value = "FETCH_COLUMN_NAMES", parameters = { "datastore", "tableName" })
+     * 
+     * @Documentation("Schema.")
+     * 
+     * @Structure(type = Structure.Type.OUT, discoverSchema = "GUESS_SCHEMA")
+     * private List<String> schema = Collections.emptyList();
+     */
 
     // TODO how to generate Query Store field, Guess Query button here and hook it to the query field for runtime to
     // generate the query

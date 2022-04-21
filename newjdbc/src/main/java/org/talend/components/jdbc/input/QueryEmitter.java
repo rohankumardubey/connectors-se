@@ -21,13 +21,20 @@ import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.connection.Connection;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.stream.IntStream;
+
+import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
 
 @Slf4j
 @Version(1)
@@ -48,7 +55,13 @@ public class QueryEmitter implements Serializable {
     @Connection
     private transient java.sql.Connection connection;
 
+    private transient ResultSet resultSet;
+
     // private final I18nMessage i18n;
+
+    private transient JDBCService.ColumnInfo[] columnInfoList;
+
+    private transient Schema schema;
 
     public QueryEmitter(@Option("configuration") final JDBCInputConfig configuration, final JDBCService jdbcService,
             final RecordBuilderFactory recordBuilderFactory/* .final I18nMessage i18nMessage */) {
@@ -67,17 +80,44 @@ public class QueryEmitter implements Serializable {
                 e.printStackTrace();
             }
         }
-        System.out.println(connection);
+
+        try {
+            Statement statement = connection.createStatement();
+            resultSet = statement.executeQuery(configuration.getDataSet().getSqlQuery());
+
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(RECORD);
+            columnInfoList = IntStream.rangeClosed(1, metaData.getColumnCount())
+                    .mapToObj(index -> jdbcService.addField(schemaBuilder, metaData, index))
+                    .toArray(JDBCService.ColumnInfo[]::new);
+            schema = schemaBuilder.build();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Producer
-    public Record next() {
-        return null;
+    public Record next() throws SQLException {
+        if (!resultSet.next()) {
+            return null;
+        }
+
+        final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
+        for (int index = 0; index < columnInfoList.length; index++) {
+            jdbcService.addColumn(recordBuilder, columnInfoList[index], resultSet.getObject(index + 1));
+        }
+        return recordBuilder.build();
     }
 
     @PreDestroy
     public void release() {
-
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }
