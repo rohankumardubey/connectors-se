@@ -73,10 +73,6 @@
     </distributionManagement>
 
     <properties>
-        <!-- Why do you have those properties and we don't simply use ${project.version} ? -->
-        <connectors-test-bom.version>1.33.0-SNAPSHOT</connectors-test-bom.version>
-        <common.version>1.33.0-SNAPSHOT</common.version>
-
         <timestamp.year>${maven.build.timestamp}</timestamp.year>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -312,7 +308,7 @@
             <dependency>
                 <groupId>org.talend.components</groupId>
                 <artifactId>common</artifactId>
-                <version>${common.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
