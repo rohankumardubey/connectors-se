@@ -19,9 +19,11 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @GridLayout({
@@ -44,5 +46,11 @@ public class JDBCTableDataSet implements Serializable {
     @Suggestable(value = "FETCH_TABLES", parameters = { "dataStore" })
     @Documentation("The table name")
     private String tableName;
+
+    @Option
+    @Suggestable(value = "FETCH_COLUMN_NAMES", parameters = { "dataStore", "tableName" })
+    @Structure(type = Structure.Type.OUT, discoverSchema = "JDBCTableDataSet")
+    @Documentation("schema")
+    private List<String> schema;
 
 }

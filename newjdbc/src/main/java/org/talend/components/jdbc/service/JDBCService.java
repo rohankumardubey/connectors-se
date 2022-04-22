@@ -31,6 +31,7 @@ import org.talend.sdk.component.api.service.dependency.Resolver;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -46,6 +47,7 @@ import java.util.Date;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.talend.sdk.component.api.record.Schema.Type.*;
 import static org.talend.sdk.component.api.record.Schema.Type.STRING;
@@ -153,7 +155,7 @@ public class JDBCService implements Serializable {
 
     @CreateConnection
     public Connection createConnection(@Option("configuration") final JDBCDataStore dataStore) throws SQLException {
-        return createJDBCConnection(dataStore);
+        return createJDBCConnection(dataStore).getConnection();
     }
 
     @CloseConnection
@@ -253,8 +255,8 @@ public class JDBCService implements Serializable {
         return availableTableTypes;
     }
 
-    public Connection createJDBCConnection(final JDBCDataStore dataStore) throws SQLException {
-        return new JDBCDataSource(this.resolver, dataStore).getConnection();
+    public JDBCDataSource createJDBCConnection(final JDBCDataStore dataStore) throws SQLException {
+        return new JDBCDataSource(this.resolver, dataStore);
     }
 
     // copy from tck jdbc connector for cloud, TODO now for fast development, will unify them to one
@@ -366,8 +368,27 @@ public class JDBCService implements Serializable {
         }
     }
 
-    // @DiscoverSchema(value = "GUESS_SCHEMA")
-    public Schema guessSchema(@Option final JDBCQueryDataSet dataset) {
+    @DiscoverSchema(value = "JDBCQueryDataSet")
+    public Schema guessSchema(@Option final JDBCQueryDataSet dataSet) throws SQLException {
+        try (JDBCDataSource dataSource = this.createJDBCConnection(dataSet.getDataStore())) {
+            Connection connection = dataSource.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(dataSet.getSqlQuery());
+
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(RECORD);
+            IntStream.rangeClosed(1, metaData.getColumnCount())
+                    .mapToObj(index -> addField(schemaBuilder, metaData, index))
+                    .toArray(JDBCService.ColumnInfo[]::new);
+            Schema schema = schemaBuilder.build();
+            return schema;
+        }
+    }
+
+    @Suggestions("FETCH_COLUMN_NAMES")
+    public SuggestionValues fetchColumnNames(JDBCDataStore dataStore, String tableName) {
+        if (true)
+            throw new RuntimeException("i am running");
         return null;
     }
 

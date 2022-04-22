@@ -63,6 +63,12 @@ public class JDBCQueryDataSet implements Serializable {
     @Documentation("The table name")
     private String tableName;
 
+    @Option
+    @Suggestable(value = "FETCH_COLUMN_NAMES", parameters = { "dataStore", "sqlQuery" })
+    @Structure(type = Structure.Type.OUT, discoverSchema = "JDBCQueryDataSet")
+    @Documentation("schema")
+    private List<String> schema;
+
     /*
      * @Option
      * 
