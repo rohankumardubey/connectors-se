@@ -110,7 +110,9 @@ public class SchemaToAvro {
             } else {
                 arrayType = this.extractSchema(null, elementSchema.getType(), elementSchema);
             }
-            extractedSchema = org.apache.avro.Schema.createArray(arrayType);
+            final org.apache.avro.Schema nullableArrayType =
+                    SchemaBuilder.unionOf().type(arrayType).and().nullType().endUnion();
+            extractedSchema = org.apache.avro.Schema.createArray(nullableArrayType);
             break;
         case STRING:
         case BYTES:

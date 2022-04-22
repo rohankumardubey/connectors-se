@@ -70,6 +70,9 @@ public class AvroToRecord {
     private Record avroToRecord(final GenericRecord genericRecord, final List<org.apache.avro.Schema.Field> fields,
             final Record.Builder recordBuilder, final Schema tckSchema) {
 
+        if (genericRecord == null) {
+            return null;
+        }
         for (org.apache.avro.Schema.Field field : fields) {
             final Object value = genericRecord.get(field.name());
             final Entry entry = tckSchema.getEntry(field.name());
@@ -99,8 +102,8 @@ public class AvroToRecord {
 
     private Collection<?> buildArrayField(final org.apache.avro.Schema schema, final Collection<?> value,
             final Schema elementSchema) {
-        final org.apache.avro.Schema arraySchema = AvroHelper.getUnionSchema(schema);
-        final org.apache.avro.Schema arrayInnerType = AvroHelper.getUnionSchema(arraySchema.getElementType());
+        final org.apache.avro.Schema arraySchema = AvroHelper.nonNullableType(schema);
+        final org.apache.avro.Schema arrayInnerType = AvroHelper.nonNullableType(arraySchema.getElementType());
 
         final Collection<?> objectArray;
         switch (arrayInnerType.getType()) {
@@ -145,7 +148,7 @@ public class AvroToRecord {
             objectArray = value.stream().map(obj -> {
                 if (Constants.AVRO_LOGICAL_TYPE_DECIMAL.equals(arrayInnerType.getLogicalType().getName())) {
                     return new BigDecimal(new BigInteger(((GenericFixed) obj).bytes()),
-                            ((LogicalTypes.Decimal) AvroHelper.getUnionSchema(arrayInnerType).getLogicalType())
+                            ((LogicalTypes.Decimal) AvroHelper.nonNullableType(arrayInnerType).getLogicalType())
                                     .getScale());
                 } else {
                     return ((java.nio.ByteBuffer) obj).array();
@@ -199,7 +202,7 @@ public class AvroToRecord {
             }
             if (Constants.AVRO_LOGICAL_TYPE_DECIMAL.equals(logicalType)) {
                 BigDecimal decimal = new BigDecimal(new BigInteger(bytes),
-                        ((LogicalTypes.Decimal) AvroHelper.getUnionSchema(field.schema()).getLogicalType())
+                        ((LogicalTypes.Decimal) AvroHelper.nonNullableType(field.schema()).getLogicalType())
                                 .getScale());
                 recordBuilder.withString(entry, decimal.toPlainString());
             } else {

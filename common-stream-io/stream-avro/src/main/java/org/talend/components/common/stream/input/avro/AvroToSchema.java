@@ -45,7 +45,7 @@ public class AvroToSchema {
             builder.withType(Schema.Type.RECORD);
             //
             final Schema.Builder subBuilder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
-            org.apache.avro.Schema extractedSchema = AvroHelper.getUnionSchema(field.schema());
+            org.apache.avro.Schema extractedSchema = AvroHelper.nonNullableType(field.schema());
             extractedSchema.getFields().stream().map(this::inferAvroField).forEach(subBuilder::withEntry);
             builder.withElementSchema(subBuilder.build());
         }
@@ -54,7 +54,7 @@ public class AvroToSchema {
         case ARRAY:
             builder.withType(Schema.Type.ARRAY);
             org.apache.avro.Schema extractedSchema = AvroHelper
-                    .getUnionSchema(AvroHelper.getUnionSchema(field.schema()).getElementType());
+                    .nonNullableType(AvroHelper.nonNullableType(field.schema()).getElementType());
             final Schema innerSchema = this.inferInnerSchema(extractedSchema);
             builder.withElementSchema(innerSchema);
 
@@ -78,7 +78,7 @@ public class AvroToSchema {
         case FIXED:
             if (Constants.AVRO_LOGICAL_TYPE_DECIMAL.equals(logicalType)) {
                 LogicalTypes.Decimal decimalType =
-                        ((LogicalTypes.Decimal) AvroHelper.getUnionSchema(field.schema()).getLogicalType());
+                        ((LogicalTypes.Decimal) AvroHelper.nonNullableType(field.schema()).getLogicalType());
                 builder.withType(Schema.Type.STRING)
                         .withProp(Constants.STUDIO_TYPE, BIGDECIMAL)
                         .withProp(Constants.STUDIO_LENGTH, String.valueOf(decimalType.getPrecision()))
@@ -111,7 +111,7 @@ public class AvroToSchema {
                     .forEach(schemaBuilder::withEntry);
         } else if (toType == Schema.Type.ARRAY) {
             final org.apache.avro.Schema elementType = schema.getElementType();
-            final Schema innerSchema = this.inferInnerSchema(AvroHelper.getUnionSchema(elementType));
+            final Schema innerSchema = this.inferInnerSchema(AvroHelper.nonNullableType(elementType));
             schemaBuilder.withElementSchema(innerSchema);
         }
 
