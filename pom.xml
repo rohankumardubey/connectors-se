@@ -136,7 +136,7 @@
         <xtm.api.url>https://www.xtm-cloud.com/rest-api</xtm.api.url>
 
         <!-- CVE fix -->
-        <netty-codec.version>4.1.68.Final</netty-codec.version>
+        <netty4.version>4.1.75.Final</netty4.version>
         <netty-tcnative-boringssl-static.version>2.0.46.Final</netty-tcnative-boringssl-static.version>
 
         <jetty.version>9.4.38.v20210224</jetty.version>
@@ -323,22 +323,22 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec-http2</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
@@ -348,56 +348,67 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler-proxy</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-buffer</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec-http</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-epoll</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-epoll</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
                 <classifier>linux-x86_64</classifier>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-epoll</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
                 <classifier>linux-aarch_64</classifier>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-kqueue</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-kqueue</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
                 <classifier>osx-x86_64</classifier>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-kqueue</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
                 <classifier>osx-aarch_64</classifier>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-unix-common</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-resolver-dns</artifactId>
+                <version>${netty4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-resolver-dns-native-macos</artifactId>
+                <version>${netty4.version}</version>
+                <classifier>osx-x86_64</classifier>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
