@@ -69,17 +69,6 @@ public class JDBCQueryDataSet implements Serializable {
     @Documentation("schema")
     private List<String> schema;
 
-    /*
-     * @Option
-     * 
-     * @Suggestable(value = "FETCH_COLUMN_NAMES", parameters = { "datastore", "tableName" })
-     * 
-     * @Documentation("Schema.")
-     * 
-     * @Structure(type = Structure.Type.OUT, discoverSchema = "GUESS_SCHEMA")
-     * private List<String> schema = Collections.emptyList();
-     */
-
     // TODO how to generate Query Store field, Guess Query button here and hook it to the query field for runtime to
     // generate the query
     // TODO how to pass right connection info to SQL Editor field by button in Query field?

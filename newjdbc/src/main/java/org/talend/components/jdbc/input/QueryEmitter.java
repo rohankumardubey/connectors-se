@@ -13,6 +13,10 @@
 package org.talend.components.jdbc.input;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.common.DBType;
+import org.talend.components.jdbc.schema.CommonUtils;
+import org.talend.components.jdbc.schema.Dbms;
+import org.talend.components.jdbc.schema.SchemaInferer;
 import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -28,6 +32,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
+import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -59,8 +64,6 @@ public class QueryEmitter implements Serializable {
 
     // private final I18nMessage i18n;
 
-    private transient JDBCService.ColumnInfo[] columnInfoList;
-
     private transient Schema schema;
 
     public QueryEmitter(@Option("configuration") final JDBCInputConfig configuration, final JDBCService jdbcService,
@@ -81,16 +84,25 @@ public class QueryEmitter implements Serializable {
             }
         }
 
+        // TODO we already done a feature to support runtime context, will use it
+        // no this for cloud platform
+        // now use this for test only
+        URL mappingFileDir = null;
+
+        DBType dbTypeInComponentSetting = configuration.isEnableMapping() ? configuration.getMapping() : null;
+
+        Dbms mapping = null;
+
+        if (mappingFileDir != null) {
+            mapping = CommonUtils.getMapping(mappingFileDir, configuration.getDataSet().getDataStore(), null,
+                    dbTypeInComponentSetting);
+        }
+
         try {
             Statement statement = connection.createStatement();
             resultSet = statement.executeQuery(configuration.getDataSet().getSqlQuery());
 
-            ResultSetMetaData metaData = resultSet.getMetaData();
-            Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(RECORD);
-            columnInfoList = IntStream.rangeClosed(1, metaData.getColumnCount())
-                    .mapToObj(index -> jdbcService.addField(schemaBuilder, metaData, index))
-                    .toArray(JDBCService.ColumnInfo[]::new);
-            schema = schemaBuilder.build();
+            schema = SchemaInferer.infer(recordBuilderFactory, resultSet.getMetaData(), mapping);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -103,9 +115,9 @@ public class QueryEmitter implements Serializable {
         }
 
         final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
-        for (int index = 0; index < columnInfoList.length; index++) {
-            jdbcService.addColumn(recordBuilder, columnInfoList[index], resultSet.getObject(index + 1));
-        }
+
+        SchemaInferer.fillValue(recordBuilder, schema, resultSet);
+
         return recordBuilder.build();
     }
 

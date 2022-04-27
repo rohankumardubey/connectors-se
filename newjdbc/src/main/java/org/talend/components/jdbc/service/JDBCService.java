@@ -16,8 +16,12 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.common.DBType;
 import org.talend.components.jdbc.dataset.JDBCQueryDataSet;
 import org.talend.components.jdbc.datastore.JDBCDataStore;
+import org.talend.components.jdbc.schema.CommonUtils;
+import org.talend.components.jdbc.schema.Dbms;
+import org.talend.components.jdbc.schema.SchemaInferer;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
@@ -370,17 +374,27 @@ public class JDBCService implements Serializable {
 
     @DiscoverSchema(value = "JDBCQueryDataSet")
     public Schema guessSchema(@Option final JDBCQueryDataSet dataSet) throws SQLException {
+        // TODO provide a way to get the mapping files in studio platform, also this should work for cloud platform
+        // no this for cloud platform
+        URL mappingFileDir = null;
+
+        // TODO dbTypeInComponentSetting exist for tjdbcinput, how to pass it?
+        DBType dbTypeInComponentSetting = null;
+
+        Dbms mapping = null;
+        if (mappingFileDir != null) {
+            mapping = CommonUtils.getMapping(mappingFileDir, dataSet.getDataStore(), null, dbTypeInComponentSetting);
+        }
+
         try (JDBCDataSource dataSource = this.createJDBCConnection(dataSet.getDataStore())) {
             Connection connection = dataSource.getConnection();
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(dataSet.getSqlQuery());
 
             ResultSetMetaData metaData = resultSet.getMetaData();
-            Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(RECORD);
-            IntStream.rangeClosed(1, metaData.getColumnCount())
-                    .mapToObj(index -> addField(schemaBuilder, metaData, index))
-                    .toArray(JDBCService.ColumnInfo[]::new);
-            Schema schema = schemaBuilder.build();
+
+            Schema schema = SchemaInferer.infer(recordBuilderFactory, metaData, mapping);
+
             return schema;
         }
     }
@@ -403,117 +417,6 @@ public class JDBCService implements Serializable {
         private final boolean isNullable;
     }
 
-    // TODO use studio db mapping files to decide the type convert
-    public ColumnInfo addField(final Schema.Builder builder, final ResultSetMetaData metaData, final int columnIndex) {
-        try {
-            final String javaType = metaData.getColumnClassName(columnIndex);
-            final int sqlType = metaData.getColumnType(columnIndex);
-            final String columnName = metaData.getColumnLabel(columnIndex);// select field as f1, 1 as f2, here return
-                                                                           // f1 and f2
-
-            final String dbColumnName = metaData.getColumnName(columnIndex);// select field as f1 from t1, here return
-                                                                            // "field"?
-            // TODO use talend db mapping files to do type convert to talend type
-            final String columnTypeName = metaData.getColumnTypeName(columnIndex).toUpperCase();
-            final int size = metaData.getPrecision(columnIndex);
-            final int scale = metaData.getScale(columnIndex);
-
-            final boolean ignorePrecision = false;
-            final boolean ignoreScale = false;
-
-            final boolean isNullable = metaData.isNullable(columnIndex) != ResultSetMetaData.columnNoNulls;
-            final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder()
-                    .withName(columnName)
-                    // .withRawName(columnName)//no need this as withName will do it
-                    .withNullable(isNullable)
-                    .withProp("talend.studio.key", "false")// as metadata from sql query, not table metadata, so no key
-                                                           // info or no need
-            ;
-            switch (sqlType) {
-            case java.sql.Types.SMALLINT:
-            case java.sql.Types.TINYINT:
-            case java.sql.Types.INTEGER:
-                if (javaType.equals(Integer.class.getName()) || Short.class.getName().equals(javaType)) {
-                    entryBuilder.withType(INT).withProp("talend.studio.type", "id_Integer");
-                    withPrecision(entryBuilder, ignorePrecision, size);
-                } else {
-                    entryBuilder.withType(LONG).withProp("talend.studio.type", "id_Long");
-                    withPrecision(entryBuilder, ignorePrecision, size);
-                }
-
-                break;
-            case java.sql.Types.FLOAT:
-            case java.sql.Types.REAL:
-                entryBuilder.withType(FLOAT).withProp("talend.studio.type", "id_Float");
-                withPrecision(entryBuilder, ignorePrecision, size);
-                withScale(entryBuilder, ignoreScale, scale);
-                break;
-            case java.sql.Types.DOUBLE:
-                entryBuilder.withType(DOUBLE).withProp("talend.studio.type", "id_Double");
-                withPrecision(entryBuilder, ignorePrecision, size);
-                withScale(entryBuilder, ignoreScale, scale);
-                break;
-            case java.sql.Types.BOOLEAN:
-                entryBuilder.withType(BOOLEAN).withProp("talend.studio.type", "id_Boolean");
-                break;
-            case java.sql.Types.TIME:
-                entryBuilder.withType(DATETIME)
-                        .withProp("talend.studio.type", "id_Date")
-                        .withProp("talend.studio.pattern", "HH:mm:ss");
-                withPrecision(entryBuilder, ignorePrecision, size);
-                withScale(entryBuilder, ignoreScale, scale);
-                break;
-            case java.sql.Types.DATE:
-                entryBuilder.withType(DATETIME)
-                        .withProp("talend.studio.type", "id_Date")
-                        .withProp("talend.studio.pattern", "yyyy-MM-dd");
-                withPrecision(entryBuilder, ignorePrecision, size);
-                withScale(entryBuilder, ignoreScale, scale);
-                break;
-            case java.sql.Types.TIMESTAMP:
-                entryBuilder.withType(DATETIME)
-                        .withProp("talend.studio.type", "id_Date")
-                        .withProp("talend.studio.pattern", "yyyy-MM-dd HH:mm:ss");
-                withPrecision(entryBuilder, ignorePrecision, size);
-                withScale(entryBuilder, ignoreScale, scale);
-                break;
-            case java.sql.Types.BINARY:
-            case java.sql.Types.VARBINARY:
-            case java.sql.Types.LONGVARBINARY:
-                entryBuilder.withType(BYTES).withProp("talend.studio.type", "id_byte[]");
-                withPrecision(entryBuilder, ignorePrecision, size);
-                break;
-            case java.sql.Types.BIGINT:
-            case java.sql.Types.DECIMAL:
-            case java.sql.Types.NUMERIC:
-                entryBuilder.withType(STRING).withProp("talend.studio.type", "id_BigDecimal");
-                withPrecision(entryBuilder, ignorePrecision, size);
-                withScale(entryBuilder, ignoreScale, scale);
-                break;
-            case java.sql.Types.CHAR:
-                entryBuilder.withType(STRING).withProp("talend.studio.type", "id_Character");
-                withPrecision(entryBuilder, ignorePrecision, size);
-                break;
-            case java.sql.Types.VARCHAR:
-            case java.sql.Types.LONGVARCHAR:
-                entryBuilder.withType(STRING).withProp("talend.studio.type", "id_String");
-                withPrecision(entryBuilder, ignorePrecision, size);
-                withScale(entryBuilder, ignoreScale, scale);
-            default:
-                entryBuilder.withType(STRING).withProp("talend.studio.type", "id_String");
-                break;
-            }
-
-            builder.withEntry(entryBuilder.build());
-
-            log.warn("[addField] {} {} {}.", columnName, javaType, sqlType);
-            return new ColumnInfo(columnName, sqlType, isNullable);
-        } catch (final SQLException e) {
-            // TODO
-            throw new RuntimeException(e);
-        }
-    }
-
     private Schema.Entry.Builder withPrecision(Schema.Entry.Builder builder, boolean ignorePrecision, int precision) {
         if (ignorePrecision) {
             return builder;
@@ -533,69 +436,4 @@ public class JDBCService implements Serializable {
         return builder;
     }
 
-    public void addColumn(final Record.Builder builder, final ColumnInfo columnInfo, final Object value) {
-        final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder()
-                .withName(columnInfo.getColumnName())
-                .withNullable(columnInfo.isNullable());
-        switch (columnInfo.getSqlType()) {
-        case java.sql.Types.SMALLINT:
-        case java.sql.Types.TINYINT:
-        case java.sql.Types.INTEGER:
-            if (value != null) {
-                if (value instanceof Integer) {
-                    builder.withInt(entryBuilder.withType(INT).build(), (Integer) value);
-                } else if (value instanceof Short) {
-                    builder.withInt(entryBuilder.withType(INT).build(), ((Short) value).intValue());
-                } else {
-                    builder.withLong(entryBuilder.withType(LONG).build(), Long.parseLong(value.toString()));
-                }
-            }
-            break;
-        case java.sql.Types.FLOAT:
-        case java.sql.Types.REAL:
-            if (value != null) {
-                builder.withFloat(entryBuilder.withType(FLOAT).build(), (Float) value);
-            }
-            break;
-        case java.sql.Types.DOUBLE:
-            if (value != null) {
-                builder.withDouble(entryBuilder.withType(DOUBLE).build(), (Double) value);
-            }
-            break;
-        case java.sql.Types.BOOLEAN:
-            if (value != null) {
-                builder.withBoolean(entryBuilder.withType(BOOLEAN).build(), (Boolean) value);
-            }
-            break;
-        case java.sql.Types.DATE:
-            builder
-                    .withDateTime(entryBuilder.withType(DATETIME).build(),
-                            value == null ? null : new Date(((java.sql.Date) value).getTime()));
-            break;
-        case java.sql.Types.TIME:
-            builder
-                    .withDateTime(entryBuilder.withType(DATETIME).build(),
-                            value == null ? null : new Date(((java.sql.Time) value).getTime()));
-            break;
-        case java.sql.Types.TIMESTAMP:
-            builder
-                    .withDateTime(entryBuilder.withType(DATETIME).build(),
-                            value == null ? null : new Date(((java.sql.Timestamp) value).getTime()));
-            break;
-        case java.sql.Types.BINARY:
-        case java.sql.Types.VARBINARY:
-        case java.sql.Types.LONGVARBINARY:
-            builder.withBytes(entryBuilder.withType(BYTES).build(), value == null ? null : (byte[]) value);
-            break;
-        case java.sql.Types.BIGINT:
-        case java.sql.Types.DECIMAL:
-        case java.sql.Types.NUMERIC:
-        case java.sql.Types.VARCHAR:
-        case java.sql.Types.LONGVARCHAR:
-        case java.sql.Types.CHAR:
-        default:
-            builder.withString(entryBuilder.withType(STRING).build(), value == null ? null : String.valueOf(value));
-            break;
-        }
-    }
 }
