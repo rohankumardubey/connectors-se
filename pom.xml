@@ -95,7 +95,8 @@
     <spark.version>3.0.1</spark.version>
     <shrinkwrap.version>3.1.4</shrinkwrap.version>
     <avro.version>1.8.2</avro.version>
-    <jackson.version>2.11.4</jackson.version>
+    <jackson.version>2.13.2</jackson.version>
+    <jackson-databind.version>2.13.2.2</jackson-databind.version>
     <jackson-codehaus.version>1.9.16-TALEND</jackson-codehaus.version>
 
     <jsoup.version>1.14.3</jsoup.version>
@@ -230,7 +231,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
+        <version>${jackson-databind.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
