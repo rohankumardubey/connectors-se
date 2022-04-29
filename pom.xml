@@ -148,7 +148,7 @@
     <zookeeper.version>3.4.14</zookeeper.version>
     <guava.version>30.0-jre</guava.version>
 
-    <hadoop.version>3.2.2</hadoop.version>
+    <hadoop.version>3.2.3</hadoop.version>
 
     <!-- code quality enforcer default values.
          run build w/ -Pcode-quality to have a full validation -->

@@ -38,7 +38,7 @@
         -->
         <talend.component.studioHome />
 
-        <hadoop-common.version>3.2.2</hadoop-common.version>
+        <hadoop-common.version>3.2.3</hadoop-common.version>
         <hadoop-azure.version>3.2.2.1</hadoop-azure.version>
     </properties>
 
