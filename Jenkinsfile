@@ -91,7 +91,6 @@ pipeline {
         TALEND_REGISTRY = "artifactory.datapwn.com"
 
         TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX = "artifactory.datapwn.com/docker-io-remote/"
-        TESTCONTAINERS_RYUK_DISABLED = "true"
     }
 
     options {
