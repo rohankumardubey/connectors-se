@@ -25,6 +25,10 @@
 
   <name>Connectors SE :: Common Stream IO :: stream-json</name>
 
+  <properties>
+    <spark-scala.version>2.12</spark-scala.version>
+  </properties>
+
   <dependencies>
     <!-- file line formats -->
     <dependency>
@@ -49,13 +53,11 @@
     <dependency>
       <groupId>org.talend.sdk.component</groupId>
       <artifactId>component-runtime-beam-junit</artifactId>
-      <version>${component-runtime.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.beam</groupId>
       <artifactId>beam-sdks-java-core</artifactId>
-      <version>${beam.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -67,28 +69,6 @@
     <dependency>
       <groupId>org.talend.sdk.component</groupId>
       <artifactId>component-runtime-testing-spark</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_2.12</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_2.12</artifactId>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-reload4j</artifactId>
-      <version>1.7.36</version>
       <scope>test</scope>
     </dependency>
     <dependency>

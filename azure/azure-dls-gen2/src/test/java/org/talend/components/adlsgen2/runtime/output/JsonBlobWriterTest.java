@@ -95,19 +95,18 @@ class JsonBlobWriterTest {
     }
 
     private Record buildRecord(final Schema schema,
-                               final RecordBuilderFactory factory,
-                               int index) {
+            final RecordBuilderFactory factory,
+            int index) {
         return factory.newRecordBuilder(schema)
                 .withString("f1", "value_" + index)
                 .withArray(this.fArray,
                         Arrays.asList(
-                        factory.newRecordBuilder(this.innerRecord)
-                                .withString("inner", "value Inner_" + index + "_1")
-                                .build(),
-                        factory.newRecordBuilder(this.innerRecord)
-                                .withString("inner", "value Inner_" + index + "_2")
-                                .build())
-                        )
+                                factory.newRecordBuilder(this.innerRecord)
+                                        .withString("inner", "value Inner_" + index + "_1")
+                                        .build(),
+                                factory.newRecordBuilder(this.innerRecord)
+                                        .withString("inner", "value Inner_" + index + "_2")
+                                        .build()))
                 .build();
     }
 

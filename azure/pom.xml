@@ -30,7 +30,7 @@
     <talend.documentation.htmlAndPdf>false
     </talend.documentation.htmlAndPdf>
 
-    <hadoop-common.version>3.2.2</hadoop-common.version>
+    <hadoop-common.version>3.2.3</hadoop-common.version>
     <hadoop-azure.version>3.2.2.1</hadoop-azure.version>
     <mockito.version>2.23.0</mockito.version>
   </properties>
