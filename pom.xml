@@ -1256,6 +1256,10 @@
         </profile>
         <profile>
             <id>DEPLOY</id>
+            <properties>
+                <skipTests>true</skipTests>
+                <enforcer.skip>true</enforcer.skip>
+            </properties>
         </profile>
         <profile>
             <id>DEPLOY_SNAPSHOT_AFTER_RELEASE</id>
