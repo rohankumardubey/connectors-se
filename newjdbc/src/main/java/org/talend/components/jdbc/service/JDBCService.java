@@ -18,9 +18,11 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.common.DBType;
 import org.talend.components.jdbc.dataset.JDBCQueryDataSet;
+import org.talend.components.jdbc.dataset.JDBCTableDataSet;
 import org.talend.components.jdbc.datastore.JDBCDataStore;
 import org.talend.components.jdbc.schema.CommonUtils;
 import org.talend.components.jdbc.schema.Dbms;
+import org.talend.components.jdbc.schema.JDBCTableMetadata;
 import org.talend.components.jdbc.schema.SchemaInferer;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Record;
@@ -154,6 +156,12 @@ public class JDBCService implements Serializable {
 
     @HealthCheck("CheckConnection")
     public HealthCheckStatus validateBasicDataStore(@Option final JDBCDataStore dataStore) {
+        try (JDBCDataSource dataSource = this.createJDBCConnection(dataStore);
+                Connection ignored = dataSource.getConnection()) {
+
+        } catch (Exception e) {
+            return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
+        }
         return new HealthCheckStatus(HealthCheckStatus.Status.OK, "success message, TODO, i18n");
     }
 
@@ -223,7 +231,7 @@ public class JDBCService implements Serializable {
 
     /**
      * get database schema for database special
-     * 
+     *
      * @return
      */
     private String getDatabaseSchema(final JDBCDataStore dataStore) {
@@ -373,7 +381,7 @@ public class JDBCService implements Serializable {
     }
 
     @DiscoverSchema(value = "JDBCQueryDataSet")
-    public Schema guessSchema(@Option final JDBCQueryDataSet dataSet) throws SQLException {
+    public Schema guessSchemaByQuery(@Option final JDBCQueryDataSet dataSet) throws SQLException {
         // TODO provide a way to get the mapping files in studio platform, also this should work for cloud platform
         // no this for cloud platform
         URL mappingFileDir = null;
@@ -394,6 +402,32 @@ public class JDBCService implements Serializable {
             ResultSetMetaData metaData = resultSet.getMetaData();
 
             Schema schema = SchemaInferer.infer(recordBuilderFactory, metaData, mapping);
+
+            return schema;
+        }
+    }
+
+    @DiscoverSchema(value = "JDBCTableDataSet")
+    public Schema guessSchemaByTable(@Option final JDBCTableDataSet dataSet) throws SQLException {
+        // TODO provide a way to get the mapping files in studio platform, also this should work for cloud platform
+        // no this for cloud platform
+        URL mappingFileDir = null;
+
+        // TODO dbTypeInComponentSetting exist for tjdbcinput, how to pass it?
+        DBType dbTypeInComponentSetting = null;
+
+        Dbms mapping = null;
+        if (mappingFileDir != null) {
+            mapping = CommonUtils.getMapping(mappingFileDir, dataSet.getDataStore(), null, dbTypeInComponentSetting);
+        }
+
+        try (JDBCDataSource dataSource = this.createJDBCConnection(dataSet.getDataStore())) {
+            Connection connection = dataSource.getConnection();
+
+            JDBCTableMetadata tableMetadata = new JDBCTableMetadata();
+            tableMetadata.setDatabaseMetaData(connection.getMetaData()).setTablename(dataSet.getTableName());
+
+            Schema schema = SchemaInferer.infer(recordBuilderFactory, tableMetadata, mapping);
 
             return schema;
         }

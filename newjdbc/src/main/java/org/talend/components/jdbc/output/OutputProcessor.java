@@ -26,6 +26,7 @@ import org.talend.sdk.component.api.service.connection.Connection;
 
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 @Slf4j
@@ -49,6 +50,8 @@ public class OutputProcessor implements Serializable {
     @Connection
     private transient java.sql.Connection connection;
 
+    private transient boolean init;
+
     public OutputProcessor(@Option("configuration") final JDBCOutputConfig configuration,
             final JDBCService jdbcService/*
                                           * , final I18nMessage
@@ -67,7 +70,30 @@ public class OutputProcessor implements Serializable {
     @ElementListener
     public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success,
             @Output("reject") final OutputEmitter<Reject> reject) throws SQLException {
+        if (!init) {
+            if (connection == null) {
+                try {
+                    connection = jdbcService.createConnection(configuration.getDataSet().getDataStore());
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
 
+            init = true;
+        }
+
+        if (record == null)
+            return;
+
+        // TODO fix it, now only do a test firstly
+
+        PreparedStatement statement =
+                connection.prepareStatement("insert into " + configuration.getDataSet().getTableName() + " values(?)");
+        statement.setString(1, "wangwei");
+
+        statement.execute();
+
+        connection.commit();
     }
 
     @AfterGroup

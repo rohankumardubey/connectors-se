@@ -29,6 +29,7 @@ import java.util.List;
 
 @Data
 @GridLayout({
+        @GridLayout.Row("schema"), // TODO need this?
         @GridLayout.Row("dataStore"),
         @GridLayout.Row("tableName"),
         @GridLayout.Row("sqlQuery")

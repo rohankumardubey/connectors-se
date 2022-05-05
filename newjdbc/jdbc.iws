@@ -3,9 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="eb1e80a8-e77b-474e-9641-e454c6583f70" name="Default Changelist" comment="support studio db mapping files, step 1">
       <change beforePath="$PROJECT_DIR$/jdbc.iws" beforeDir="false" afterPath="$PROJECT_DIR$/jdbc.iws" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/input/QueryEmitter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/input/QueryEmitter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/schema/SchemaInferer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/schema/SchemaInferer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/dataset/JDBCQueryDataSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/dataset/JDBCQueryDataSet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/dataset/JDBCTableDataSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/dataset/JDBCTableDataSet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/output/OutputProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/output/OutputProcessor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/service/JDBCService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/service/JDBCService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/talend/components/jdbc/Messages.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/talend/components/jdbc/Messages.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -304,7 +306,35 @@
       <option name="project" value="LOCAL" />
       <updated>1651055634190</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="support studio db mapping files, step 1">
+      <created>1651113728561</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1651113728561</updated>
+    </task>
+    <task id="LOCAL-00003" summary="support studio db mapping files, step 1">
+      <created>1651113742840</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1651113742840</updated>
+    </task>
+    <task id="LOCAL-00004" summary="support studio db mapping files, step 1">
+      <created>1651113751141</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1651113751142</updated>
+    </task>
+    <task id="LOCAL-00005" summary="support studio db mapping files, step 1">
+      <created>1651117042600</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1651117042600</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -376,17 +406,24 @@
     <webview flattenPackages="false" showMembers="false" autoscrollToSource="false" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="349" y="43" key="CommitChangelistDialog2" timestamp="1651113742532">
+    <state x="349" y="43" width="1031" height="796" key="CommitChangelistDialog2" timestamp="1651738007806">
       <screen x="0" y="25" width="1440" height="833" />
     </state>
-    <state x="349" y="43" key="CommitChangelistDialog2/0.25.1440.833@0.25.1440.833" timestamp="1651113742532" />
-    <state x="450" y="177" width="540" height="524" key="StructurePopup" timestamp="1651112216583">
+    <state x="349" y="43" width="1031" height="796" key="CommitChangelistDialog2/0.25.1440.833@0.25.1440.833" timestamp="1651738007806" />
+    <state x="349" y="43" key="CommitChangelistDialog2/0.25.1440.834@0.25.1440.834" timestamp="1651203304462" />
+    <state x="450" y="177" width="540" height="525" key="StructurePopup" timestamp="1651132436552">
+      <screen x="0" y="25" width="1440" height="834" />
+    </state>
+    <state x="450" y="177" width="540" height="524" key="StructurePopup/0.25.1440.833@0.25.1440.833" timestamp="1651132124136" />
+    <state x="450" y="177" width="540" height="525" key="StructurePopup/0.25.1440.834@0.25.1440.834" timestamp="1651132436552" />
+    <state x="380" y="205" width="680" height="473" key="find.popup" timestamp="1651132426848">
+      <screen x="0" y="25" width="1440" height="834" />
+    </state>
+    <state x="380" y="205" width="680" height="472" key="find.popup/0.25.1440.833@0.25.1440.833" timestamp="1651126966645" />
+    <state x="380" y="205" width="680" height="473" key="find.popup/0.25.1440.834@0.25.1440.834" timestamp="1651132426848" />
+    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup" timestamp="1651738011876">
       <screen x="0" y="25" width="1440" height="833" />
     </state>
-    <state x="450" y="177" width="540" height="524" key="StructurePopup/0.25.1440.833@0.25.1440.833" timestamp="1651112216583" />
-    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup" timestamp="1651053035821">
-      <screen x="0" y="25" width="1440" height="833" />
-    </state>
-    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup/0.25.1440.833@0.25.1440.833" timestamp="1651053035821" />
+    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup/0.25.1440.833@0.25.1440.833" timestamp="1651738011876" />
   </component>
 </project>
