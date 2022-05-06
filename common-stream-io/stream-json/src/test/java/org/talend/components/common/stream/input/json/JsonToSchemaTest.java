@@ -12,6 +12,8 @@
  */
 package org.talend.components.common.stream.input.json;
 
+import static org.apache.avro.Schema.Type.NULL;
+
 import javax.json.Json;
 import javax.json.JsonNumber;
 import javax.json.JsonObject;
@@ -27,6 +29,7 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.beam.spi.AvroRecordBuilderFactoryProvider;
+import org.talend.sdk.component.runtime.beam.spi.record.AvroSchema;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 class JsonToSchemaTest {
@@ -104,9 +107,11 @@ class JsonToSchemaTest {
 
             final Collection<Record> vehicles = record.getArray(Record.class, "vehicles");
             final Schema elementSchema = record.getSchema().getEntry("vehicles").getElementSchema();
+            org.apache.avro.Schema elementSchemaInner = unwrapUnion(((AvroSchema) elementSchema).getDelegate());
             boolean allEquals = vehicles.stream()
                     .map(Record::getSchema)
-                    .allMatch((Schema tab) -> Objects.equals(tab, elementSchema));
+                    .map((AvroSchema.class::cast))
+                    .allMatch((AvroSchema tab) -> Objects.equals(tab.getDelegate(), elementSchemaInner));
             Assertions.assertTrue(allEquals, "some are different");
 
         } finally {
@@ -117,6 +122,15 @@ class JsonToSchemaTest {
             }
         }
 
+    }
+
+    public static org.apache.avro.Schema unwrapUnion(final org.apache.avro.Schema schema) {
+        switch (schema.getType()) {
+        case UNION:
+            return schema.getTypes().stream().filter(it -> it.getType() != NULL).findFirst().orElse(null);
+        default:
+            return schema;
+        }
     }
 
     private JsonObject load(final String fileName) throws IOException {
