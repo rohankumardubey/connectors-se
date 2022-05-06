@@ -12,7 +12,6 @@
  */
 package org.talend.components.common.stream;
 
-import org.junit.jupiter.api.Disabled;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 import java.util.ArrayList;
@@ -143,8 +142,8 @@ class JsonFormatTest {
 
         final List<Record> array = new ArrayList<>(wrapper.getArray(Record.class, "data"));
         Assertions.assertEquals(2, array.size());
-        Assertions.assertEquals(arrayElementSchema, array.get(0).getSchema());
-        Assertions.assertEquals(arrayElementSchema, array.get(1).getSchema());
+        Assertions.assertEquals(arrayElementSchema.getEntries(), array.get(0).getSchema().getEntries());
+        Assertions.assertEquals(arrayElementSchema.getEntries(), array.get(1).getSchema().getEntries());
     }
 
     @EnvironmentalTest
