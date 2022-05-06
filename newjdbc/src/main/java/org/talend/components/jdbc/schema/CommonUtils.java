@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.common.DBType;
 import org.talend.components.jdbc.common.Driver;
 import org.talend.components.jdbc.datastore.JDBCDataStore;
+import org.talend.sdk.component.api.record.Schema;
 
 import java.io.File;
 import java.io.IOException;
@@ -269,6 +270,20 @@ public class CommonUtils {
                 return t4d.get(0).getDbTypeName(); // first default
             }
         }
+        return null;
+    }
+
+    public static Schema.Entry getField(Schema schema, String fieldName) {
+        if (schema == null) {
+            return null;
+        }
+
+        for (Schema.Entry outField : schema.getEntries()) {
+            if (outField.getName().equals(fieldName)) {
+                return outField;
+            }
+        }
+
         return null;
     }
 

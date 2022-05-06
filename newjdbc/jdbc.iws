@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="eb1e80a8-e77b-474e-9641-e454c6583f70" name="Default Changelist" comment="support studio db mapping files, step 1">
+    <list default="true" id="eb1e80a8-e77b-474e-9641-e454c6583f70" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/input/JDBCInputReader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/input/JDBCRuntimeUtils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/row/JDBCRowReader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/row/JDBCRowWriter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jdbc.iws" beforeDir="false" afterPath="$PROJECT_DIR$/jdbc.iws" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/dataset/JDBCQueryDataSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/dataset/JDBCQueryDataSet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/dataset/JDBCTableDataSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/dataset/JDBCTableDataSet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/input/QueryEmitter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/input/QueryEmitter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/output/OutputProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/output/OutputProcessor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/service/JDBCService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/service/JDBCService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/org/talend/components/jdbc/Messages.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/talend/components/jdbc/Messages.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -175,6 +176,13 @@
     <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
     <option name="HIDE_WARNINGS" value="false" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
@@ -245,6 +253,17 @@
     <property name="MemberChooser.showClasses" value="true" />
     <property name="MemberChooser.sorted" value="false" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/output" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="org.talend.components.jdbc.row" />
+      <recent name="org.talend.components.jdbc.input" />
+      <recent name="org.talend.components.jdbc.output" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/output" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration selected="false" default="true" type="Applet" factoryName="Applet">
@@ -334,7 +353,28 @@
       <option name="project" value="LOCAL" />
       <updated>1651117042600</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="support guess schema for output">
+      <created>1651738167942</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1651738167942</updated>
+    </task>
+    <task id="LOCAL-00007" summary="support output">
+      <created>1651818787919</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1651818787919</updated>
+    </task>
+    <task id="LOCAL-00008" summary="support output">
+      <created>1651820974495</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1651820974495</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -349,9 +389,47 @@
       <is-autoscroll-to-source value="true" />
     </todo-panel>
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="1">
+          <value>
+            <State>
+              <option name="SHOW_ONLY_AFFECTED_CHANGES" value="true" />
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                  <entry key="structure">
+                    <value>
+                      <list>
+                        <option value="dir:/Users/wangwei/talend/connectors-se/newjdbc" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="OPEN_TABS">
+      <set>
+        <option value="1" />
+      </set>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="support studio db mapping files, step 1" />
-    <option name="LAST_COMMIT_MESSAGE" value="support studio db mapping files, step 1" />
+    <MESSAGE value="support guess schema for output" />
+    <MESSAGE value="support output" />
+    <option name="LAST_COMMIT_MESSAGE" value="support output" />
   </component>
   <component name="VssConfiguration">
     <CheckoutOptions>
@@ -406,24 +484,28 @@
     <webview flattenPackages="false" showMembers="false" autoscrollToSource="false" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="349" y="43" width="1031" height="796" key="CommitChangelistDialog2" timestamp="1651738007806">
+    <state x="349" y="43" width="1031" height="796" key="CommitChangelistDialog2" timestamp="1651824357713">
       <screen x="0" y="25" width="1440" height="833" />
     </state>
-    <state x="349" y="43" width="1031" height="796" key="CommitChangelistDialog2/0.25.1440.833@0.25.1440.833" timestamp="1651738007806" />
+    <state x="349" y="43" width="1031" height="796" key="CommitChangelistDialog2/0.25.1440.833@0.25.1440.833" timestamp="1651824357713" />
     <state x="349" y="43" key="CommitChangelistDialog2/0.25.1440.834@0.25.1440.834" timestamp="1651203304462" />
-    <state x="450" y="177" width="540" height="525" key="StructurePopup" timestamp="1651132436552">
-      <screen x="0" y="25" width="1440" height="834" />
-    </state>
-    <state x="450" y="177" width="540" height="524" key="StructurePopup/0.25.1440.833@0.25.1440.833" timestamp="1651132124136" />
-    <state x="450" y="177" width="540" height="525" key="StructurePopup/0.25.1440.834@0.25.1440.834" timestamp="1651132436552" />
-    <state x="380" y="205" width="680" height="473" key="find.popup" timestamp="1651132426848">
-      <screen x="0" y="25" width="1440" height="834" />
-    </state>
-    <state x="380" y="205" width="680" height="472" key="find.popup/0.25.1440.833@0.25.1440.833" timestamp="1651126966645" />
-    <state x="380" y="205" width="680" height="473" key="find.popup/0.25.1440.834@0.25.1440.834" timestamp="1651132426848" />
-    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup" timestamp="1651738011876">
+    <state x="288" y="94" key="DiffContextDialog" timestamp="1651820248229">
       <screen x="0" y="25" width="1440" height="833" />
     </state>
-    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup/0.25.1440.833@0.25.1440.833" timestamp="1651738011876" />
+    <state x="288" y="94" key="DiffContextDialog/0.25.1440.833@0.25.1440.833" timestamp="1651820248229" />
+    <state x="450" y="177" width="540" height="524" key="StructurePopup" timestamp="1651817149288">
+      <screen x="0" y="25" width="1440" height="833" />
+    </state>
+    <state x="450" y="177" width="540" height="524" key="StructurePopup/0.25.1440.833@0.25.1440.833" timestamp="1651817149288" />
+    <state x="450" y="177" width="540" height="525" key="StructurePopup/0.25.1440.834@0.25.1440.834" timestamp="1651132436552" />
+    <state x="380" y="205" width="680" height="472" key="find.popup" timestamp="1651818611921">
+      <screen x="0" y="25" width="1440" height="833" />
+    </state>
+    <state x="380" y="205" width="680" height="472" key="find.popup/0.25.1440.833@0.25.1440.833" timestamp="1651818611921" />
+    <state x="380" y="205" width="680" height="473" key="find.popup/0.25.1440.834@0.25.1440.834" timestamp="1651744764552" />
+    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup" timestamp="1651822761258">
+      <screen x="0" y="25" width="1440" height="833" />
+    </state>
+    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup/0.25.1440.833@0.25.1440.833" timestamp="1651822761258" />
   </component>
 </project>

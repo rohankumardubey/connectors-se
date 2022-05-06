@@ -13,10 +13,6 @@
 package org.talend.components.jdbc.input;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.common.DBType;
-import org.talend.components.jdbc.schema.CommonUtils;
-import org.talend.components.jdbc.schema.Dbms;
-import org.talend.components.jdbc.schema.SchemaInferer;
 import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -25,21 +21,13 @@ import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.connection.Connection;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
-import java.net.URL;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.stream.IntStream;
-
-import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
 
 @Slf4j
 @Version(1)
@@ -60,11 +48,9 @@ public class QueryEmitter implements Serializable {
     @Connection
     private transient java.sql.Connection connection;
 
-    private transient ResultSet resultSet;
-
     // private final I18nMessage i18n;
 
-    private transient Schema schema;
+    private transient JDBCInputReader reader;
 
     public QueryEmitter(@Option("configuration") final JDBCInputConfig configuration, final JDBCService jdbcService,
             final RecordBuilderFactory recordBuilderFactory/* .final I18nMessage i18nMessage */) {
@@ -75,61 +61,34 @@ public class QueryEmitter implements Serializable {
     }
 
     @PostConstruct
-    public void init() {
+    public void init() throws SQLException {
+        boolean useExistedConnection = false;
         if (connection == null) {
             try {
                 connection = jdbcService.createConnection(configuration.getDataSet().getDataStore());
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+        } else {
+            useExistedConnection = true;
         }
 
-        // TODO we already done a feature to support runtime context, will use it
-        // no this for cloud platform
-        // now use this for test only
-        URL mappingFileDir = null;
-
-        DBType dbTypeInComponentSetting = configuration.isEnableMapping() ? configuration.getMapping() : null;
-
-        Dbms mapping = null;
-
-        if (mappingFileDir != null) {
-            mapping = CommonUtils.getMapping(mappingFileDir, configuration.getDataSet().getDataStore(), null,
-                    dbTypeInComponentSetting);
-        }
-
-        try {
-            Statement statement = connection.createStatement();
-            resultSet = statement.executeQuery(configuration.getDataSet().getSqlQuery());
-
-            schema = SchemaInferer.infer(recordBuilderFactory, resultSet.getMetaData(), mapping);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        reader = new JDBCInputReader(configuration, useExistedConnection, connection, recordBuilderFactory);
+        reader.open();
     }
 
     @Producer
     public Record next() throws SQLException {
-        if (!resultSet.next()) {
+        if (reader.advance()) {
+            return reader.getCurrent();
+        } else {
             return null;
         }
-
-        final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
-
-        SchemaInferer.fillValue(recordBuilder, schema, resultSet);
-
-        return recordBuilder.build();
     }
 
     @PreDestroy
-    public void release() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+    public void release() throws SQLException {
+        reader.close();
     }
 
 }
