@@ -21,8 +21,10 @@ import org.apache.avro.LogicalTypes;
 import org.apache.avro.SchemaBuilder;
 import org.talend.sdk.component.api.record.Schema;
 
+import lombok.extern.slf4j.Slf4j;
 import static org.talend.components.common.stream.Constants.*;
 
+@Slf4j
 public class SchemaToAvro {
 
     private static final String ERROR_UNDEFINED_TYPE = "Undefined type %s.";
@@ -79,10 +81,15 @@ public class SchemaToAvro {
         if (lengthStr != null && !lengthStr.isEmpty()) {
             length = Integer.parseInt(lengthStr);
         }
-        if (precisionStr != null && !precisionStr.isEmpty()) {
+        if (length <= 0) {
+            log.warn("No precision was specified for Decimal column, the default value 38 would be used");
+            length = 38; // max precision for schema with size 16 (check LogicalTypes.Decimal::validate(size))
+        }
+        if (precisionStr != null && !precisionStr.isEmpty() && !precisionStr.startsWith("-")) {
             int scale = Integer.parseInt(precisionStr);
             LogicalTypes.decimal(length, scale).addToSchema(builder);
         } else {
+            log.warn("No scale value was specified for Decimal column. Default scale 0 would be used");
             LogicalTypes.decimal(length).addToSchema(builder);
         }
         return builder;
