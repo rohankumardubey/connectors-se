@@ -76,7 +76,8 @@ public class JDBCOutputBulkProcessor implements Serializable {
 
     @PostConstruct
     public void init() {
-        writer = new JDBCBulkFileWriter(configuration, recordBuilderFactory);
+        writer = new JDBCBulkFileWriter(configuration.getBulkCommonConfig(), configuration.isAppend(),
+                recordBuilderFactory);
     }
 
     @PreDestroy

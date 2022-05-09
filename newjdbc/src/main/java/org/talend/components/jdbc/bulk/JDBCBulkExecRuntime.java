@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.bulk;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.dataset.JDBCTableDataSet;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -28,7 +29,9 @@ import java.util.List;
 @Slf4j
 public class JDBCBulkExecRuntime {
 
-    public JDBCBulkExecConfig config;
+    public JDBCTableDataSet dataSet;
+
+    public JDBCBulkCommonConfig bulkCommonConfig;
 
     private boolean useExistedConnection;
 
@@ -39,10 +42,12 @@ public class JDBCBulkExecRuntime {
     // TODO how to get it from model? here no input record
     private Schema designSchema;
 
-    public JDBCBulkExecRuntime(JDBCBulkExecConfig config, boolean useExistedConnection, Connection conn,
+    public JDBCBulkExecRuntime(JDBCTableDataSet dataSet, JDBCBulkCommonConfig bulkCommonConfig,
+            boolean useExistedConnection, Connection conn,
             RecordBuilderFactory recordBuilderFactory) {
         // log.debug("Parameters: [{}]", "");//TODO
-        this.config = config;
+        this.dataSet = dataSet;
+        this.bulkCommonConfig = bulkCommonConfig;
         this.useExistedConnection = useExistedConnection;
         this.conn = conn;
         this.recordBuilderFactory = recordBuilderFactory;
@@ -52,18 +57,18 @@ public class JDBCBulkExecRuntime {
         StringBuilder sb = new StringBuilder();
 
         sb.append("LOAD DATA LOCAL INFILE '")
-                .append(config.getBulkCommonConfig().getBulkFile())
+                .append(bulkCommonConfig.getBulkFile())
                 .append("' INTO TABLE ")
-                .append(config.getDataSet().getTableName())
+                .append(dataSet.getTableName())
                 .append(" FIELDS TERMINATED BY '")
-                .append(config.getBulkCommonConfig().getFieldSeparator())
+                .append(bulkCommonConfig.getFieldSeparator())
                 .append("' ");
-        if (config.getBulkCommonConfig().isSetTextEnclosure()) {
-            sb.append("OPTIONALLY ENCLOSED BY '").append(config.getBulkCommonConfig().getTextEnclosure()).append("' ");
+        if (bulkCommonConfig.isSetTextEnclosure()) {
+            sb.append("OPTIONALLY ENCLOSED BY '").append(bulkCommonConfig.getTextEnclosure()).append("' ");
         }
-        sb.append("LINES TERMINATED BY '").append(config.getBulkCommonConfig().getRowSeparator()).append("' ");
-        if (config.getBulkCommonConfig().isSetNullValue()) {
-            sb.append("NULL DEFINED BY '").append(config.getBulkCommonConfig().getNullValue()).append("' ");
+        sb.append("LINES TERMINATED BY '").append(bulkCommonConfig.getRowSeparator()).append("' ");
+        if (bulkCommonConfig.isSetNullValue()) {
+            sb.append("NULL DEFINED BY '").append(bulkCommonConfig.getNullValue()).append("' ");
         }
 
         // if design schema is empty, no need to fill column settings, TODO now can't get design schema

@@ -69,7 +69,8 @@ public class JDBCBulkExecStandalone implements Serializable {
             useExistedConnection = true;
         }
 
-        runtime = new JDBCBulkExecRuntime(configuration, useExistedConnection, connection, recordBuilderFactory);
+        runtime = new JDBCBulkExecRuntime(configuration.getDataSet(), configuration.getBulkCommonConfig(),
+                useExistedConnection, connection, recordBuilderFactory);
     }
 
     @RunAtDriver

@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class JDBCBulkFileWriter {
 
-    protected JDBCOutputBulkConfig config;
+    protected JDBCBulkCommonConfig bulkCommonConfig;
 
     private CSVWriter csvWriter;
 
@@ -50,13 +50,14 @@ public class JDBCBulkFileWriter {
 
     private int totalCount;
 
-    public JDBCBulkFileWriter(JDBCOutputBulkConfig config, RecordBuilderFactory recordBuilderFactory) {
-        this.config = config;
+    public JDBCBulkFileWriter(JDBCBulkCommonConfig bulkCommonConfig, boolean isAppend,
+            RecordBuilderFactory recordBuilderFactory) {
+        this.bulkCommonConfig = bulkCommonConfig;
         this.recordBuilderFactory = recordBuilderFactory;
 
-        this.isAppend = config.isAppend();
-        if (config.getBulkCommonConfig().isSetNullValue()) {
-            this.nullValue = config.getBulkCommonConfig().getNullValue();
+        this.isAppend = isAppend;
+        if (bulkCommonConfig.isSetNullValue()) {
+            this.nullValue = bulkCommonConfig.getNullValue();
         }
 
         // TODO can't get it now
@@ -66,29 +67,29 @@ public class JDBCBulkFileWriter {
     }
 
     public void open() throws IOException {
-        String filepath = config.getBulkCommonConfig().getBulkFile();
+        String filepath = bulkCommonConfig.getBulkFile();
         if (filepath == null || filepath.isEmpty()) {
             throw new RuntimeException("Please set a valid value for \"Bulk File Path\" field.");
         }
         File file = new File(filepath);
         file.getParentFile().mkdirs();
-        if (config.getBulkCommonConfig().getRowSeparator().length() > 1) {
+        if (bulkCommonConfig.getRowSeparator().length() > 1) {
             throw new RuntimeException("only support one char row separator");
         }
-        if (config.getBulkCommonConfig().getFieldSeparator().length() > 1) {
+        if (bulkCommonConfig.getFieldSeparator().length() > 1) {
             throw new RuntimeException("only support one char field separator");
         }
         csvWriter = new CSVWriter(new OutputStreamWriter(new java.io.FileOutputStream(file, isAppend), charset));
-        csvWriter.setSeparator(config.getBulkCommonConfig().getFieldSeparator().charAt(0));
-        csvWriter.setLineEnd(config.getBulkCommonConfig().getRowSeparator().substring(0, 1));
+        csvWriter.setSeparator(bulkCommonConfig.getFieldSeparator().charAt(0));
+        csvWriter.setLineEnd(bulkCommonConfig.getRowSeparator().substring(0, 1));
 
-        if (config.getBulkCommonConfig().isSetTextEnclosure()) {
-            if (config.getBulkCommonConfig().getTextEnclosure().length() > 1) {
+        if (bulkCommonConfig.isSetTextEnclosure()) {
+            if (bulkCommonConfig.getTextEnclosure().length() > 1) {
                 throw new RuntimeException("only support one char text enclosure");
             }
             // not let it to do the "smart" thing, avoid to promise too much for changing api in future
             csvWriter.setQuoteStatus(CSVWriter.QuoteStatus.FORCE);
-            csvWriter.setQuoteChar(config.getBulkCommonConfig().getTextEnclosure().charAt(0));
+            csvWriter.setQuoteChar(bulkCommonConfig.getTextEnclosure().charAt(0));
         } else {
             csvWriter.setQuoteStatus(CSVWriter.QuoteStatus.NO);
         }
@@ -114,7 +115,7 @@ public class JDBCBulkFileWriter {
             }
 
             bulkFormatter =
-                    new BulkFormatter(inputSchema, currentSchema, config.getBulkCommonConfig().isSetTextEnclosure());
+                    new BulkFormatter(inputSchema, currentSchema, bulkCommonConfig.isSetTextEnclosure());
         }
 
         // TODO remove this?

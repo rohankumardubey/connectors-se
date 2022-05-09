@@ -21,8 +21,12 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.connection.Connection;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
 
@@ -40,20 +44,25 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
 
     private final JDBCService jdbcService;
 
+    private transient RecordBuilderFactory recordBuilderFactory;
+
+    private transient JDBCBulkFileWriter writer;
+
+    private transient JDBCBulkExecRuntime runtime;
+
+    @Connection
+    private transient java.sql.Connection connection;
+
     // private final I18nMessage i18n;
 
     // private transient boolean init;
 
     public JDBCOutputBulkExecProcessor(@Option("configuration") final JDBCOutputBulkExecConfig configuration,
-            final JDBCService jdbcService/*
-                                          * ,
-                                          * final
-                                          * I18nMessage
-                                          * i18nMessage
-                                          */) {
+            final JDBCService jdbcService, RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.jdbcService = jdbcService;
         // this.i18n = i18nMessage;
+        this.recordBuilderFactory = recordBuilderFactory;
     }
 
     @BeforeGroup
@@ -63,16 +72,42 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
 
     @ElementListener
     public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success)
-            throws SQLException {
+            throws IOException {
+        writer.write(record);
 
+        // TODO do output
     }
 
     @AfterGroup
     public void afterGroup() throws SQLException {
     }
 
+    @PostConstruct
+    public void init() {
+        boolean useExistedConnection = false;
+
+        if (connection == null) {
+            try {
+                connection = jdbcService.createConnection(configuration.getDataSet().getDataStore());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else {
+            useExistedConnection = true;
+        }
+
+        writer = new JDBCBulkFileWriter(configuration.getBulkCommonConfig(), configuration.isAppend(),
+                recordBuilderFactory);
+        runtime = new JDBCBulkExecRuntime(configuration.getDataSet(), configuration.getBulkCommonConfig(),
+                useExistedConnection, connection, recordBuilderFactory);
+    }
+
     @PreDestroy
-    public void preDestroy() {
+    public void close() throws IOException, SQLException {
+        // we import bulk file here to database by sql commmand/or database cmd
+        writer.close();
+
+        runtime.runDriver();
     }
 
 }
