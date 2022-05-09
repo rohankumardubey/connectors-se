@@ -13,7 +13,9 @@
 package org.talend.components.jdbc.sp;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.common.Reject;
 import org.talend.components.jdbc.row.JDBCRowConfig;
+import org.talend.components.jdbc.row.JDBCRowWriter;
 import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -22,6 +24,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.connection.Connection;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.standalone.DriverRunner;
 import org.talend.sdk.component.api.standalone.RunAtDriver;
 
@@ -29,6 +32,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.List;
 
 @Slf4j
 @Version(1)
@@ -45,28 +49,64 @@ public class JDBCSPProcessor implements Serializable {
 
     private boolean reuseConnection;
 
+    private transient JDBCSPWriter writer;
+
+    private transient boolean init;
+
     @Connection
     private transient java.sql.Connection connection;
 
+    private final RecordBuilderFactory recordBuilderFactory;
+
     public JDBCSPProcessor(@Option("configuration") final JDBCSPConfig configuration,
-            final JDBCService service) {
+            final JDBCService service, RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
+        this.recordBuilderFactory = recordBuilderFactory;
     }
 
     @PostConstruct
     public void init() {
-
+        // TODO now can't fetch design schema, only can get input record's schema
     }
 
     @ElementListener
     public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success)
             throws SQLException {
+        if (!init) {
+            boolean useExistedConnection = false;
 
+            if (connection == null) {
+                try {
+                    connection = service.createConnection(configuration.getDataStore());
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                useExistedConnection = true;
+            }
+
+            writer = new JDBCSPWriter(configuration, useExistedConnection, connection,
+                    recordBuilderFactory);
+
+            writer.open();
+
+            init = true;
+        }
+
+        // as output component which have input line, it's impossible that record is null
+        // as standalone or input component, it's possible that record is null
+        writer.write(record);
+
+        List<Record> successfulWrites = writer.getSuccessfulWrites();
+        for (Record r : successfulWrites) {
+            success.emit(r);
+        }
     }
 
     @PreDestroy
-    public void release() {
+    public void release() throws SQLException {
+        writer.close();
     }
 
 }
