@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="eb1e80a8-e77b-474e-9641-e454c6583f70" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/input/JDBCInputReader.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/input/JDBCRuntimeUtils.java" afterDir="false" />
+    <list default="true" id="eb1e80a8-e77b-474e-9641-e454c6583f70" name="Default Changelist" comment="support output">
       <change afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/row/JDBCRowReader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/row/JDBCRowStandalone.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/row/JDBCRowWriter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jdbc.iws" beforeDir="false" afterPath="$PROJECT_DIR$/jdbc.iws" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/input/QueryEmitter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/input/QueryEmitter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/output/OutputProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/output/OutputProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/row/JDBCRowProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/row/JDBCRowProcessor.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -254,6 +252,9 @@
     <property name="MemberChooser.sorted" value="false" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/src/main/java/org/talend/components/jdbc/output" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.0" />
   </component>
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
@@ -374,7 +375,14 @@
       <option name="project" value="LOCAL" />
       <updated>1651820974495</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="support output">
+      <created>1651824373545</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1651824373545</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -484,28 +492,32 @@
     <webview flattenPackages="false" showMembers="false" autoscrollToSource="false" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="349" y="43" width="1031" height="796" key="CommitChangelistDialog2" timestamp="1651824357713">
+    <state x="349" y="43" width="1031" height="796" key="CommitChangelistDialog2" timestamp="1652068200752">
       <screen x="0" y="25" width="1440" height="833" />
     </state>
-    <state x="349" y="43" width="1031" height="796" key="CommitChangelistDialog2/0.25.1440.833@0.25.1440.833" timestamp="1651824357713" />
+    <state x="349" y="43" width="1031" height="796" key="CommitChangelistDialog2/0.25.1440.833@0.25.1440.833" timestamp="1652068200752" />
     <state x="349" y="43" key="CommitChangelistDialog2/0.25.1440.834@0.25.1440.834" timestamp="1651203304462" />
-    <state x="288" y="94" key="DiffContextDialog" timestamp="1651820248229">
+    <state x="288" y="94" key="DiffContextDialog" timestamp="1651910217435">
       <screen x="0" y="25" width="1440" height="833" />
     </state>
-    <state x="288" y="94" key="DiffContextDialog/0.25.1440.833@0.25.1440.833" timestamp="1651820248229" />
+    <state x="288" y="94" key="DiffContextDialog/0.25.1440.833@0.25.1440.833" timestamp="1651910217435" />
+    <state x="207" y="25" width="1024" height="833" key="SettingsEditor" timestamp="1652064407068">
+      <screen x="0" y="25" width="1440" height="833" />
+    </state>
+    <state x="207" y="25" width="1024" height="833" key="SettingsEditor/0.25.1440.833@0.25.1440.833" timestamp="1652064407068" />
     <state x="450" y="177" width="540" height="524" key="StructurePopup" timestamp="1651817149288">
       <screen x="0" y="25" width="1440" height="833" />
     </state>
     <state x="450" y="177" width="540" height="524" key="StructurePopup/0.25.1440.833@0.25.1440.833" timestamp="1651817149288" />
     <state x="450" y="177" width="540" height="525" key="StructurePopup/0.25.1440.834@0.25.1440.834" timestamp="1651132436552" />
-    <state x="380" y="205" width="680" height="472" key="find.popup" timestamp="1651818611921">
+    <state x="380" y="205" width="680" height="472" key="find.popup" timestamp="1652061095707">
       <screen x="0" y="25" width="1440" height="833" />
     </state>
-    <state x="380" y="205" width="680" height="472" key="find.popup/0.25.1440.833@0.25.1440.833" timestamp="1651818611921" />
+    <state x="380" y="205" width="680" height="472" key="find.popup/0.25.1440.833@0.25.1440.833" timestamp="1652061095707" />
     <state x="380" y="205" width="680" height="473" key="find.popup/0.25.1440.834@0.25.1440.834" timestamp="1651744764552" />
-    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup" timestamp="1651822761258">
+    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup" timestamp="1652060768089">
       <screen x="0" y="25" width="1440" height="833" />
     </state>
-    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup/0.25.1440.833@0.25.1440.833" timestamp="1651822761258" />
+    <state x="385" y="89" width="670" height="676" key="search.everywhere.popup/0.25.1440.833@0.25.1440.833" timestamp="1652060768089" />
   </component>
 </project>

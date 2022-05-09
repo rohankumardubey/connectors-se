@@ -22,8 +22,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.connection.Connection;
-import org.talend.sdk.component.api.standalone.DriverRunner;
-import org.talend.sdk.component.api.standalone.RunAtDriver;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -43,26 +42,30 @@ public class JDBCRowProcessor implements Serializable {
 
     private final JDBCService service;
 
+    private final RecordBuilderFactory recordBuilderFactory;
+
     private boolean reuseConnection;
+
+
 
     @Connection
     private transient java.sql.Connection connection;
 
     public JDBCRowProcessor(@Option("configuration") final JDBCRowConfig configuration,
-            final JDBCService service) {
+            final JDBCService service, RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
+        this.recordBuilderFactory = recordBuilderFactory;
     }
 
     @PostConstruct
     public void init() {
-
     }
 
     @ElementListener
     public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success,
             @Output("reject") final OutputEmitter<Reject> reject) throws SQLException {
-
+        System.out.println(record);
     }
 
     @PreDestroy
