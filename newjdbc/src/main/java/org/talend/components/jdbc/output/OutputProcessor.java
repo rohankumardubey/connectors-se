@@ -30,10 +30,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.Serializable;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -123,6 +120,7 @@ public class OutputProcessor implements Serializable {
             init = true;
         }
 
+        // as output component, it's impossible that record is null
         if (record == null) {
             return;
         }
@@ -134,6 +132,7 @@ public class OutputProcessor implements Serializable {
             success.emit(r);
         }
 
+        // TODO correct this
         List<Record> rejectedWrites = writer.getRejectedWrites();
         for (Record r : rejectedWrites) {
             Reject rt = new Reject();
@@ -155,7 +154,7 @@ public class OutputProcessor implements Serializable {
     }
 
     @PreDestroy
-    public void release() throws IOException, SQLException {
+    public void release() throws SQLException {
         writer.close();
     }
 

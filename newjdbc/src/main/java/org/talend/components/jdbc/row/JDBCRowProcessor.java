@@ -28,6 +28,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.List;
 
 @Slf4j
 @Version(1)
@@ -46,10 +47,12 @@ public class JDBCRowProcessor implements Serializable {
 
     private boolean reuseConnection;
 
-
-
     @Connection
     private transient java.sql.Connection connection;
+
+    private transient JDBCRowWriter writer;
+
+    private transient boolean init;
 
     public JDBCRowProcessor(@Option("configuration") final JDBCRowConfig configuration,
             final JDBCService service, RecordBuilderFactory recordBuilderFactory) {
@@ -60,16 +63,57 @@ public class JDBCRowProcessor implements Serializable {
 
     @PostConstruct
     public void init() {
+        // TODO now can't fetch design schema, only can get input record's schema
     }
 
     @ElementListener
     public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success,
             @Output("reject") final OutputEmitter<Reject> reject) throws SQLException {
-        System.out.println(record);
+        if (!init) {
+            boolean useExistedConnection = false;
+
+            if (connection == null) {
+                try {
+                    connection = service.createConnection(configuration.getDataSet().getDataStore());
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                useExistedConnection = true;
+            }
+
+            writer = new JDBCRowWriter(configuration, useExistedConnection, connection,
+                    recordBuilderFactory);
+
+            writer.open();
+
+            init = true;
+        }
+
+        // as output component which have input line, it's impossible that record is null
+        // as standalone or input component, it's possible that record is null
+        writer.write(record);
+
+        List<Record> successfulWrites = writer.getSuccessfulWrites();
+        for (Record r : successfulWrites) {
+            success.emit(r);
+        }
+
+        // TODO correct this
+        List<Record> rejectedWrites = writer.getRejectedWrites();
+        for (Record r : rejectedWrites) {
+            Reject rt = new Reject();
+            rt.setRecord(r);
+            // TODO, this is right?
+            rt.setErrorCode("");
+            rt.setErrorMessage("");
+            reject.emit(rt);
+        }
     }
 
     @PreDestroy
-    public void release() {
+    public void release() throws SQLException {
+        writer.close();
     }
 
 }

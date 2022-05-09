@@ -215,7 +215,7 @@ abstract public class JDBCOutputWriter {
         return Collections.unmodifiableList(rejectedWrites);
     }
 
-    public void cleanWrites() {
+    private void cleanWrites() {
         successfulWrites.clear();
         rejectedWrites.clear();
     }

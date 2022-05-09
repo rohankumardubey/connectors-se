@@ -76,6 +76,9 @@ public class JDBCRowWriter {
 
     private int totalCount;
 
+    // TODO support this
+    private boolean detectErrorOnMultipleSQL;
+
     public JDBCRowWriter(JDBCRowConfig config, boolean useExistedConnection, Connection conn,
             RecordBuilderFactory recordBuilderFactory) {
         this.config = config;
@@ -99,6 +102,8 @@ public class JDBCRowWriter {
 
         useQueryTimeout = config.isUseQueryTimeout();
         queryTimeout = config.getQueryTimeout();
+
+        detectErrorOnMultipleSQL = config.isDetectErrorWhenMultiStatements();
     }
 
     public void open() throws SQLException {
@@ -228,12 +233,14 @@ public class JDBCRowWriter {
         return Collections.unmodifiableList(rejectedWrites);
     }
 
-    public void cleanWrites() {
+    private void cleanWrites() {
         successfulWrites.clear();
         rejectedWrites.clear();
     }
 
     private void handleSuccess(Record input) {
+        // TODO process input record is null case
+
         successCount++;
 
         if (outSchema == null || outSchema.getEntries().size() == 0) {
@@ -259,6 +266,8 @@ public class JDBCRowWriter {
     }
 
     private void handleReject(Record input, SQLException e) throws SQLException {
+        // TODO process input record is null case
+
         rejectCount++;
 
         Record.Builder builder = recordBuilderFactory.newRecordBuilder(rejectSchema);
