@@ -47,6 +47,14 @@
             <version>${xbean-finder-shaded.version}</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- bulk components -->
+        <dependency>
+            <groupId>org.talend.components</groupId>
+            <artifactId>talendcsv</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- test -->
         <dependency>
             <groupId>org.apache.commons</groupId>

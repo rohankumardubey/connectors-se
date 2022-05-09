@@ -21,8 +21,11 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
 
@@ -42,15 +45,16 @@ public class JDBCOutputBulkProcessor implements Serializable {
 
     // private transient boolean init;
 
+    private transient JDBCBulkFileWriter writer;
+
+    private transient RecordBuilderFactory recordBuilderFactory;
+
     public JDBCOutputBulkProcessor(@Option("configuration") final JDBCOutputBulkConfig configuration,
-            final JDBCService jdbcService/*
-                                          * , final
-                                          * I18nMessage
-                                          * i18nMessage
-                                          */) {
+            final JDBCService jdbcService, final RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.jdbcService = jdbcService;
         // this.i18n = i18nMessage;
+        this.recordBuilderFactory = recordBuilderFactory;
     }
 
     @BeforeGroup
@@ -60,16 +64,24 @@ public class JDBCOutputBulkProcessor implements Serializable {
 
     @ElementListener
     public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success)
-            throws SQLException {
+            throws IOException {
+        writer.write(record);
 
+        // TODO pass input to output directly?
     }
 
     @AfterGroup
     public void afterGroup() throws SQLException {
     }
 
+    @PostConstruct
+    public void init() {
+        writer = new JDBCBulkFileWriter(configuration, recordBuilderFactory);
+    }
+
     @PreDestroy
-    public void preDestroy() {
+    public void preDestroy() throws IOException {
+        writer.close();
     }
 
 }
