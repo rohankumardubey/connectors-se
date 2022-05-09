@@ -13,51 +13,104 @@
 package org.talend.components.jdbc.bulk;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.jdbc.row.JDBCRowConfig;
-import org.talend.components.jdbc.service.JDBCService;
-import org.talend.sdk.component.api.component.Icon;
-import org.talend.sdk.component.api.component.Version;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.meta.Documentation;
-import org.talend.sdk.component.api.service.connection.Connection;
-import org.talend.sdk.component.api.standalone.DriverRunner;
-import org.talend.sdk.component.api.standalone.RunAtDriver;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
 
+/**
+ * JDBC bulk exec runtime execution object
+ *
+ */
 @Slf4j
-@Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "datastore-connector")
-@DriverRunner(name = "BulkExec")
-@Documentation("JDBC Bulk Exec component.")
-public class JDBCBulkExecRuntime implements Serializable {
+public class JDBCBulkExecRuntime {
 
-    private static final long serialVersionUID = 1;
+    public JDBCBulkExecConfig config;
 
-    private final JDBCBulkExecConfig configuration;
+    private boolean useExistedConnection;
 
-    private final JDBCService service;
+    private Connection conn;
 
-    public JDBCBulkExecRuntime(@Option("configuration") final JDBCBulkExecConfig configuration,
-            final JDBCService service) {
-        this.configuration = configuration;
-        this.service = service;
+    private RecordBuilderFactory recordBuilderFactory;
+
+    // TODO how to get it from model? here no input record
+    private Schema designSchema;
+
+    public JDBCBulkExecRuntime(JDBCBulkExecConfig config, boolean useExistedConnection, Connection conn,
+            RecordBuilderFactory recordBuilderFactory) {
+        // log.debug("Parameters: [{}]", "");//TODO
+        this.config = config;
+        this.useExistedConnection = useExistedConnection;
+        this.conn = conn;
+        this.recordBuilderFactory = recordBuilderFactory;
     }
 
-    @PostConstruct
-    public void init() {
+    private String createBulkSQL() {
+        StringBuilder sb = new StringBuilder();
 
+        sb.append("LOAD DATA LOCAL INFILE '")
+                .append(config.getBulkCommonConfig().getBulkFile())
+                .append("' INTO TABLE ")
+                .append(config.getDataSet().getTableName())
+                .append(" FIELDS TERMINATED BY '")
+                .append(config.getBulkCommonConfig().getFieldSeparator())
+                .append("' ");
+        if (config.getBulkCommonConfig().isSetTextEnclosure()) {
+            sb.append("OPTIONALLY ENCLOSED BY '").append(config.getBulkCommonConfig().getTextEnclosure()).append("' ");
+        }
+        sb.append("LINES TERMINATED BY '").append(config.getBulkCommonConfig().getRowSeparator()).append("' ");
+        if (config.getBulkCommonConfig().isSetNullValue()) {
+            sb.append("NULL DEFINED BY '").append(config.getBulkCommonConfig().getNullValue()).append("' ");
+        }
+
+        // if design schema is empty, no need to fill column settings, TODO now can't get design schema
+        if (designSchema == null) {
+            return sb.toString();
+        }
+
+        List<Schema.Entry> fields = designSchema.getEntries();
+
+        if (fields == null || fields.isEmpty()) {
+            return sb.toString();
+        }
+
+        // TODO support dynamic
+        sb.append('(');
+        for (int i = 0; i < fields.size(); i++) {
+            Schema.Entry field = fields.get(i);
+            String originName = field.getRawName();
+            String headerName = (originName == null || "".equals(originName)) ? field.getName() : originName;
+            sb.append('`').append(headerName).append('`');
+            if (i != fields.size() - 1) {
+                sb.append(',');
+            }
+        }
+        sb.append(')');
+        return sb.toString();
     }
 
-    @RunAtDriver
-    public void run() {
-
-    }
-
-    @PreDestroy
-    public void release() {
+    public void runDriver() throws SQLException {
+        try {
+            try (Statement stmt = conn.createStatement()) {
+                String bulkSql = createBulkSQL();
+                log.debug("Executing the query: '{}'", bulkSql);
+                stmt.execute(bulkSql);
+            }
+        } catch (Exception ex) {
+            // TODO
+        } finally {
+            if (!useExistedConnection) {
+                try {
+                    log.debug("Closing connection");
+                    conn.close();
+                } catch (SQLException e) {
+                    throw e;
+                }
+            }
+        }
     }
 
 }

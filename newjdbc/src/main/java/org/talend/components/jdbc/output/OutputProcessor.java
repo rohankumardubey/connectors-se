@@ -22,7 +22,6 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.connection.Connection;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
