@@ -45,6 +45,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.*;
@@ -72,7 +73,8 @@ public class JDBCService implements Serializable {
     private RecordBuilderFactory recordBuilderFactory;
 
     @Suggestions("GUESS_DRIVER_CLASS")
-    public SuggestionValues loadRecordTypes(@Option final List<String> driverJars) throws Exception {
+    public SuggestionValues loadRecordTypes(@Option final List<org.talend.components.jdbc.common.Driver> driverJars)
+            throws Exception {
         final List<SuggestionValues.Item> items = new ArrayList<>();
 
         // items.add(new SuggestionValues.Item("com.mysql.cj.jdbc.Driver", "com.mysql.cj.jdbc.Driver"));
@@ -84,17 +86,28 @@ public class JDBCService implements Serializable {
         return new SuggestionValues(true, items);
     }
 
-    private List<String> getDriverClasses(List<String> driverJars) throws IOException {
+    private List<String> getDriverClasses(List<org.talend.components.jdbc.common.Driver> driverJars)
+            throws IOException {
         // TODO check it if right
         List<String> driverClasses = new ArrayList<>();
 
-        try {
-            List<URL> urls = new ArrayList<>();
-            for (String maven_path : driverJars) {
-                URL url = new URL(removeQuote(maven_path));
-                urls.add(url);
-            }
+        List<String> paths = Optional.ofNullable(driverJars)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(driver -> convertMvnPath2TckPath(driver.getPath()))
+                .collect(Collectors.toList());
 
+        List<URL> urls = resolver.resolveFromDescriptor(paths).stream().map(file -> {
+            try {
+                return file.toURI().toURL();
+            } catch (MalformedURLException e) {
+                // TODO process it
+                e.printStackTrace();
+                return null;
+            }
+        }).collect(Collectors.toList());
+
+        try {
             // TODO before this, should register mvn protocol for : new URL("mvn:foo/bar");
             // tck should already support that and provide some way to do that
             // but if not, we can use tcompv0 way
@@ -271,6 +284,14 @@ public class JDBCService implements Serializable {
         return new JDBCDataSource(this.resolver, dataStore);
     }
 
+    // studio will pass like this : mvn:mysql/mysql-connector-java/8.0.18/jar
+    // but tck here expect like this : mysql:mysql-connector-java:jar:8.0.18
+    private static String convertMvnPath2TckPath(String mvnPath) {
+        if (mvnPath == null)
+            return mvnPath;
+        return mvnPath.substring(4, mvnPath.lastIndexOf('/')).replace('/', ':');
+    }
+
     // copy from tck jdbc connector for cloud, TODO now for fast development, will unify them to one
     public static class JDBCDataSource implements AutoCloseable {
 
@@ -287,7 +308,7 @@ public class JDBCService implements Serializable {
             List<String> paths = Optional.ofNullable(drivers)
                     .orElse(Collections.emptyList())
                     .stream()
-                    .map(driver -> driver.getPath())
+                    .map(driver -> convertMvnPath2TckPath(driver.getPath()))
                     .collect(Collectors.toList());
 
             classLoaderDescriptor = resolver.mapDescriptorToClassLoader(paths);
