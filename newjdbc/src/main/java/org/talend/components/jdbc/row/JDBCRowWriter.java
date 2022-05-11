@@ -243,23 +243,40 @@ public class JDBCRowWriter {
 
         successCount++;
 
-        if (outSchema == null || outSchema.getEntries().size() == 0) {
-            return;
-        }
+        // TODO now can't get design schema
+        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
 
-        Record.Builder builder = recordBuilderFactory.newRecordBuilder(outSchema);
-        for (Schema.Entry outField : outSchema.getEntries()) {
-            Object outValue = null;
-
-            if (propagateQueryResultSet && outField.getName().equals(config.getRecordSetColumn())) {
-                builder.with(outField, resultSet);
+        if (input == null) {
+            // if input is null, mean standalone mode or output mode
+            // TODO now tck framework not support Object type
+            if (propagateQueryResultSet) {
+                Schema.Entry entry = recordBuilderFactory.newEntryBuilder()
+                        .withType(Schema.Type.STRING)
+                        .withName(config.getRecordSetColumn())
+                        .withProp("talend.studio.type", "id_Object")
+                        .build();
+                builder.with(entry, resultSet);
             } else {
-                Schema.Entry inField = input.getSchema().getEntry(outField.getName());
-                if (inField != null) {
-                    outValue = input.get(Object.class, inField.getName());
-                }
-                builder.with(outField, outValue);
+                // TODO no output or return empty record?
+                return;
             }
+        } else {
+            // TODO should use design schema: outSchema, not input schema
+            for (Schema.Entry outField : input.getSchema().getEntries()) {
+                Object outValue = null;
+
+                if (propagateQueryResultSet && outField.getName().equals(config.getRecordSetColumn())) {
+                    builder.with(outField, resultSet);
+                } else {
+                    Schema.Entry inField = input.getSchema().getEntry(outField.getName());
+                    if (inField != null) {
+                        outValue = input.get(Object.class, inField.getName());
+                    }
+                    builder.with(outField, outValue);
+                }
+            }
+
+            // TODO pass propagateQueryResultSet
         }
 
         successfulWrites.add(builder.build());
@@ -270,21 +287,35 @@ public class JDBCRowWriter {
 
         rejectCount++;
 
-        Record.Builder builder = recordBuilderFactory.newRecordBuilder(rejectSchema);
+        // TODO now can't get design schema
+        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
 
-        for (Schema.Entry outField : rejectSchema.getEntries()) {
-            Object outValue = null;
-            Schema.Entry inField = input.getSchema().getEntry(outField.getName());
+        if (input == null) {
+            if (propagateQueryResultSet) {
+                // TODO fix it, now tck don't support Object type
+            } else {
+                // TODO no output or return empty record?
+                return;
+            }
+        } else {
+            // TODO should use design schema: rejectSchema, not input schema
+            for (Schema.Entry outField : input.getSchema().getEntries()) {
+                Object outValue = null;
+                Schema.Entry inField = input.getSchema().getEntry(outField.getName());
 
-            if (inField != null) {
-                outValue = input.get(Object.class, inField.getName());
-            } else if ("errorCode".equals(outField.getName())) {
-                outValue = e.getSQLState();
-            } else if ("errorMessage".equals(outField.getName())) {
-                outValue = e.getMessage() + " - Line: " + totalCount;
+                if (inField != null) {
+                    outValue = input.get(Object.class, inField.getName());
+                } else if ("errorCode".equals(outField.getName())) {
+                    outValue = e.getSQLState();
+                } else if ("errorMessage".equals(outField.getName())) {
+                    outValue = e.getMessage() + " - Line: " + totalCount;
+                }
+
+                builder.with(outField, outValue);
             }
 
-            builder.with(outField, outValue);
+            builder.withString("errorCode", e.getSQLState());
+            builder.withString("errorMessage", e.getMessage() + " - Line: " + totalCount);
         }
 
         Record reject = builder.build();
