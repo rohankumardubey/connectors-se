@@ -105,7 +105,8 @@ public class JDBCDataStore implements Serializable {
 
     // TODO how to make it only appear in studio metadata?
     // TODO even can set it to studio component, but no meaning for tjdbcrow, how to explain this to user?
-    // tcompv0 use this mapping before : "widget.type.mappingType":"MAPPING_TYPE", but clearly, that doesn't appear for
+    // TODO: tcompv0 use this mapping before : "widget.type.mappingType":"MAPPING_TYPE", but clearly, that doesn't
+    // appear for
     // cloud
     // about runtime, that only works for studio metadata to fetch schema part, not for component button runtime/job
     // runtime

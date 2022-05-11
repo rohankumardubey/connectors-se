@@ -173,6 +173,9 @@ public class JDBCSQLBuilder {
 
         List<AdditionalColumn> additionalColumns = config.getAdditionalColumns();
 
+        if (additionalColumns == null)
+            return columnList;
+
         // here is a closed list in UI, even can't choose dynamic column, so no need to consider dynamic here
         int i = 0;
         for (AdditionalColumn additionalColumn : additionalColumns) {

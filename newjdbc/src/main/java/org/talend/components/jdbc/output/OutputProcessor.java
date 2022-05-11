@@ -77,7 +77,8 @@ public class OutputProcessor implements Serializable {
 
     @ElementListener
     public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success,
-            @Output("reject") final OutputEmitter<Reject> reject) throws SQLException, IOException {
+            @Output("reject") final OutputEmitter<Record>/* OutputEmitter<Reject> */ reject)
+            throws SQLException, IOException {
         if (!init) {
             boolean useExistedConnection = false;
 
@@ -134,12 +135,14 @@ public class OutputProcessor implements Serializable {
         // TODO correct this
         List<Record> rejectedWrites = writer.getRejectedWrites();
         for (Record r : rejectedWrites) {
-            Reject rt = new Reject();
-            rt.setRecord(r);
-            // TODO, this is right?
-            rt.setErrorCode("");
-            rt.setErrorMessage("");
-            reject.emit(rt);
+            /*
+             * Reject rt = new Reject();
+             * rt.setRecord(r);
+             * // TODO, this is right? reject's record contains error info, reject self also contains it?
+             * rt.setErrorCode(rt.getErrorCode());
+             * rt.setErrorMessage(rt.getErrorMessage());
+             */
+            reject.emit(r);
         }
     }
 

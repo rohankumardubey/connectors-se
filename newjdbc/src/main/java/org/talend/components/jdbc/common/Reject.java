@@ -19,11 +19,13 @@ import org.talend.sdk.component.api.record.Record;
 
 import java.io.Serializable;
 
+// TODO remove this, we create it by tck document, but seems wrong
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Reject implements Serializable {
 
+    // TODO have to json object, not support tck Record
     private Record record;
 
     private String errorCode;

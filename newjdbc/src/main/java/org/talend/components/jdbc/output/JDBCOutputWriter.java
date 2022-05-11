@@ -128,7 +128,7 @@ abstract public class JDBCOutputWriter {
         rejectSchema = null;
 
         // TODO check if talend dynamic column exists in component schema
-        isDynamic = false;
+        isDynamic = true;
 
         // if not dynamic, we can computer it now for "fail soon" way, not fail in main part if fail
         if (!isDynamic) {
@@ -232,7 +232,11 @@ abstract public class JDBCOutputWriter {
 
         rejectCount++;
 
-        Record.Builder bulder = recordBuilderFactory.newRecordBuilder(rejectSchema);
+        // TODO remove this, as now we can't get reject design schema
+        rejectSchema = input.getSchema();
+
+        // Record.Builder builder = recordBuilderFactory.newRecordBuilder(rejectSchema);
+        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
         for (Schema.Entry rejectField : rejectSchema.getEntries()) {
             Object rejectValue = null;
             // getField is a O(1) method for time, so performance is OK here.
@@ -246,10 +250,14 @@ abstract public class JDBCOutputWriter {
                 rejectValue = e.getMessage() + " - Line: " + totalCount;
             }
 
-            bulder.with(rejectField, rejectValue);
+            builder.with(rejectField, rejectValue);
         }
 
-        Record reject = bulder.build();
+        // TODO remove this, as now we can't get reject design schema
+        builder.withString("errorCode", e.getSQLState());
+        builder.withString("errorMessage", e.getMessage() + " - Line: " + totalCount);
+
+        Record reject = builder.build();
         rejectedWrites.add(reject);
     }
 

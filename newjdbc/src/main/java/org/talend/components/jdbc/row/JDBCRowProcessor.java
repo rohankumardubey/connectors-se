@@ -68,7 +68,7 @@ public class JDBCRowProcessor implements Serializable {
 
     @ElementListener
     public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success,
-            @Output("reject") final OutputEmitter<Reject> reject) throws SQLException {
+            @Output("reject") final OutputEmitter<Record>/* OutputEmitter<Reject> */ reject) throws SQLException {
         if (!init) {
             boolean useExistedConnection = false;
 
@@ -102,12 +102,14 @@ public class JDBCRowProcessor implements Serializable {
         // TODO correct this
         List<Record> rejectedWrites = writer.getRejectedWrites();
         for (Record r : rejectedWrites) {
-            Reject rt = new Reject();
-            rt.setRecord(r);
-            // TODO, this is right?
-            rt.setErrorCode("");
-            rt.setErrorMessage("");
-            reject.emit(rt);
+            /*
+             * Reject rt = new Reject();
+             * rt.setRecord(r);
+             * // TODO, this is right?
+             * rt.setErrorCode("");
+             * rt.setErrorMessage("");
+             */
+            reject.emit(r);
         }
     }
 
