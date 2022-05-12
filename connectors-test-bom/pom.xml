@@ -49,7 +49,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-scala_2.12</artifactId>
-            <version>${jackson.version}</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
