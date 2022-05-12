@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.talend.components</groupId>
     <artifactId>azure</artifactId>
-    <version>1.33.1-SNAPSHOT</version>
+    <version>1.33.1</version>
   </parent>
 
   <artifactId>azurecommon</artifactId>
