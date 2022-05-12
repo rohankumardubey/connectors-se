@@ -117,11 +117,17 @@ public class JDBCSPWriter {
 
         cleanWrites();
 
-        Schema inputSchema = inputRecord.getSchema();
-
         try {
+            if (inputRecord == null) {// standalone mode or output mode
+                cs.execute();
+            } else {
+                Schema inputSchema = inputRecord.getSchema();
 
-            fillParameters(cs, componentSchema, inputSchema, inputRecord);
+                //TODO remove this, now can't get design schema
+                if(componentSchema == null) componentSchema = inputSchema;
+
+                fillParameters(cs, componentSchema, inputSchema, inputRecord);
+            }
 
             cs.execute();
 
