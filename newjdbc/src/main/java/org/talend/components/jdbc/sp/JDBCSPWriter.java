@@ -123,8 +123,9 @@ public class JDBCSPWriter {
             } else {
                 Schema inputSchema = inputRecord.getSchema();
 
-                //TODO remove this, now can't get design schema
-                if(componentSchema == null) componentSchema = inputSchema;
+                // TODO remove this, now can't get design schema
+                if (componentSchema == null)
+                    componentSchema = inputSchema;
 
                 fillParameters(cs, componentSchema, inputSchema, inputRecord);
             }

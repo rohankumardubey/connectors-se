@@ -17,7 +17,6 @@ import org.talend.components.jdbc.schema.CommonUtils;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -72,13 +71,13 @@ public class BulkFormatter {
             this.inputValueName = inputValueName;
         }
 
-        public void format(Record input, String nullValue, CSVWriter writer) throws IOException {
+        public void format(Record input, String nullValue, CSVWriter writer) {
             // do nothing
         }
 
     }
 
-    private void fillNull(String nullValue, CSVWriter writer) throws IOException {
+    private void fillNull(String nullValue, CSVWriter writer) {
         writer.setQuoteStatus(CSVWriter.QuoteStatus.NO);
         if (nullValue != null) {
             writer.writeColumn(nullValue);
@@ -98,7 +97,7 @@ public class BulkFormatter {
             super(inputValueLocation);
         }
 
-        public void format(Record input, String nullValue, CSVWriter writer) throws IOException {
+        public void format(Record input, String nullValue, CSVWriter writer) {
             Object inputValue = input.get(Object.class, inputValueName);
             if (inputValue == null) {
                 fillNull(nullValue, writer);
@@ -117,7 +116,7 @@ public class BulkFormatter {
             this.pattern = pattern;
         }
 
-        public void format(Record input, String nullValue, CSVWriter writer) throws IOException {
+        public void format(Record input, String nullValue, CSVWriter writer) {
             Object inputValue = input.get(Object.class, inputValueName);
             if (inputValue == null) {
                 fillNull(nullValue, writer);
@@ -138,7 +137,7 @@ public class BulkFormatter {
             super(inputValueLocation);
         }
 
-        public void format(Record input, String nullValue, CSVWriter writer) throws IOException {
+        public void format(Record input, String nullValue, CSVWriter writer) {
             Object inputValue = input.get(Object.class, inputValueName);
             if (inputValue == null) {
                 fillNull(nullValue, writer);

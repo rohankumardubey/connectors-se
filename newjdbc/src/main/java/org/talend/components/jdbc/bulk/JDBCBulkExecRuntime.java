@@ -106,6 +106,7 @@ public class JDBCBulkExecRuntime {
             }
         } catch (Exception ex) {
             // TODO
+            throw ex;
         } finally {
             if (!useExistedConnection) {
                 try {

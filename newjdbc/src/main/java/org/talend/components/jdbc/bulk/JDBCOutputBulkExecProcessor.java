@@ -83,7 +83,7 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
     }
 
     @PostConstruct
-    public void init() {
+    public void init() throws IOException {
         boolean useExistedConnection = false;
 
         if (connection == null) {
@@ -98,6 +98,8 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
 
         writer = new JDBCBulkFileWriter(configuration.getBulkCommonConfig(), configuration.isAppend(),
                 recordBuilderFactory);
+        writer.open();
+
         runtime = new JDBCBulkExecRuntime(configuration.getDataSet(), configuration.getBulkCommonConfig(),
                 useExistedConnection, connection, recordBuilderFactory);
     }

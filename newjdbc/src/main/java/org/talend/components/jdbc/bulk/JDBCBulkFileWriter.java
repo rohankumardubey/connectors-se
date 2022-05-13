@@ -108,8 +108,10 @@ public class JDBCBulkFileWriter {
         }
 
         if (currentSchema == null) {
-            currentSchema = this.designSchema;
+            // TODO now can't get design schema
+            // currentSchema = this.designSchema;
             Schema inputSchema = input.getSchema();
+            currentSchema = inputSchema;
             if (isDynamic) {
                 // TODO merge design schema and input schema
             }
