@@ -458,6 +458,8 @@ public class JDBCService implements Serializable {
     public SuggestionValues fetchColumnNames(JDBCDataStore dataStore, String tableName) {
         if (true)
             throw new RuntimeException("i am running");
+
+        // TODO return SchemaInfo elements
         return null;
     }
 

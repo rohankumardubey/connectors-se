@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.dataset;
 
 import lombok.Data;
+import org.talend.components.jdbc.common.SchemaInfo;
 import org.talend.components.jdbc.datastore.JDBCDataStore;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -27,9 +28,9 @@ import java.util.List;
 
 @Data
 @GridLayout({
-        @GridLayout.Row("schema"), // TODO need this?
         @GridLayout.Row("dataStore"),
-        @GridLayout.Row("tableName")
+        @GridLayout.Row("tableName"),
+        @GridLayout.Row("schema")
 })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {
         @GridLayout.Row("dataStore")// TODO we should remove this as the settings in datastore advanced setting no
@@ -49,9 +50,11 @@ public class JDBCTableDataSet implements Serializable {
     private String tableName;
 
     @Option
-    @Suggestable(value = "FETCH_COLUMN_NAMES", parameters = { "dataStore", "tableName" })
+    // no need Suggestable if a table widget instead of a multi selected list, this for cloud platform
+    // @Suggestable(value = "FETCH_COLUMN_NAMES", parameters = { "dataStore", "tableName" })
+    // TODO Structure.Type.IN
     @Structure(type = Structure.Type.OUT, discoverSchema = "JDBCTableDataSet")
     @Documentation("schema")
-    private List<String> schema;
+    private List<SchemaInfo> schema;
 
 }

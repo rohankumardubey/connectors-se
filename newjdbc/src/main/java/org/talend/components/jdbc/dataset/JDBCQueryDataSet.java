@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.dataset;
 
 import lombok.Data;
+import org.talend.components.jdbc.common.SchemaInfo;
 import org.talend.components.jdbc.datastore.JDBCDataStore;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -29,9 +30,9 @@ import java.util.List;
 
 @Data
 @GridLayout({
-        @GridLayout.Row("schema"), // TODO need this?
         @GridLayout.Row("dataStore"),
         @GridLayout.Row("tableName"),
+        @GridLayout.Row("schema"), // TODO need this?
         @GridLayout.Row("sqlQuery")
 })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {
@@ -65,10 +66,15 @@ public class JDBCQueryDataSet implements Serializable {
     private String tableName;
 
     @Option
-    @Suggestable(value = "FETCH_COLUMN_NAMES", parameters = { "dataStore", "sqlQuery" })
+    // no need Suggestable if a table widget instead of a multi selected list, this for cloud platform
+    // @Suggestable(value = "FETCH_COLUMN_NAMES", parameters = { "dataStore", "sqlQuery" })
+    // studio call guess schema action at different time, and runtime get schema at another time, so even action return
+    // Schema object,
+    // and here is List<SchemaInfo>, it also works
+    // but for cloud, how cloud platform convert Schema to List<SchemaInfo>? no idea, guess it not work, will test it
     @Structure(type = Structure.Type.OUT, discoverSchema = "JDBCQueryDataSet")
     @Documentation("schema")
-    private List<String> schema;
+    private List<SchemaInfo> schema;
 
     // TODO how to generate Query Store field, Guess Query button here and hook it to the query field for runtime to
     // generate the query
