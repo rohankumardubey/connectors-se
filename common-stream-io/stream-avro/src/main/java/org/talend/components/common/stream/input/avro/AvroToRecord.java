@@ -115,10 +115,8 @@ public class AvroToRecord {
                     .collect(Collectors.toList());
             break;
         case ARRAY:
-            final org.apache.avro.Schema elementType = schema.getElementType();
-
             objectArray = value.stream().map(Collection.class::cast).map((Collection array) -> {
-                final Collection<?> objects = buildArrayField(elementType, array, elementSchema.getElementSchema());
+                final Collection<?> objects = buildArrayField(arrayInnerType, array, elementSchema.getElementSchema());
                 return objects;
             }).collect(Collectors.toList());
 
