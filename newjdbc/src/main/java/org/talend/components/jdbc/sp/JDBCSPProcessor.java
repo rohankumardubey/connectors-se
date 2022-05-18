@@ -47,8 +47,6 @@ public class JDBCSPProcessor implements Serializable {
 
     private final JDBCService service;
 
-    private boolean reuseConnection;
-
     private transient JDBCSPWriter writer;
 
     private transient boolean init;
@@ -59,7 +57,7 @@ public class JDBCSPProcessor implements Serializable {
     private final RecordBuilderFactory recordBuilderFactory;
 
     public JDBCSPProcessor(@Option("configuration") final JDBCSPConfig configuration,
-            final JDBCService service, RecordBuilderFactory recordBuilderFactory) {
+            final JDBCService service, final RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;

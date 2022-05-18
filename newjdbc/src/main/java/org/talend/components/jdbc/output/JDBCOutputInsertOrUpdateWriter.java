@@ -176,10 +176,10 @@ public class JDBCOutputInsertOrUpdateWriter extends JDBCOutputWriter {
         try {
             rowWriter4Query.write(input);
 
-            ResultSet resultSet = statementQuery.executeQuery();
-
-            while (resultSet.next()) {
-                dataExists = resultSet.getInt(1) > 0;
+            try (ResultSet resultSet = statementQuery.executeQuery()) {
+                while (resultSet.next()) {
+                    dataExists = resultSet.getInt(1) > 0;
+                }
             }
 
         } catch (SQLException e) {

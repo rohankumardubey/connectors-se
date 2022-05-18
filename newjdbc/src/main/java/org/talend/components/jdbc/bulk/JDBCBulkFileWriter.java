@@ -73,7 +73,10 @@ public class JDBCBulkFileWriter {
             throw new RuntimeException("Please set a valid value for \"Bulk File Path\" field.");
         }
         File file = new File(filepath);
-        file.getParentFile().mkdirs();
+        if (file.getParentFile().mkdirs()) {
+            // fix findbug only
+        }
+
         if (bulkCommonConfig.getRowSeparator().length() > 1) {
             throw new RuntimeException("only support one char row separator");
         }

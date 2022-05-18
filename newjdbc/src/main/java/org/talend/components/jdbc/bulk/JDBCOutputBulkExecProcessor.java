@@ -40,11 +40,13 @@ import java.sql.SQLException;
 // good too
 public class JDBCOutputBulkExecProcessor implements Serializable {
 
+    private static final long serialVersionUID = 1;
+
     private final JDBCOutputBulkExecConfig configuration;
 
     private final JDBCService jdbcService;
 
-    private transient RecordBuilderFactory recordBuilderFactory;
+    private final RecordBuilderFactory recordBuilderFactory;
 
     private transient JDBCBulkFileWriter writer;
 
@@ -58,7 +60,7 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
     // private transient boolean init;
 
     public JDBCOutputBulkExecProcessor(@Option("configuration") final JDBCOutputBulkExecConfig configuration,
-            final JDBCService jdbcService, RecordBuilderFactory recordBuilderFactory) {
+            final JDBCService jdbcService, final RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.jdbcService = jdbcService;
         // this.i18n = i18nMessage;

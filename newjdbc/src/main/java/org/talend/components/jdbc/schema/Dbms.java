@@ -38,8 +38,6 @@ public class Dbms {
 
     private final Map<String, MappingType<DbmsType, TalendType>> dbmsToTalendMapping = new HashMap<>();
 
-    private String defaultDbmsType;
-
     /**
      * Sets id, product, label and whether DBMS is default
      * 
@@ -92,15 +90,6 @@ public class Dbms {
     }
 
     /**
-     * Getter for defaultDbmsType.
-     * 
-     * @return the defaultDbmsType
-     */
-    public String getDefaultDbmsType() {
-        return this.defaultDbmsType;
-    }
-
-    /**
      * Returns DBMS type by its name
      * 
      * @param dbmsTypeName DBMS type name
@@ -116,7 +105,6 @@ public class Dbms {
         buffer.append("product = ").append(product); //$NON-NLS-1$
         buffer.append(", id = ").append(id); //$NON-NLS-1$
         buffer.append(", label = ").append(label); //$NON-NLS-1$
-        buffer.append(", defaultDbmsType = ").append(defaultDbmsType); //$NON-NLS-1$
         buffer.append(", dbmsTypes = ").append(getDbmsTypes()); //$NON-NLS-1$
         buffer.append("]"); //$NON-NLS-1$
         return buffer.toString();

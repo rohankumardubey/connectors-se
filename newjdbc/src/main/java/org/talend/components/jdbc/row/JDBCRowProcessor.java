@@ -45,8 +45,6 @@ public class JDBCRowProcessor implements Serializable {
 
     private final RecordBuilderFactory recordBuilderFactory;
 
-    private boolean reuseConnection;
-
     @Connection
     private transient java.sql.Connection connection;
 
@@ -55,7 +53,7 @@ public class JDBCRowProcessor implements Serializable {
     private transient boolean init;
 
     public JDBCRowProcessor(@Option("configuration") final JDBCRowConfig configuration,
-            final JDBCService service, RecordBuilderFactory recordBuilderFactory) {
+            final JDBCService service, final RecordBuilderFactory recordBuilderFactory) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;

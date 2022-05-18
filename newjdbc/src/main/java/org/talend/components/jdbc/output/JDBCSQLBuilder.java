@@ -63,7 +63,7 @@ public class JDBCSQLBuilder {
         return sql.toString();
     }
 
-    public class Column {
+    public static class Column {
 
         public String columnLabel;
 

@@ -32,11 +32,7 @@ import java.util.Map;
  */
 public class JDBCSPRecordCreator {
 
-    private Schema currentComponentSchema;
-
     private Schema outputSchema;
-
-    private JDBCSPConfig config;
 
     private RecordBuilderFactory recordBuilderFactory;
 
@@ -52,9 +48,7 @@ public class JDBCSPRecordCreator {
     public void init(Schema currentComponentSchema, Schema outputSchema, JDBCSPConfig config,
             RecordBuilderFactory recordBuilderFactory) {
         // for tjdbcsp component, the output schema is the same with current component schema
-        this.currentComponentSchema = currentComponentSchema;
         this.outputSchema = outputSchema;
-        this.config = config;
         this.recordBuilderFactory = recordBuilderFactory;
 
         if (config.isFunction()) {

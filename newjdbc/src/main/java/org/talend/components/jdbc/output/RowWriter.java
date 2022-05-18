@@ -224,7 +224,7 @@ public class RowWriter {
 
         private void debug(Object inputValue) {
             if (debug) {
-                if (pattern.length() == 0 || pattern == null) {
+                if (pattern == null || pattern.length() == 0) {
                     debugUtil.writeColumn(inputValue.toString(), false);
                 } else {
                     SimpleDateFormat sdf = new SimpleDateFormat(pattern);
@@ -415,12 +415,12 @@ public class RowWriter {
         }
 
         public void write(Record input) throws SQLException {
-            byte[] inputValue = input.getBytes(inputValueName);
+            Object inputValue = input.get(Object.class, inputValueName);
             if (inputValue == null) {
                 statement.setNull(statementIndex, java.sql.Types.ARRAY);
                 writeDebugColumnNullContent();
             } else {
-                statement.setBytes(statementIndex, inputValue);
+                statement.setBytes(statementIndex, (byte[]) inputValue);
                 if (debug) {
                     debugUtil.writeColumn(inputValue.toString(), false);
                 }

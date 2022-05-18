@@ -58,10 +58,10 @@ public class OutputProcessor implements Serializable {
     private transient JDBCOutputWriter writer;
 
     public OutputProcessor(@Option("configuration") final JDBCOutputConfig configuration,
-            final JDBCService jdbcService, RecordBuilderFactory recordBuilderFactory/*
-                                                                                     * , final I18nMessage
-                                                                                     * i18nMessage
-                                                                                     */) {
+            final JDBCService jdbcService, final RecordBuilderFactory recordBuilderFactory/*
+                                                                                           * , final I18nMessage
+                                                                                           * i18nMessage
+                                                                                           */) {
         this.configuration = configuration;
         this.jdbcService = jdbcService;
         this.recordBuilderFactory = recordBuilderFactory;

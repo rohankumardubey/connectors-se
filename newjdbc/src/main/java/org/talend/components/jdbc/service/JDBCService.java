@@ -248,9 +248,8 @@ public class JDBCService implements Serializable {
      * @return
      */
     private String getDatabaseSchema(final JDBCDataStore dataStore) {
-        // TODO fetch it from dataStore
-        String jdbc_url = "";
-        String username = "";
+        String jdbc_url = dataStore.getJdbcUrl();
+        String username = dataStore.getUserId();
         if (jdbc_url != null && username != null && jdbc_url.contains("oracle")) {
             return username.toUpperCase();
         }
@@ -417,14 +416,12 @@ public class JDBCService implements Serializable {
 
         try (JDBCDataSource dataSource = this.createJDBCConnection(dataSet.getDataStore())) {
             Connection connection = dataSource.getConnection();
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(dataSet.getSqlQuery());
-
-            ResultSetMetaData metaData = resultSet.getMetaData();
-
-            Schema schema = SchemaInferer.infer(recordBuilderFactory, metaData, mapping);
-
-            return schema;
+            try (Statement statement = connection.createStatement()) {
+                try (ResultSet resultSet = statement.executeQuery(dataSet.getSqlQuery())) {
+                    ResultSetMetaData metaData = resultSet.getMetaData();
+                    return SchemaInferer.infer(recordBuilderFactory, metaData, mapping);
+                }
+            }
         }
     }
 

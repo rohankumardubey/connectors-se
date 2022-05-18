@@ -41,7 +41,7 @@ public class JDBCBulkExecStandalone implements Serializable {
 
     private final JDBCService service;
 
-    private transient final RecordBuilderFactory recordBuilderFactory;
+    private final RecordBuilderFactory recordBuilderFactory;
 
     private transient JDBCBulkExecRuntime runtime;
 

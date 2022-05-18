@@ -46,8 +46,7 @@ public class FastDateParser {
 
         @Override
         protected DateFormatKey initialValue() {
-            // TODO Auto-generated method stub
-            return getInstance().new DateFormatKey();
+            return new DateFormatKey();
         }
 
     };
@@ -81,7 +80,7 @@ public class FastDateParser {
                     format = new java.text.SimpleDateFormat(pattern);
                 }
             }
-            localCache.get().put(getInstance().new DateFormatKey(pattern, locale), format);
+            localCache.get().put(new DateFormatKey(pattern, locale), format);
         }
         if (format.isLenient() != lenient) {
             format.setLenient(lenient);
@@ -234,7 +233,7 @@ public class FastDateParser {
         }
     }
 
-    private class DateFormatKey {
+    private static class DateFormatKey {
 
         private String pattern;
 

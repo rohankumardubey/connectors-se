@@ -468,7 +468,7 @@ public enum EDatabaseTypeName {
 
     public static EDatabaseTypeName getTypeFromDbType(String dbType) {
         if (dbType == null) {
-            return getTypeFromDispalyNameOriginal(dbType);
+            return getTypeFromDispalyNameOriginal(null);
         }
         for (EDatabaseTypeName typename : EDatabaseTypeName.values()) {
             if (typename.getXmlName().equalsIgnoreCase(dbType)) {
@@ -483,7 +483,7 @@ public enum EDatabaseTypeName {
 
     public static EDatabaseTypeName getTypeFromDbType(String dbType, boolean isDefault) {
         if (dbType == null) {
-            return getTypeFromDisplayNameOriginal(dbType, isDefault);
+            return getTypeFromDisplayNameOriginal(null, isDefault);
         }
         for (EDatabaseTypeName typename : EDatabaseTypeName.values()) {
             if (typename.getXmlName().equalsIgnoreCase(dbType)) {

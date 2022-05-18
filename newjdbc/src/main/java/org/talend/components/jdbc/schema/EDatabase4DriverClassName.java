@@ -145,7 +145,7 @@ public enum EDatabase4DriverClassName {
         return this.usingDriverClasses;
     }
 
-    public String[] getDeprecatedDriverClasses() {
+    private String[] getDeprecatedDriverClasses() {
         return this.deprecatedDriverClasses;
     }
 

@@ -37,6 +37,8 @@ import java.sql.SQLException;
 @Documentation("JDBC Output Bulk component")
 public class JDBCOutputBulkProcessor implements Serializable {
 
+    private static final long serialVersionUID = 1;
+
     private final JDBCOutputBulkConfig configuration;
 
     private final JDBCService jdbcService;
@@ -47,7 +49,7 @@ public class JDBCOutputBulkProcessor implements Serializable {
 
     private transient JDBCBulkFileWriter writer;
 
-    private transient RecordBuilderFactory recordBuilderFactory;
+    private final RecordBuilderFactory recordBuilderFactory;
 
     public JDBCOutputBulkProcessor(@Option("configuration") final JDBCOutputBulkConfig configuration,
             final JDBCService jdbcService, final RecordBuilderFactory recordBuilderFactory) {

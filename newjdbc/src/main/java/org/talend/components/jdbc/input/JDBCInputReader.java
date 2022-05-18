@@ -122,7 +122,8 @@ public class JDBCInputReader {
                         method.invoke(statement);
                     }
                 } catch (Exception e) {
-                    // ignore anything
+                    // TODO
+                    throw new RuntimeException(e);
                 }
             } else {
                 if (usePreparedStatement) {

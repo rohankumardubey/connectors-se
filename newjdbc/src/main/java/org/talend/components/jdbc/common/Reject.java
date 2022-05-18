@@ -25,8 +25,10 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class Reject implements Serializable {
 
+    private static final long serialVersionUID = 1;
+
     // TODO have to json object, not support tck Record
-    private Record record;
+    private transient Record record;
 
     private String errorCode;
 
