@@ -67,7 +67,7 @@ public class JDBCOutputBulkProcessor implements Serializable {
             throws IOException {
         writer.write(record);
 
-        // TODO pass input to output directly?
+        success.emit(record);
     }
 
     @AfterGroup
@@ -76,7 +76,8 @@ public class JDBCOutputBulkProcessor implements Serializable {
 
     @PostConstruct
     public void init() throws IOException {
-        writer = new JDBCBulkFileWriter(configuration.getBulkCommonConfig(), configuration.isAppend(),
+        writer = new JDBCBulkFileWriter(configuration.getSchema(), configuration.getBulkCommonConfig(),
+                configuration.isAppend(),
                 recordBuilderFactory);
         writer.open();
     }

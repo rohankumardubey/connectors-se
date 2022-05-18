@@ -28,9 +28,9 @@ import java.util.List;
 
 @Data
 @GridLayout({
+        @GridLayout.Row("schema"),
         @GridLayout.Row("dataStore"),
-        @GridLayout.Row("tableName"),
-        @GridLayout.Row("schema")
+        @GridLayout.Row("tableName")
 })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {
         @GridLayout.Row("dataStore")// TODO we should remove this as the settings in datastore advanced setting no

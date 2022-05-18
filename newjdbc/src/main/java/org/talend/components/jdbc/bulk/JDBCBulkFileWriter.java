@@ -13,6 +13,8 @@
 package org.talend.components.jdbc.bulk;
 
 import com.talend.csv.CSVWriter;
+import org.talend.components.jdbc.common.SchemaInfo;
+import org.talend.components.jdbc.schema.SchemaInferer;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -50,7 +52,7 @@ public class JDBCBulkFileWriter {
 
     private int totalCount;
 
-    public JDBCBulkFileWriter(JDBCBulkCommonConfig bulkCommonConfig, boolean isAppend,
+    public JDBCBulkFileWriter(List<SchemaInfo> schema, JDBCBulkCommonConfig bulkCommonConfig, boolean isAppend,
             RecordBuilderFactory recordBuilderFactory) {
         this.bulkCommonConfig = bulkCommonConfig;
         this.recordBuilderFactory = recordBuilderFactory;
@@ -60,8 +62,7 @@ public class JDBCBulkFileWriter {
             this.nullValue = bulkCommonConfig.getNullValue();
         }
 
-        // TODO can't get it now
-        this.designSchema = null;
+        this.designSchema = SchemaInferer.convertSchemaInfoList2TckSchema(schema, recordBuilderFactory);
         // TODO check dynamic column exists
         isDynamic = false;
     }
@@ -108,10 +109,9 @@ public class JDBCBulkFileWriter {
         }
 
         if (currentSchema == null) {
-            // TODO now can't get design schema
-            // currentSchema = this.designSchema;
+            currentSchema = this.designSchema;
             Schema inputSchema = input.getSchema();
-            currentSchema = inputSchema;
+
             if (isDynamic) {
                 // TODO merge design schema and input schema
             }

@@ -14,6 +14,7 @@ package org.talend.components.jdbc.sp;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.schema.CommonUtils;
+import org.talend.components.jdbc.schema.SchemaInferer;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -60,9 +61,10 @@ public class JDBCSPWriter {
         this.conn = conn;
         this.recordBuilderFactory = recordBuilderFactory;
 
-        // TODO now can't get them from model, not support
-        componentSchema = null;
-        outputSchema = null;
+        componentSchema =
+                SchemaInferer.convertSchemaInfoList2TckSchema(config.getSchema(), recordBuilderFactory);
+        // TODO they are the same always?
+        outputSchema = componentSchema;
     }
 
     public void open() throws SQLException {
@@ -110,6 +112,8 @@ public class JDBCSPWriter {
         return statementBuilder.toString();
     }
 
+    private JDBCSPRecordCreator recordCreator;
+
     public void write(Record inputRecord) throws SQLException {
         // TODO process inputRecord is null case
 
@@ -123,18 +127,17 @@ public class JDBCSPWriter {
             } else {
                 Schema inputSchema = inputRecord.getSchema();
 
-                // TODO remove this, now can't get design schema
-                if (componentSchema == null)
-                    componentSchema = inputSchema;
-
                 fillParameters(cs, componentSchema, inputSchema, inputRecord);
             }
 
             cs.execute();
 
-            // TODO construt result by componentSchema/outputSchema/inputSchema, now can't get componentSchema and
-            // outputSchema, only have inputSchema
-            Record outputRecord = null;
+            if (recordCreator == null) {
+                recordCreator = new JDBCSPRecordCreator();
+                recordCreator.init(componentSchema, outputSchema, config, recordBuilderFactory);
+            }
+
+            Record outputRecord = recordCreator.createRecord(cs, inputRecord);
 
             successfulWrites.add(outputRecord);
         } catch (Exception e) {

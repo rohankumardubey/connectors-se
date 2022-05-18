@@ -50,8 +50,6 @@ public class OutputProcessor implements Serializable {
 
     // private final I18nMessage i18n;
 
-    // private transient boolean init;
-
     @Connection
     private transient java.sql.Connection connection;
 
@@ -157,7 +155,9 @@ public class OutputProcessor implements Serializable {
 
     @PreDestroy
     public void release() throws SQLException {
-        writer.close();
+        if (writer != null) {
+            writer.close();
+        }
     }
 
 }

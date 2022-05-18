@@ -14,6 +14,7 @@ package org.talend.components.jdbc.row;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.input.JDBCRuntimeUtils;
+import org.talend.components.jdbc.schema.SchemaInferer;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -96,9 +97,9 @@ public class JDBCRowWriter {
 
         propagateQueryResultSet = config.isPropagateRecordSet();
 
-        // TODO can't get them
-        outSchema = null;
-        rejectSchema = null;
+        outSchema =
+                SchemaInferer.convertSchemaInfoList2TckSchema(config.getDataSet().getSchema(), recordBuilderFactory);
+        rejectSchema = SchemaInferer.getRejectSchema(config.getDataSet().getSchema(), recordBuilderFactory);
 
         useQueryTimeout = config.isUseQueryTimeout();
         queryTimeout = config.getQueryTimeout();
@@ -243,26 +244,24 @@ public class JDBCRowWriter {
 
         successCount++;
 
-        // TODO now can't get design schema
-        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
+        Record.Builder builder = recordBuilderFactory.newRecordBuilder(outSchema);
 
         if (input == null) {
             // if input is null, mean standalone mode or output mode
             // TODO now tck framework not support Object type
             if (propagateQueryResultSet) {
-                Schema.Entry entry = recordBuilderFactory.newEntryBuilder()
-                        .withType(Schema.Type.STRING)
-                        .withName(config.getRecordSetColumn())
-                        .withProp("talend.studio.type", "id_Object")
-                        .build();
+                Schema.Entry entry = outSchema.getEntry(config.getRecordSetColumn());
+                if (entry == null) {
+                    throw new RuntimeException(
+                            "can't find the column : " + config.getRecordSetColumn() + " in " + rejectSchema);
+                }
                 builder.with(entry, resultSet);
             } else {
                 // TODO no output or return empty record?
                 return;
             }
         } else {
-            // TODO should use design schema: outSchema, not input schema
-            for (Schema.Entry outField : input.getSchema().getEntries()) {
+            for (Schema.Entry outField : outSchema.getEntries()) {
                 Object outValue = null;
 
                 if (propagateQueryResultSet && outField.getName().equals(config.getRecordSetColumn())) {
@@ -275,8 +274,6 @@ public class JDBCRowWriter {
                     builder.with(outField, outValue);
                 }
             }
-
-            // TODO pass propagateQueryResultSet
         }
 
         successfulWrites.add(builder.build());
@@ -287,19 +284,27 @@ public class JDBCRowWriter {
 
         rejectCount++;
 
-        // TODO now can't get design schema
-        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
+        Record.Builder builder = recordBuilderFactory.newRecordBuilder(rejectSchema);
 
         if (input == null) {
+            // TODO need to process this?
             if (propagateQueryResultSet) {
                 // TODO fix it, now tck don't support Object type
+                Schema.Entry entry = rejectSchema.getEntry(config.getRecordSetColumn());
+                if (entry == null) {
+                    throw new RuntimeException(
+                            "can't find the column : " + config.getRecordSetColumn() + " in " + rejectSchema);
+                }
+                builder.with(entry, resultSet);
+
+                builder.with(rejectSchema.getEntry("errorCode"), e.getSQLState());
+                builder.with(rejectSchema.getEntry("errorMessage"), e.getMessage() + " - Line: " + totalCount);
             } else {
                 // TODO no output or return empty record?
                 return;
             }
         } else {
-            // TODO should use design schema: rejectSchema, not input schema
-            for (Schema.Entry outField : input.getSchema().getEntries()) {
+            for (Schema.Entry outField : rejectSchema.getEntries()) {
                 Object outValue = null;
                 Schema.Entry inField = input.getSchema().getEntry(outField.getName());
 
@@ -313,9 +318,6 @@ public class JDBCRowWriter {
 
                 builder.with(outField, outValue);
             }
-
-            builder.withString("errorCode", e.getSQLState());
-            builder.withString("errorMessage", e.getMessage() + " - Line: " + totalCount);
         }
 
         Record reject = builder.build();

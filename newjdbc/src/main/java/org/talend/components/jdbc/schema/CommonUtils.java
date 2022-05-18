@@ -15,8 +15,10 @@ package org.talend.components.jdbc.schema;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.common.DBType;
 import org.talend.components.jdbc.common.Driver;
+import org.talend.components.jdbc.common.SchemaInfo;
 import org.talend.components.jdbc.datastore.JDBCDataStore;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -285,6 +287,23 @@ public class CommonUtils {
         }
 
         return null;
+    }
+
+    public static int getFieldIndex(Schema schema, String fieldName) {
+        if (schema == null) {
+            return -1;
+        }
+
+        int index = 0;
+        for (Schema.Entry outField : schema.getEntries()) {
+            if (outField.getName().equals(fieldName)) {
+                return index;
+            }
+
+            index++;
+        }
+
+        return index;
     }
 
 }

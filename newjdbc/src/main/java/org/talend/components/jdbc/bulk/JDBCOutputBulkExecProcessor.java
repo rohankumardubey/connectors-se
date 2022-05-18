@@ -71,11 +71,9 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
     }
 
     @ElementListener
-    public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success)
+    public void elementListener(@Input final Record record)
             throws IOException {
         writer.write(record);
-
-        // TODO do output
     }
 
     @AfterGroup
@@ -96,7 +94,8 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
             useExistedConnection = true;
         }
 
-        writer = new JDBCBulkFileWriter(configuration.getBulkCommonConfig(), configuration.isAppend(),
+        writer = new JDBCBulkFileWriter(configuration.getDataSet().getSchema(), configuration.getBulkCommonConfig(),
+                configuration.isAppend(),
                 recordBuilderFactory);
         writer.open();
 

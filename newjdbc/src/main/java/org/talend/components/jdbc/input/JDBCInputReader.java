@@ -60,10 +60,14 @@ public class JDBCInputReader {
 
     private Schema getSchema() throws SQLException {
         if (querySchema == null) {
-            // TODO now can't get design schema
-            querySchema = null;
+            // TODO need to adjust studio common javajet as it don't pass value for "config.getDataSet().getSchema()" if
+            // dynamic column exists in studio, even basic column also exist.
+            // TODO solution 1: pass nondynamic columns, solution 2: pass all columns info which contain dynamic columns
+            querySchema = SchemaInferer.convertSchemaInfoList2TckSchema(config.getDataSet().getSchema(),
+                    recordBuilderFactory);
 
-            if (querySchema == null) {// TODO or dynmic column exists, but now no way
+            // no set schema for cloud platform, or use dynamic in studio platform
+            if (querySchema == null || querySchema.getEntries().isEmpty()) {
                 // TODO how to get it?
                 URL mappingFileDir = null;
 
@@ -78,7 +82,8 @@ public class JDBCInputReader {
                 querySchema = SchemaInferer.infer(recordBuilderFactory, resultSet.getMetaData(), mapping);
             }
 
-            boolean includeDynamic = false;// TODO
+            boolean includeDynamic = false;// TODO process the case for dynamic column and basic column exists both,
+                                           // need to merge runtime schema with design schema, not sure
             if (includeDynamic) {
                 // querySchema = CommonUtils.mergeRuntimeSchema2DesignSchema4Dynamic(querySchema,
                 // runtimeSchema4ResultSet);

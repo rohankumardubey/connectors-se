@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.schema;
 
+import org.talend.components.jdbc.common.SchemaInfo;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -215,53 +216,7 @@ public class SchemaInferer {
 
             entryBuilder.withProp("talend.studio.type", talendType.getName());
 
-            switch (talendType) {
-            case STRING:
-                entryBuilder.withType(STRING);
-                break;
-            case BOOLEAN:
-                entryBuilder.withType(BOOLEAN);
-                break;
-            case INTEGER:
-                entryBuilder.withType(INT);
-                break;
-            case LONG:
-                entryBuilder.withType(LONG);
-                break;
-            case DOUBLE:
-                entryBuilder.withType(DOUBLE);
-                break;
-            case FLOAT:
-                entryBuilder.withType(DOUBLE);
-                break;
-            case BYTE:
-                // no Schema.Type.BYTE
-                entryBuilder.withType(STRING);
-                break;
-            case BYTES:
-                entryBuilder.withType(BYTES);
-                break;
-            case SHORT:
-                // no Schema.Type.SHORT
-                entryBuilder.withType(INT);
-                break;
-            case CHARACTER:
-                // no Schema.Type.CHARACTER
-                entryBuilder.withType(STRING);
-                break;
-            case BIG_DECIMAL:
-                // no Schema.Type.DECIMA
-                entryBuilder.withType(STRING);
-                break;
-            case DATE:
-                entryBuilder.withType(DATETIME);
-                break;
-            case OBJECT:
-                entryBuilder.withType(STRING);
-                break;
-            default:
-                throw new UnsupportedOperationException("Unrecognized type " + talendType);
-            }
+            entryBuilder.withType(convertTalendType2TckType(talendType));
         }
 
         // correct precision/scale/date pattern
@@ -393,6 +348,99 @@ public class SchemaInferer {
                 break;
             }
         }
+    }
+
+    private static Schema.Type convertTalendType2TckType(TalendType talendType) {
+        switch (talendType) {
+        case STRING:
+            return STRING;
+        case BOOLEAN:
+            return BOOLEAN;
+        case INTEGER:
+            return INT;
+        case LONG:
+            return LONG;
+        case DOUBLE:
+            return DOUBLE;
+        case FLOAT:
+            return FLOAT;
+        case BYTE:
+            // no Schema.Type.BYTE
+            return STRING;
+        case BYTES:
+            return BYTES;
+        case SHORT:
+            // no Schema.Type.SHORT
+            return INT;
+        case CHARACTER:
+            // no Schema.Type.CHARACTER
+            return STRING;
+        case BIG_DECIMAL:
+            // no Schema.Type.DECIMA
+            return STRING;
+        case DATE:
+            return DATETIME;
+        case OBJECT:
+            return STRING;
+        default:
+            throw new UnsupportedOperationException("Unrecognized type " + talendType);
+        }
+    }
+
+    public static Schema convertSchemaInfoList2TckSchema(List<SchemaInfo> infos,
+            RecordBuilderFactory recordBuilderFactory) {
+        final Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
+        convertBase(infos, recordBuilderFactory, schemaBuilder);
+        return schemaBuilder.build();
+    }
+
+    public static Schema getRejectSchema(List<SchemaInfo> infos, RecordBuilderFactory recordBuilderFactory) {
+        final Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
+
+        convertBase(infos, recordBuilderFactory, schemaBuilder);
+
+        schemaBuilder.withEntry(recordBuilderFactory.newEntryBuilder()
+                .withName("errorCode")
+                .withType(STRING)
+                .withProp("talend.studio.length", "255")
+                .build());
+        schemaBuilder.withEntry(recordBuilderFactory.newEntryBuilder()
+                .withName("errorMessage")
+                .withType(STRING)
+                .withProp("talend.studio.length", "255")
+                .build());
+
+        return schemaBuilder.build();
+    }
+
+    private static void convertBase(List<SchemaInfo> infos, RecordBuilderFactory recordBuilderFactory,
+            Schema.Builder schemaBuilder) {
+        if (infos == null)
+            return;
+
+        infos.stream().forEach(info -> {
+            Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
+            // TODO consider the valid name convert
+            entryBuilder.withName(info.getLabel())
+                    .withRawName(info.getOriginalDbColumnName())
+                    .withNullable(info.isNullable())
+                    .withComment(info.getComment())
+                    .withDefaultValue(info.getDefaultValue())
+                    // in studio, we use talend type firstly, not tck type, but in cloud, no talend type, only tck type,
+                    // need to use this
+                    // but only studio have the design schema which with raw db type and talend type, so no need to
+                    // convert here as we will not use getType method
+                    .withType(convertTalendType2TckType(TalendType.get(info.getTalendType())))
+                    // TODO also define a pro for origin db type like VARCHAR? info.getType()
+                    .withProp("talend.studio.type", info.getTalendType())
+                    .withProp("talend.studio.key", String.valueOf(info.isKey()))
+                    .withProp("talend.studio.pattern", info.getPattern())
+                    // TODO how to treat differently for null, 0, empty?
+                    .withProp("talend.studio.length", String.valueOf(info.getLength()))
+                    .withProp("talend.studio.precision", String.valueOf(info.getPrecision()));
+
+            schemaBuilder.withEntry(entryBuilder.build());
+        });
     }
 
 }

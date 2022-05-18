@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.output;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.schema.SchemaInferer;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -121,14 +122,15 @@ abstract public class JDBCOutputWriter {
 
     public void open() throws SQLException {
         log.debug("JDBCOutputWriter start.");
-        // TODO : can't get tck schema info from configuration object : TCOMP-2122
-        // now no way to get them from component, only can get them from runtime input record object, that's not enough,
-        // see TCOMP-2122
-        componentSchema = null;
-        rejectSchema = null;
+        // TODO consider it for cloud too
+        componentSchema =
+                SchemaInferer.convertSchemaInfoList2TckSchema(config.getDataSet().getSchema(), recordBuilderFactory);
+        // no way to fetch reject schema, but workaround : add columns here as reject schema add "errorCode" and
+        // "errorMessage" columns base on componentSchema
+        rejectSchema = SchemaInferer.getRejectSchema(config.getDataSet().getSchema(), recordBuilderFactory);
 
         // TODO check if talend dynamic column exists in component schema
-        isDynamic = true;
+        isDynamic = false;
 
         // if not dynamic, we can computer it now for "fail soon" way, not fail in main part if fail
         if (!isDynamic) {
@@ -232,11 +234,7 @@ abstract public class JDBCOutputWriter {
 
         rejectCount++;
 
-        // TODO remove this, as now we can't get reject design schema
-        rejectSchema = input.getSchema();
-
-        // Record.Builder builder = recordBuilderFactory.newRecordBuilder(rejectSchema);
-        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
+        Record.Builder builder = recordBuilderFactory.newRecordBuilder(rejectSchema);
         for (Schema.Entry rejectField : rejectSchema.getEntries()) {
             Object rejectValue = null;
             // getField is a O(1) method for time, so performance is OK here.
@@ -252,10 +250,6 @@ abstract public class JDBCOutputWriter {
 
             builder.with(rejectField, rejectValue);
         }
-
-        // TODO remove this, as now we can't get reject design schema
-        builder.withString("errorCode", e.getSQLState());
-        builder.withString("errorMessage", e.getMessage() + " - Line: " + totalCount);
 
         Record reject = builder.build();
         rejectedWrites.add(reject);

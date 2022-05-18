@@ -14,6 +14,7 @@ package org.talend.components.jdbc.bulk;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.dataset.JDBCTableDataSet;
+import org.talend.components.jdbc.schema.SchemaInferer;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -39,7 +40,6 @@ public class JDBCBulkExecRuntime {
 
     private RecordBuilderFactory recordBuilderFactory;
 
-    // TODO how to get it from model? here no input record
     private Schema designSchema;
 
     public JDBCBulkExecRuntime(JDBCTableDataSet dataSet, JDBCBulkCommonConfig bulkCommonConfig,
@@ -51,6 +51,8 @@ public class JDBCBulkExecRuntime {
         this.useExistedConnection = useExistedConnection;
         this.conn = conn;
         this.recordBuilderFactory = recordBuilderFactory;
+
+        this.designSchema = SchemaInferer.convertSchemaInfoList2TckSchema(dataSet.getSchema(), recordBuilderFactory);
     }
 
     private String createBulkSQL() {
@@ -71,7 +73,7 @@ public class JDBCBulkExecRuntime {
             sb.append("NULL DEFINED BY '").append(bulkCommonConfig.getNullValue()).append("' ");
         }
 
-        // if design schema is empty, no need to fill column settings, TODO now can't get design schema
+        // if design schema is empty, no need to fill column settings
         if (designSchema == null) {
             return sb.toString();
         }

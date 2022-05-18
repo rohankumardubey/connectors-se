@@ -14,10 +14,10 @@ package org.talend.components.jdbc.sp;
 
 import lombok.Data;
 import org.talend.components.jdbc.common.SchemaInfo;
-import org.talend.components.jdbc.dataset.JDBCTableDataSet;
 import org.talend.components.jdbc.datastore.JDBCDataStore;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
+import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -29,43 +29,22 @@ import java.util.List;
 @GridLayout({
         @GridLayout.Row("schema"),
         @GridLayout.Row("dataStore"),
-        @GridLayout.Row("spName"),
-        @GridLayout.Row("isFunction"),
-        @GridLayout.Row("resultColumn"),
-        @GridLayout.Row("spParameters")
 })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = {
-        @GridLayout.Row("dataStore")
+        @GridLayout.Row("dataStore")// TODO we should remove this as the settings in datastore advanced setting no
+                                    // meaning for input component?
 })
-@Documentation("jdbc sp")
-public class JDBCSPConfig implements Serializable {
+@DataSet("JDBCSchemaDataSet")
+@Documentation("A schema dataset")
+public class JDBCSchemaDataSet implements Serializable {
 
-    // TODO now have to wrap a dataset instead of datastore as studio limit
     @Option
-    @Documentation("schema dataset")
+    @Documentation("The connection information to execute")
     private JDBCDataStore dataStore;
 
     @Option
     @Structure(type = Structure.Type.OUT)
     @Documentation("schema")
     private List<SchemaInfo> schema;
-
-    @Option
-    @Documentation("")
-    private String spName;
-
-    @Option
-    @Documentation("")
-    private boolean isFunction;
-
-    // TODO how to map to a closed list for schema fields
-    @Option
-    @ActiveIf(target = "isFunction", value = { "true" })
-    @Documentation("")
-    private String resultColumn;
-
-    @Option
-    @Documentation("")
-    private List<SPParameter> spParameters;
 
 }

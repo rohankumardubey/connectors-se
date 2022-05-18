@@ -13,14 +13,19 @@
 package org.talend.components.jdbc.bulk;
 
 import lombok.Data;
+import org.talend.components.jdbc.common.SchemaInfo;
+import org.talend.components.jdbc.sp.JDBCSchemaDataSet;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @GridLayout({
+        @GridLayout.Row("schema"),
         @GridLayout.Row("bulkCommonConfig"),
         @GridLayout.Row("append")
 })
@@ -29,6 +34,11 @@ import java.io.Serializable;
 })
 @Documentation("jdbc output bulk file")
 public class JDBCOutputBulkConfig implements Serializable {
+
+    @Option
+    @Structure(type = Structure.Type.OUT)
+    @Documentation("schema")
+    private List<SchemaInfo> schema;
 
     // seems this also generate "use existed connection" in studio, should not, TODO check it more
     @Option
