@@ -123,7 +123,8 @@ public class JDBCInputReader {
                     }
                 } catch (Exception e) {
                     // TODO
-                    throw new RuntimeException(e);
+                    // throw new RuntimeException(e);
+                    log.info("can't find method : enableStreamingResults");
                 }
             } else {
                 if (usePreparedStatement) {
