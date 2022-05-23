@@ -36,6 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.Optional;
+import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,7 @@ import com.couchbase.client.core.diagnostics.PingResult;
 import com.couchbase.client.core.env.ThresholdLoggingTracerConfig;
 import com.couchbase.client.core.env.TimeoutConfig;
 import com.couchbase.client.core.env.TimeoutConfig.Builder;
+import com.couchbase.client.core.env.SecurityConfig;
 import com.couchbase.client.core.error.AuthenticationFailureException;
 import com.couchbase.client.core.error.UnambiguousTimeoutException;
 import com.couchbase.client.java.Bucket;
@@ -108,6 +111,14 @@ public class CouchbaseService implements Serializable {
         ClusterHolder holder = clustersPool.computeIfAbsent(dataStore, ds -> {
             ClusterEnvironment.Builder envBuilder = ClusterEnvironment.builder();
 
+            if (dataStore.isEnableTLS()) {
+                envBuilder.securityConfig(
+                        SecurityConfig.enableTls(true)
+                                .trustStore(
+                                        Paths.get(dataStore.getTrustStorePath()),
+                                        dataStore.getTrustStorePassword(),
+                                        Optional.of(dataStore.getTrustStoreType())));
+            }
             if (dataStore.isUseConnectionParameters()) {
                 Builder timeoutBuilder = TimeoutConfig.builder();
                 dataStore.getConnectionParametersList()
