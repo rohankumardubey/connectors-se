@@ -77,7 +77,7 @@
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <locales.version>[1.32,)</locales.version>
+        <locales.version>[1.33,)</locales.version>
 
         <component-runtime.version>1.45.0</component-runtime.version>
         <slf4j.version>1.7.36</slf4j.version>
@@ -101,9 +101,8 @@
         <daikon.version>0.31.0</daikon.version>
 
         <junit5.version>5.8.2</junit5.version>
-        <surefire.version>3.0.0-M3</surefire.version>
-        <maven.enforcer.version>3.0.0-M3</maven.enforcer.version>
-        <jacoco.version>0.8.2</jacoco.version>
+        <junit4.version>4.13.2</junit4.version>
+        <hamcrest.version>1.3</hamcrest.version>
 
         <commons-csv.version>1.4</commons-csv.version>
         <commons-lang3.version>3.10</commons-lang3.version>
@@ -127,9 +126,6 @@
         <frontend.version>1.7.5</frontend.version>
         <node.version>v12.13.1</node.version>
         <yarn.version>v1.15.2</yarn.version>
-        <spotbugs.version>4.0.0</spotbugs.version>
-        <spotbugs-maven-plugin.version>3.1.12.2</spotbugs-maven-plugin.version>
-        <spotless.version>2.4.0</spotless.version>
 
         <!-- The XTM customer id that manage the translation of this project-->
         <xtm.customer.id>12240076</xtm.customer.id>
@@ -145,6 +141,7 @@
         <guava.version>30.0-jre</guava.version>
         <hadoop.version>3.2.3</hadoop.version>
         <axis2.version>1.8.0</axis2.version>
+        <lombok.version>1.18.24</lombok.version>
 
         <!-- code quality enforcer default values.
              run build w/ -Pcode-quality to have a full validation -->
@@ -159,6 +156,18 @@
         <talend-component.icon.skip>true</talend-component.icon.skip>
         <!-- TODO: replace with a 'validation.svg' -->
         <validation.metadata>true</validation.metadata>
+
+        <!-- plugin versions -->
+        <spotless.version>2.22.5</spotless.version>
+        <spotbugs-maven-plugin.version>4.6.0.0</spotbugs-maven-plugin.version>
+        <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
+        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+        <maven-site-plugin.version>3.12.0</maven-site-plugin.version>
+        <versions-maven-plugin.version>2.10.0</versions-maven-plugin.version>
+        <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
+        <surefire.version>3.0.0-M6</surefire.version>
+        <maven.enforcer.version>3.0.0-M3</maven.enforcer.version>
+        <jacoco.version>0.8.8</jacoco.version>
     </properties>
 
     <dependencyManagement>
@@ -594,13 +603,38 @@
                <artifactId>protobuf-java</artifactId>
                <version>${protobuf-java.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit5.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-core</artifactId>
+                <version>${hamcrest.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-all</artifactId>
+                <version>${hamcrest.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.20</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -630,7 +664,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${junit5.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -758,7 +791,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.1</version>
+                <version>${maven-jar-plugin.version}</version>
                 <configuration>
                     <archive>
                         <manifestEntries>
@@ -806,7 +839,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -912,7 +945,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
-                <version>2.9.0</version>
+                <version>${versions-maven-plugin.version}</version>
                 <configuration>
                     <generateBackupPoms>false</generateBackupPoms>
                 </configuration>
@@ -920,7 +953,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.8.2</version>
+                <version>${maven-deploy-plugin.version}</version>
                 <configuration>
                     <deployAtEnd>true</deployAtEnd>
                 </configuration>
@@ -990,7 +1023,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.7</version>
+                <version>${maven-site-plugin.version}</version>
                 <configuration>
                     <generateReports>true</generateReports>
                     <generateSitemap>true</generateSitemap>
@@ -1173,13 +1206,6 @@
                     <failOnError>false</failOnError>
                     <jvmArgs>-Dspotbugs.experimental.multiThread=false</jvmArgs> <!-- for now it is buggy -->
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.github.spotbugs</groupId>
-                        <artifactId>spotbugs</artifactId>
-                        <version>${spotbugs.version}</version>
-                    </dependency>
-                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -1193,9 +1219,9 @@
                         </goals>
                         <configuration>
                             <rules>
+                                <banDistributionManagement/>
                                 <banDuplicatePomDependencyVersions/>
                                 <dependencyConvergence/>
-                                <banDistributionManagement/>
                             </rules>
                         </configuration>
                     </execution>
