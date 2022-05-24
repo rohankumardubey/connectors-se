@@ -286,9 +286,14 @@ public class JDBCService implements Serializable {
     // studio will pass like this : mvn:mysql/mysql-connector-java/8.0.18/jar
     // but tck here expect like this : mysql:mysql-connector-java:jar:8.0.18
     private static String convertMvnPath2TckPath(String mvnPath) {
-        if (mvnPath == null)
-            return mvnPath;
-        return mvnPath.substring(4, mvnPath.lastIndexOf('/')).replace('/', ':');
+        if (mvnPath == null) {
+            return null;
+        }
+        if (mvnPath.startsWith("mvn:")) {
+            return mvnPath.substring(4, mvnPath.lastIndexOf('/')).replace('/', ':');
+        }
+
+        return mvnPath;
     }
 
     // copy from tck jdbc connector for cloud, TODO now for fast development, will unify them to one
