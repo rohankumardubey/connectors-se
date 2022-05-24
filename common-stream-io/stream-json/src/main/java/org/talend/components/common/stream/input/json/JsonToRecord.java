@@ -224,7 +224,8 @@ public class JsonToRecord {
             break;
         case ARRAY:
             result = json.stream()
-                    .map((JsonValue v) -> convertJsonArray(elementSchema, null, v.asJsonArray()))
+                    .map((JsonValue v) -> v == JsonValue.NULL ? null
+                            : convertJsonArray(elementSchema, null, v.asJsonArray()))
                     .collect(Collectors.toList());
 
             break;
