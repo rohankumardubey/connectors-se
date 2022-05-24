@@ -37,7 +37,10 @@ import lombok.Data;
         value = { @GridLayout.Row({ "bootstrapNodes" }), @GridLayout.Row({ "username" }),
                 @GridLayout.Row({ "password" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "useConnectionParameters" }),
-        @GridLayout.Row({ "connectionParametersList" }) })
+        @GridLayout.Row({ "connectionParametersList" }),
+        @GridLayout.Row({ "enableTLS" }), @GridLayout.Row({ "trustStorePath" }),
+        @GridLayout.Row({ "trustStorePassword" }), @GridLayout.Row({ "trustStoreType" })
+})
 @Documentation("Couchbase connection.")
 public class CouchbaseDataStore implements Serializable {
 
@@ -65,5 +68,25 @@ public class CouchbaseDataStore implements Serializable {
     @Documentation("List of defined connection parameters.")
     @ActiveIf(target = "useConnectionParameters", value = "true")
     private List<ConnectionConfiguration> connectionParametersList = new ArrayList<>();
+
+    @Option
+    @Documentation("Use TLS.")
+    private boolean enableTLS = false;
+
+    @Option
+    @Documentation("Java Truststore")
+    @ActiveIf(target = "enableTLS", value = "true")
+    private String trustStorePath;
+
+    @Option
+    @Credential
+    @Documentation("Java Truststore Password")
+    @ActiveIf(target = "enableTLS", value = "true")
+    private String trustStorePassword;
+
+    @Option
+    @Documentation("Java Truststore Type")
+    @ActiveIf(target = "enableTLS", value = "true")
+    private String trustStoreType = "JKS";
 
 }

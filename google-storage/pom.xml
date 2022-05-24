@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>connectors-se</artifactId>
-        <version>1.31.0-SNAPSHOT</version>
+        <version>1.34.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>google-storage</artifactId>
@@ -15,10 +15,8 @@
 
     <properties>
         <google-cloud-storage-version>1.113.1</google-cloud-storage-version>
-        <hamcrest.version>1.3</hamcrest.version>
         <talend.junit.http.passthrough>false</talend.junit.http.passthrough>
         <jmockit.version>1.49</jmockit.version>
-
 
         <talend.scan.scannedDependencies>org.talend.components:stream-api</talend.scan.scannedDependencies>
         <google-repo-version-test>0.121.2</google-repo-version-test>
@@ -66,13 +64,11 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
-            <version>${hamcrest.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <version>${junit5.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -71,11 +71,15 @@ public class CSVRecordWriter implements RecordWriter {
 
     @Override
     public void flush() throws IOException {
-        this.printer.flush();
+        if (printer != null) {
+            this.printer.flush();
+        }
     }
 
     @Override
     public void close() throws IOException {
-        this.printer.close(true);
+        if (printer != null) {
+            this.printer.close(true);
+        }
     }
 }

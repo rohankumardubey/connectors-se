@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.31.0-SNAPSHOT</version>
+    <version>1.34.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>azure</artifactId>
@@ -30,18 +30,13 @@
     <talend.documentation.htmlAndPdf>false
     </talend.documentation.htmlAndPdf>
 
-    <hadoop-common.version>3.2.2</hadoop-common.version>
+    <hadoop-common.version>3.2.3</hadoop-common.version>
     <hadoop-azure.version>3.2.2.1</hadoop-azure.version>
     <mockito.version>2.23.0</mockito.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>com.google.protobuf</groupId>
-        <artifactId>protobuf-java</artifactId>
-        <version>3.4.0</version>
-      </dependency>
       <!--latest versions use azure-core
         which depends on the jacksonV 12, not compatible with pipeline designer -->
       <dependency>
@@ -69,7 +64,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>${jackson.version}</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

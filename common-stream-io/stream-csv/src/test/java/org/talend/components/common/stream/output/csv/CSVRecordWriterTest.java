@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
+import org.talend.components.common.stream.format.Encoding.Type;
 import org.talend.components.common.stream.format.HeaderLine;
 import org.talend.components.common.stream.format.LineConfiguration;
 import org.talend.components.common.stream.format.csv.CSVConfiguration;
@@ -35,18 +36,7 @@ class CSVRecordWriterTest {
     public void writeCSV() throws IOException {
         final RecordWriterSupplier recordWriterSupplier = new CSVWriterSupplier();
 
-        final CSVConfiguration config = new CSVConfiguration();
-        config.setLineConfiguration(new LineConfiguration());
-        config.getLineConfiguration().setLineSeparator("\n");
-        config.setEscape('\\');
-        config.setFieldSeparator(new FieldSeparator());
-        config.getFieldSeparator().setFieldSeparatorType(FieldSeparator.Type.SEMICOLON);
-
-        config.getLineConfiguration().setHeader(new HeaderLine());
-        config.getLineConfiguration().getHeader().setActive(true);
-        config.getLineConfiguration().getHeader().setSize(4);
-
-        config.setQuotedValue('"');
+        final CSVConfiguration config = createCsvConfiguration();
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final RecordWriter writer = recordWriterSupplier.getWriter(() -> out, config);
@@ -59,6 +49,47 @@ class CSVRecordWriterTest {
         writer.flush();
         writer.end();
         Assertions.assertEquals("  \n  \n  \nhello;xx\nmike;45\nbob;11\n\"ice;peak\";13\n", out.toString());
+    }
+
+    @Test
+    void unsupportedEncoding() throws IOException {
+        final RecordWriterSupplier recordWriterSupplier = new CSVWriterSupplier();
+
+        final CSVConfiguration config = createCsvConfiguration();
+        config.getLineConfiguration().getEncoding().setEncodingType(Type.OTHER);
+        config.getLineConfiguration().getEncoding().setEncoding("BlaBla"); // not exist
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final RecordWriter writer = recordWriterSupplier.getWriter(() -> out, config);
+
+        writer.init(config);
+
+        final List<Record> records = buildRecords();
+        Assertions.assertThrows(java.io.UnsupportedEncodingException.class, () -> {
+            try {
+                writer.add(records);
+            } finally {
+                // before the fix the execution in flush and end suppress the origin exception with NPE
+                writer.flush();
+                writer.end();
+            }
+        });
+    }
+
+    private CSVConfiguration createCsvConfiguration() {
+        final CSVConfiguration config = new CSVConfiguration();
+        config.setLineConfiguration(new LineConfiguration());
+        config.getLineConfiguration().setLineSeparator("\n");
+        config.setEscape('\\');
+        config.setFieldSeparator(new FieldSeparator());
+        config.getFieldSeparator().setFieldSeparatorType(FieldSeparator.Type.SEMICOLON);
+
+        config.getLineConfiguration().setHeader(new HeaderLine());
+        config.getLineConfiguration().getHeader().setActive(true);
+        config.getLineConfiguration().getHeader().setSize(4);
+
+        config.setQuotedValue('"');
+        return config;
     }
 
     private List<Record> buildRecords() {
