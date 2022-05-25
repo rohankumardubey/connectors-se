@@ -33,7 +33,6 @@
     </licenses>
 
     <modules>
-        <module>jdbc</module>
         <module>salesforce</module>
         <module>couchbase</module>
         <module>azure</module>
