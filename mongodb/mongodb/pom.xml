@@ -13,7 +13,6 @@
   <name>Connectors SE :: MongoDB :: MongoDB</name>
 
   <properties>
-    <mongodb.client.version>3.12.8</mongodb.client.version>
   </properties>
 
   <dependencies>

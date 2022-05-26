@@ -19,6 +19,6 @@
     </modules>
 
     <properties>
-        <mongodb.client.version>3.12.8</mongodb.client.version>
+        <mongodb.client.version>3.12.11</mongodb.client.version>
     </properties>
 </project>
