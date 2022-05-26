@@ -25,7 +25,7 @@ import org.talend.components.jdbc.schema.Dbms;
 import org.talend.components.jdbc.schema.JDBCTableMetadata;
 import org.talend.components.jdbc.schema.SchemaInferer;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.context.RuntimeContext;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -50,14 +50,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.*;
 import java.util.*;
-import java.util.Date;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static org.talend.sdk.component.api.record.Schema.Type.*;
-import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 
 @Slf4j
 @Service
@@ -68,6 +63,11 @@ public class JDBCService implements Serializable {
     // TODO get the classloader tool to use maven gav pathes to load the jdbc driver jars classes dynamiclly
     @Service
     private transient Resolver resolver;
+
+    // this should be used in @CreateConnection and @CloseConnection action method,
+    // that method should not be code called outside of JDBCService
+    @RuntimeContext
+    private transient Map<String, Object> context;
 
     @Service
     private RecordBuilderFactory recordBuilderFactory;
@@ -180,6 +180,7 @@ public class JDBCService implements Serializable {
 
     @CreateConnection
     public Connection createConnection(@Option("configuration") final JDBCDataStore dataStore) throws SQLException {
+        System.out.println(context);
         return createJDBCConnection(dataStore).getConnection();
     }
 
@@ -189,6 +190,8 @@ public class JDBCService implements Serializable {
         return new CloseConnectionObject() {
 
             public boolean close() {
+                System.out.println(context);
+
                 // TODO close connection here
                 Optional.ofNullable(this.getConnection())
                         .map(Connection.class::cast)
@@ -216,9 +219,9 @@ public class JDBCService implements Serializable {
         return new SuggestionValues(true, items);
     }
 
-    public List<String> getSchemaNames(final JDBCDataStore dataStore) throws SQLException {
+    private List<String> getSchemaNames(final JDBCDataStore dataStore) throws SQLException {
         List<String> result = new ArrayList<>();
-        try (Connection conn = createConnection(dataStore)) {
+        try (Connection conn = createJDBCConnection(dataStore).getConnection()) {
             DatabaseMetaData dbMetaData = conn.getMetaData();
 
             Set<String> tableTypes = getAvailableTableTypes(dbMetaData);

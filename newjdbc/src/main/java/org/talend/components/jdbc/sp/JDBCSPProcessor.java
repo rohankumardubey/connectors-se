@@ -76,7 +76,7 @@ public class JDBCSPProcessor implements Serializable {
 
             if (connection == null) {
                 try {
-                    connection = service.createConnection(configuration.getDataStore());
+                    connection = service.createJDBCConnection(configuration.getDataStore()).getConnection();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }

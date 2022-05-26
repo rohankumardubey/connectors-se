@@ -19,6 +19,7 @@ import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.context.RuntimeContext;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
@@ -31,6 +32,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Getter
@@ -49,6 +51,9 @@ public class OutputProcessor implements Serializable {
     private final JDBCService jdbcService;
 
     // private final I18nMessage i18n;
+
+    @RuntimeContext
+    private transient Map<String, Object> context;
 
     @Connection
     private transient java.sql.Connection connection;
@@ -77,12 +82,14 @@ public class OutputProcessor implements Serializable {
     public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success,
             @Output("reject") final OutputEmitter<Record>/* OutputEmitter<Reject> */ reject)
             throws SQLException, IOException {
+        System.out.println(context);
         if (!init) {
             boolean useExistedConnection = false;
 
             if (connection == null) {
                 try {
-                    connection = jdbcService.createConnection(configuration.getDataSet().getDataStore());
+                    connection =
+                            jdbcService.createJDBCConnection(configuration.getDataSet().getDataStore()).getConnection();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }

@@ -17,6 +17,7 @@ import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.context.RuntimeContext;
 import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -28,6 +29,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.Map;
 
 @Slf4j
 @Version(1)
@@ -44,6 +46,9 @@ public class QueryEmitter implements Serializable {
     private final RecordBuilderFactory recordBuilderFactory;
 
     private final JDBCService jdbcService;
+
+    @RuntimeContext
+    private transient Map<String, Object> context;
 
     @Connection
     private transient java.sql.Connection connection;
@@ -62,10 +67,13 @@ public class QueryEmitter implements Serializable {
 
     @PostConstruct
     public void init() throws SQLException {
+        System.out.println(context);
+
         boolean useExistedConnection = false;
         if (connection == null) {
             try {
-                connection = jdbcService.createConnection(configuration.getDataSet().getDataStore());
+                connection =
+                        jdbcService.createJDBCConnection(configuration.getDataSet().getDataStore()).getConnection();
             } catch (SQLException e) {
                 e.printStackTrace();
             }

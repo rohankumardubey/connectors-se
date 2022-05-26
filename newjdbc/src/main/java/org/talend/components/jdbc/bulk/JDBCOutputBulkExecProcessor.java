@@ -88,7 +88,8 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
 
         if (connection == null) {
             try {
-                connection = jdbcService.createConnection(configuration.getDataSet().getDataStore());
+                connection =
+                        jdbcService.createJDBCConnection(configuration.getDataSet().getDataStore()).getConnection();
             } catch (SQLException e) {
                 e.printStackTrace();
             }

@@ -61,7 +61,7 @@ public class JDBCBulkExecStandalone implements Serializable {
 
         if (connection == null) {
             try {
-                connection = service.createConnection(configuration.getDataSet().getDataStore());
+                connection = service.createJDBCConnection(configuration.getDataSet().getDataStore()).getConnection();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
