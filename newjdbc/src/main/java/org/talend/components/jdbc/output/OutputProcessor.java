@@ -82,7 +82,6 @@ public class OutputProcessor implements Serializable {
     public void elementListener(@Input final Record record, @Output final OutputEmitter<Record> success,
             @Output("reject") final OutputEmitter<Record>/* OutputEmitter<Reject> */ reject)
             throws SQLException, IOException {
-        System.out.println(context);
         if (!init) {
             boolean useExistedConnection = false;
 

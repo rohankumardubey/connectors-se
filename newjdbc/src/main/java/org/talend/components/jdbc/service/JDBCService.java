@@ -180,7 +180,6 @@ public class JDBCService implements Serializable {
 
     @CreateConnection
     public Connection createConnection(@Option("configuration") final JDBCDataStore dataStore) throws SQLException {
-        System.out.println(context);
         return createJDBCConnection(dataStore).getConnection();
     }
 
@@ -190,8 +189,6 @@ public class JDBCService implements Serializable {
         return new CloseConnectionObject() {
 
             public boolean close() {
-                System.out.println(context);
-
                 // TODO close connection here
                 Optional.ofNullable(this.getConnection())
                         .map(Connection.class::cast)

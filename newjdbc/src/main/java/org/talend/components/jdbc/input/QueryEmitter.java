@@ -67,8 +67,6 @@ public class QueryEmitter implements Serializable {
 
     @PostConstruct
     public void init() throws SQLException {
-        System.out.println(context);
-
         boolean useExistedConnection = false;
         if (connection == null) {
             try {
