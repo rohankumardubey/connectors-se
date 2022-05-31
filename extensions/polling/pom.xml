@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.talend.components.extension</groupId>
         <artifactId>extensions</artifactId>
-        <version>1.27.10-SNAPSHOT</version>
+        <version>1.27.11-SNAPSHOT</version>
     </parent>
 
     <artifactId>polling</artifactId>
