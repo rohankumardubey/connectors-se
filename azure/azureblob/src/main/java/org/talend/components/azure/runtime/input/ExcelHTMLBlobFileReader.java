@@ -16,11 +16,8 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Iterator;
 import org.jsoup.Jsoup;
-import org.jsoup.helper.Validate;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.parser.ParseError;
-import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.service.AzureBlobComponentServices;
@@ -94,7 +91,8 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
         @Override
         protected Record convertToRecord(Element row) {
             if (converter == null) {
-                converter = new HTMLToRecord(getRecordBuilderFactory());
+                converter = new HTMLToRecord(getRecordBuilderFactory(),
+                        () -> getMessageService().fileIsNotValidExcelHTML());
             }
 
             if (columns == null) {

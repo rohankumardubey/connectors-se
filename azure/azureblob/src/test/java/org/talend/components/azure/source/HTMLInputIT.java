@@ -211,10 +211,29 @@ class HTMLInputIT extends BaseIT {
 
     @SneakyThrows
     @Test
-    void testReadCsvAsHTMLException() {
+    void testReadAvroAsHTMLException() {
         BlobTestUtils
                 .uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro1Record.avro",
                         "testAvro1Record.html");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        ComponentException expectedException = Assertions.assertThrows(ComponentException.class, () -> Job.components()
+                .component("azureInput", "Azure://Input?" + inputConfig)
+                .component("collector", "test://collector")
+                .connections()
+                .from("azureInput")
+                .to("collector")
+                .build()
+                .run());
+
+        Assertions.assertTrue(expectedException.getMessage().contains(messageService.fileIsNotValidExcelHTML()));
+    }
+
+    @Test
+    void testReadFormattedHTMLException() throws URISyntaxException, IOException, StorageException {
+        BlobTestUtils
+                .uploadTestFile(storageAccount, blobInputProperties, "excelHTML/testIncorrectSalesforceHTMLReport.html",
+                        "testIncorrectSalesforceHTMLReport.html");
 
         String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
         ComponentException expectedException = Assertions.assertThrows(ComponentException.class, () -> Job.components()
