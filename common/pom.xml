@@ -11,4 +11,11 @@
     <artifactId>common</artifactId>
 
     <name>Connectors SE :: Common</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.talend.daikon</groupId>
+            <artifactId>daikon-url-validation</artifactId>
+        </dependency>
+    </dependencies>
 </project>

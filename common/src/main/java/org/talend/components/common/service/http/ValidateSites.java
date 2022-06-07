@@ -26,6 +26,8 @@ import java.util.Locale;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.talend.daikon.security.url.URLUtils;
+
 @Slf4j
 public class ValidateSites {
 
@@ -114,7 +116,7 @@ public class ValidateSites {
     public enum AccessControls {
 
         LOCAL(
-                (final URL url, final InetAddress inetAddress) -> !AccessControls.isLocalAddress(inetAddress)
+                (final URL url, final InetAddress inetAddress) -> !URLUtils.isLocalAddress(inetAddress)
                         && ADDITIONAL_LOCAL_HOSTS.stream()
                                 .noneMatch(h -> url.getHost().contains(h)),
                 (Environment env) -> env.getValue(Constants.ENV_ENABLE_LOCAL_NETWORK_ACCESS,
@@ -147,12 +149,6 @@ public class ValidateSites {
             }
         }
 
-        private static boolean isLocalAddress(final InetAddress inetAddress) {
-            return inetAddress.isSiteLocalAddress() || inetAddress.isLoopbackAddress()
-                    || inetAddress.isLinkLocalAddress() || inetAddress.isAnyLocalAddress() // Unicast
-                    || inetAddress.isMCLinkLocal() || inetAddress.isMCSiteLocal() || inetAddress.isMCNodeLocal()
-                    || inetAddress.isMCOrgLocal(); // Multicast
-        }
     }
 
     private ValidateSites() {
