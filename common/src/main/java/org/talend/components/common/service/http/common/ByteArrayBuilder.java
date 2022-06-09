@@ -25,7 +25,7 @@ public class ByteArrayBuilder {
     }
 
     public void reset() {
-        builder.delete(0, builder.length());
+        builder.setLength(0);
     }
 
     public ByteArrayBuilder append(String s) {

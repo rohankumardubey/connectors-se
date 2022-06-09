@@ -12,18 +12,19 @@
  */
 package org.talend.components.common.service.http.digest;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
+
 import org.talend.sdk.component.api.service.http.Configurer;
 
-import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DigestAuthConfigurer implements Configurer {
 
-    private final static String AUTHORIZATION_HEADER = System
+    private static final String AUTHORIZATION_HEADER = System
             .getProperty("org.talend.components.common.service.http.digest.authorization_header", "Authorization");
 
-    public final static String DIGEST_CONTEXT_CONF = "digestContext";
+    public static final String DIGEST_CONTEXT_CONF = "digestContext";
 
     @Override
     public void configure(Connection connection, ConfigurerConfiguration configuration) {

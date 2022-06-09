@@ -12,11 +12,12 @@
  */
 package org.talend.components.common.service.http;
 
-import lombok.Data;
-import org.talend.sdk.component.api.service.http.Response;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.talend.sdk.component.api.service.http.Response;
+
+import lombok.Data;
 
 @Data
 public class RedirectContext {

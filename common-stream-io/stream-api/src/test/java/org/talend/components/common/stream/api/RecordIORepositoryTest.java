@@ -17,7 +17,6 @@ import java.util.ResourceBundle;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 import org.talend.components.common.stream.api.input.RecordReaderSupplier;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.api.reader.FakeReaderSupplier;

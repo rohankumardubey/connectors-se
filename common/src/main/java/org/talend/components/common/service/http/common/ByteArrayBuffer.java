@@ -41,7 +41,7 @@ public final class ByteArrayBuffer implements Serializable {
     }
 
     private void expand(int newlen) {
-        byte newbuffer[] = new byte[Math.max(this.buffer.length << 1, newlen)];
+        byte[] newbuffer = new byte[Math.max(this.buffer.length << 1, newlen)];
         System.arraycopy(this.buffer, 0, newbuffer, 0, this.len);
         this.buffer = newbuffer;
     }

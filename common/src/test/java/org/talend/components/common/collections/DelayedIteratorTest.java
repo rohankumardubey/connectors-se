@@ -14,12 +14,9 @@ package org.talend.components.common.collections;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class DelayedIteratorTest {
 

@@ -12,15 +12,15 @@
  */
 package org.talend.components.common.service.http.digest;
 
-import org.talend.components.common.service.http.common.BasicHeader;
-import org.talend.sdk.component.api.service.http.HttpException;
-import org.talend.sdk.component.api.service.http.Response;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import org.talend.components.common.service.http.common.BasicHeader;
+import org.talend.sdk.component.api.service.http.HttpException;
+import org.talend.sdk.component.api.service.http.Response;
 
 public class DigestAuthService {
 

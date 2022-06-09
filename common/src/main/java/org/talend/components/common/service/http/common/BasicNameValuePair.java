@@ -12,9 +12,9 @@
  */
 package org.talend.components.common.service.http.common;
 
-import lombok.EqualsAndHashCode;
-
 import java.io.Serializable;
+
+import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(of = { "name", "value" })
 public class BasicNameValuePair implements Cloneable, Serializable {
@@ -63,8 +63,12 @@ public class BasicNameValuePair implements Cloneable, Serializable {
         }
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public BasicNameValuePair clone() {
+        try {
+            return (BasicNameValuePair) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new RuntimeException("clone unsupported", ex);
+        }
     }
 
 }

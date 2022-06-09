@@ -332,7 +332,6 @@ class AvroToRecordTest {
         writer.add(tckRecord);
         writer.flush();
         writer.close();
-        System.out.println("Array " + new String(out.toByteArray()));
     }
 
     @ParameterizedTest

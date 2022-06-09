@@ -22,22 +22,20 @@ import java.util.Optional;
 public class RedirectService {
 
     // Doesn't exist in java.net.HttpUrlConnection
-    public final static int TEMPORARY_REDIRECT = 307;
+    public static final int TEMPORARY_REDIRECT = 307;
 
-    public final static int PERMANENT_REDIRECT = 308;
+    public static final int PERMANENT_REDIRECT = 308;
 
-    public final static String LOCATION_HEADER = "Location";
+    public static final String LOCATION_HEADER = "Location";
 
     public RedirectContext call(final RedirectContext context) {
         final int status = context.getResponse().status();
 
-        boolean redirect = false;
-        if (status != HttpURLConnection.HTTP_OK && ((status == HttpURLConnection.HTTP_MOVED_TEMP
-                || status == HttpURLConnection.HTTP_MOVED_PERM || status == HttpURLConnection.HTTP_SEE_OTHER
-                || status == TEMPORARY_REDIRECT || status == PERMANENT_REDIRECT))) {
-            redirect = true;
-        }
-
+        final boolean redirect = status == HttpURLConnection.HTTP_MOVED_TEMP
+                || status == HttpURLConnection.HTTP_MOVED_PERM
+                || status == HttpURLConnection.HTTP_SEE_OTHER
+                || status == TEMPORARY_REDIRECT
+                || status == PERMANENT_REDIRECT;
         if (!redirect) {
             context.setNextUrl(null);
             return context;
@@ -48,7 +46,7 @@ public class RedirectService {
         String location = Optional
                 .ofNullable(headers)
                 .map(m -> m.get(LOCATION_HEADER))
-                .filter(l -> !l.isEmpty())
+                .filter((List<String> l) -> l != null && !l.isEmpty())
                 .map(l -> l.get(0))
                 .orElseThrow(() -> new IllegalArgumentException(LOCATION_HEADER
                         + " header is not available after redirection code '" + status + "':\n"

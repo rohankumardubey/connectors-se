@@ -39,7 +39,7 @@ public class IteratorComposer<T> {
      * @return iterator composer.
      */
     public static <T> IteratorComposer<T> of(Iterator<T> iterator) {
-        return new IteratorComposer(iterator);
+        return new IteratorComposer<>(iterator);
     }
 
     /**
@@ -97,16 +97,12 @@ public class IteratorComposer<T> {
     }
 
     private <U1, U2> Function<U1, Iterator<U2>> convertFunction(Function<U1, Iterable<U2>> primaryFunction) {
-        return new Function<U1, Iterator<U2>>() {
-
-            @Override
-            public Iterator<U2> apply(U1 u1) {
-                final Iterable<U2> res = primaryFunction.apply(u1);
-                if (res == null) {
-                    return Collections.emptyIterator();
-                }
-                return res.iterator();
+        return (U1 u1) -> {
+            final Iterable<U2> res = primaryFunction.apply(u1);
+            if (res == null) {
+                return Collections.emptyIterator();
             }
+            return res.iterator();
         };
     }
 

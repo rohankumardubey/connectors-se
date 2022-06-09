@@ -12,6 +12,9 @@
  */
 package org.talend.components.common.service.http.common;
 
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
+
 /**
  * This class represents a context of a parsing operation:
  * <ul>
@@ -52,6 +55,31 @@ public class ParserCursor {
 
     public int getPos() {
         return this.pos;
+    }
+
+    public int increment() {
+        if (pos < this.upperBound) {
+            this.pos++;
+        }
+        return this.pos;
+    }
+
+    public String parseTo(final Predicate<Character> endCondition,
+            final IntFunction<Character> getter) {
+        final StringBuilder builder = new StringBuilder("");
+        boolean endReached = false;
+        while (!this.atEnd() && !endReached) {
+            final Character next = getter.apply(this.pos);
+            endReached = endCondition.test(next);
+            if (!endReached) {
+                builder.append(next);
+                this.pos++;
+            }
+        }
+        if (!endReached && builder.length() > 0) {
+            this.pos--; // back to end char.
+        }
+        return builder.toString();
     }
 
     public void updatePos(int pos) {
