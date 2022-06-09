@@ -150,9 +150,8 @@ public class AdlsGen2Service {
 
     /**
      * To flush, the previously uploaded data must be contiguous, the position parameter must be specified and equal to
-     * the
-     * length of the file after all data has been written, and there must not be a request entity body included with the
-     * request.
+     * the length of the file after all data has been written, and there must not be a request entity body included
+     * with the request.
      *
      * @param dataSet
      * @param position
@@ -163,7 +162,7 @@ public class AdlsGen2Service {
         DataLakeFileSystemClient fsClient =
                 client.getFileSystemClient(dataSet.getFilesystem());
         DataLakeFileClient fileClient = fsClient.getFileClient(dataSet.getBlobPath());
-        fileClient.flush(position);
+        fileClient.flush(position, true);
     }
 
     public DataLakeServiceClient getDataLakeConnectionClient(AdlsGen2Connection connection) {

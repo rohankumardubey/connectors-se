@@ -15,12 +15,6 @@
 
     <properties>
         <talend.scan.scannedDependencies>org.talend.components:azurecommon</talend.scan.scannedDependencies>
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
-
-        <talend.component.studioHome />
     </properties>
 
     <dependencies>
