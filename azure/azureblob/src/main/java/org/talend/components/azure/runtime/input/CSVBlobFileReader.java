@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,10 +21,9 @@ import java.util.Iterator;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.talend.components.azure.common.Encoding;
-import org.talend.components.azure.common.exception.BlobRuntimeException;
+import org.talend.components.common.formats.Encoding;
 import org.talend.components.azure.dataset.AzureBlobDataset;
-import org.talend.components.azure.runtime.converters.CSVConverter;
+import org.talend.components.common.converters.CSVConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.record.Record;
@@ -69,7 +68,7 @@ public class CSVBlobFileReader extends BlobFileReader {
             super(blobItemsList, recordBuilderFactory);
             this.encodingValue = getConfig().getCsvOptions().getEncoding() == Encoding.OTHER
                     ? getConfig().getCsvOptions().getCustomEncoding()
-                    : getConfig().getCsvOptions().getEncoding().getEncodingValue();
+                    : getConfig().getCsvOptions().getEncoding().getEncodingCharsetValue();
 
             takeFirstItem();
         }
@@ -109,7 +108,7 @@ public class CSVBlobFileReader extends BlobFileReader {
                     }
                 }
             } catch (Exception e) {
-                throw new BlobRuntimeException(e);
+                throw new RuntimeException(e);
             }
         }
 

@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>connectors-se</artifactId>
-        <version>1.27.0-SNAPSHOT</version>
+        <version>1.35.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>dynamics-crm</artifactId>
@@ -45,7 +45,7 @@
         TIP: it is recommended to set this property into your settings.xml in an active by default profile.
         -->
         <talend.component.studioHome />
-        <talend-mscrm.version>3.9-20210713</talend-mscrm.version>
+        <talend-mscrm.version>3.10-20211021</talend-mscrm.version>
     </properties>
 
     <dependencies>
@@ -58,6 +58,16 @@
             <groupId>org.talend.components</groupId>
             <artifactId>talend-mscrm</artifactId>
             <version>${talend-mscrm.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-reload4j</artifactId>
         </dependency>
     </dependencies>
 

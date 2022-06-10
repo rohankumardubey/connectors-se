@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -45,14 +45,19 @@ class AvroRecordWriterTest {
         final AvroConfiguration cfg = new AvroConfiguration();
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final RecordWriterSupplier writerSupplier = new AvroWriterSupplier();
-
+        prepareTestRecords();
         try (RecordWriter writer = writerSupplier.getWriter(() -> out, cfg)) {
-            prepareTestRecords();
             writer.add(versatileRecord);
+            writer.flush();
+            final String res = out.toString();
+            Assertions.assertFalse(res.isEmpty());
+        }
+        final ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+        try (RecordWriter writer = writerSupplier.getWriter(() -> out2, cfg)) {
             writer.add(complexRecord);
 
             writer.flush();
-            String res = out.toString();
+            final String res = out2.toString();
             Assertions.assertFalse(res.isEmpty());
         }
     }
@@ -70,7 +75,8 @@ class AvroRecordWriterTest {
                 .requiredInt("ID") //
                 .requiredString("content") //
                 .endRecord();
-        cfg.setAvroSchema(avroSchema.toString(true));
+        final String avrSchema = avroSchema.toString(true);
+        cfg.setAvroSchema(avrSchema);
         final RecordWriterSupplier writerSupplier = new AvroWriterSupplier();
 
         final Record record1 = factory

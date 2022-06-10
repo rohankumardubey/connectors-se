@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,13 +12,14 @@
  */
 package org.talend.components.common.service.http.bearer;
 
-import lombok.extern.slf4j.Slf4j;
 import org.talend.sdk.component.api.service.http.Configurer;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class BearerAuthConfigurer implements Configurer {
 
-    public final static String BEARER_TOKEN_CONF = "bearerToken";
+    public static final String BEARER_TOKEN_CONF = "bearerToken";
 
     @Override
     public void configure(Connection connection, ConfigurerConfiguration configuration) {

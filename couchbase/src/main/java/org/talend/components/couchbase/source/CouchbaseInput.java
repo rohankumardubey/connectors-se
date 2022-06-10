@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -38,22 +38,15 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import com.couchbase.client.core.error.CouchbaseException;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.analytics.AnalyticsQuery;
-import com.couchbase.client.java.analytics.AnalyticsQueryResult;
-import com.couchbase.client.java.analytics.AnalyticsQueryRow;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.error.TranscodingException;
-import com.couchbase.client.java.query.N1qlQuery;
-import com.couchbase.client.java.query.N1qlQueryResult;
-import com.couchbase.client.java.query.N1qlQueryRow;
-import com.couchbase.client.java.query.Select;
-import com.couchbase.client.java.query.Statement;
-import com.couchbase.client.java.query.consistency.ScanConsistency;
-import com.couchbase.client.java.query.dsl.Expression;
-import com.couchbase.client.java.query.dsl.path.AsPath;
+import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.analytics.AnalyticsResult;
+import com.couchbase.client.java.json.JsonArray;
+import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.manager.query.CreatePrimaryQueryIndexOptions;
+import com.couchbase.client.java.query.QueryResult;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,11 +68,9 @@ public class CouchbaseInput implements Serializable {
 
     private Set<String> columnsSet;
 
-    private Iterator<N1qlQueryRow> n1ql_index = null;
+    private transient Iterator<JsonObject> queryResultsIterator = null;
 
-    private Iterator<AnalyticsQueryRow> analytics_index = null;
-
-    private Bucket bucket;
+    private transient Collection collection;
 
     public static final String META_ID_FIELD = "_meta_id_";
 
@@ -94,97 +85,78 @@ public class CouchbaseInput implements Serializable {
     @PostConstruct
     public void init() {
         Cluster cluster = service.openConnection(configuration.getDataSet().getDatastore());
-        bucket = service.openBucket(cluster, configuration.getDataSet().getBucket());
+        Bucket bucket = cluster.bucket(configuration.getDataSet().getBucket());
+        collection = service.openDefaultCollection(cluster, configuration.getDataSet().getBucket());
         if (configuration.isCreatePrimaryIndex()) {
-            bucket.bucketManager().createN1qlPrimaryIndex(true, false);
+            cluster.queryIndexes()
+                    .createPrimaryIndex(bucket.name(),
+                            CreatePrimaryQueryIndexOptions.createPrimaryQueryIndexOptions().ignoreIfExists(true));
         }
         columnsSet = new HashSet<>();
 
         if (configuration.getSelectAction() == SelectAction.ANALYTICS) {
-            AnalyticsQuery analyticsQuery = AnalyticsQuery.simple(configuration.getQuery());
-            AnalyticsQueryResult queryResult = bucket.query(analyticsQuery);
-            checkForErrors(queryResult.errors());
-            analytics_index = queryResult.rows();
+            AnalyticsResult analyticsResult = null;
+            try {
+                analyticsResult = cluster.analyticsQuery(configuration.getQuery());
+            } catch (CouchbaseException e) {
+                LOG.error(i18n.queryResultError(e.getMessage()));
+                throw new ComponentException(i18n.queryResultError(e.getMessage()));
+            }
+            queryResultsIterator = analyticsResult.rowsAsObject().iterator();
         } else {
-            N1qlQuery n1qlQuery;
+            // DSL API (Statement, AsPath classes etc. was deprecated, cannot use it anymore!)
+            // In most cases, a simple string statement is the best replacement.
+
+            QueryResult n1qlResult;
+            StringBuilder statementBuilder;
             switch (configuration.getSelectAction()) {
             case ALL:
-                Statement statement;
-                AsPath asPath = Select
-                        .select("meta().id as " + Expression.i(META_ID_FIELD), "*")
-                        .from(Expression.i(bucket.name()));
+                statementBuilder = new StringBuilder();
+                statementBuilder.append("SELECT meta().id as `_meta_id_`, * FROM `").append(bucket.name()).append("`");
                 if (!configuration.getLimit().isEmpty()) {
-                    statement = asPath.limit(Integer.parseInt(configuration.getLimit().trim()));
-                } else {
-                    statement = asPath;
+                    statementBuilder.append(" LIMIT ").append(configuration.getLimit().trim());
                 }
-                n1qlQuery = N1qlQuery.simple(statement);
+                n1qlResult = cluster.query(statementBuilder.toString());
                 break;
             case N1QL:
                 /*
                  * should contain "meta().id as `_meta_id_`" field for non-json (binary) documents
                  */
-                n1qlQuery = N1qlQuery.simple(configuration.getQuery());
+                n1qlResult = cluster.query(configuration.getQuery());
                 break;
             case ONE:
-                Statement pathToOneDocument = Select
-                        .select("meta().id as " + Expression.i(META_ID_FIELD), "*")
-                        .from(Expression.i(bucket.name()))
-                        .useKeysValues(configuration.getDocumentId());
-                n1qlQuery = N1qlQuery.simple(pathToOneDocument);
+                statementBuilder = new StringBuilder();
+                statementBuilder.append("SELECT meta().id as `_meta_id_`, * FROM `").append(bucket.name()).append("`");
+                statementBuilder.append(" USE KEYS \"").append(configuration.getDocumentId()).append("\"");
+                n1qlResult = cluster.query(statementBuilder.toString());
                 break;
             default:
                 throw new ComponentException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
             }
-            n1qlQuery.params().consistency(ScanConsistency.REQUEST_PLUS);
-            N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery);
-            checkForErrors(n1qlQueryRows.errors());
-            n1ql_index = n1qlQueryRows.rows();
-        }
-    }
-
-    private void checkForErrors(List<JsonObject> errors) {
-        if (!errors.isEmpty()) {
-            LOG.error(i18n.queryResultError(errors.toString()));
-            throw new ComponentException(errors.toString());
+            queryResultsIterator = n1qlResult.rowsAsObject().iterator();
         }
     }
 
     @Producer
     public Record next() {
-        if (analytics_index != null) {
-            while (analytics_index.hasNext()) {
-                JsonObject jsonObject = analytics_index.next().value();
-                if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
+        // loop to find first document with appropriate type (for non-json documents)
+        while (queryResultsIterator.hasNext()) {
+            JsonObject jsonObject = queryResultsIterator.next();
+            if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
+                try {
                     return createJsonRecord(jsonObject);
+                } catch (ClassCastException e) {
+                    // document is a non-json, try to get next document
                 }
-            }
-        } else {
-            // loop to find first document with appropriate type (for non-json documents)
-            while (n1ql_index.hasNext()) {
-                JsonObject jsonObject = n1ql_index.next().value();
-
-                if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
-                    try {
-                        return createJsonRecord(jsonObject);
-                    } catch (ClassCastException e) {
-                        // document is a non-json, try to get next document
-                    }
-                } else {
-                    try {
-                        String id = jsonObject.getString(META_ID_FIELD);
-                        if (id == null) {
-                            LOG
-                                    .error("Cannot find '_meta_id_' field. The query should contain 'meta().id as _meta_id_' field");
-                            return null;
-                        }
-                        DocumentParser documentParser = ParserFactory
-                                .createDocumentParser(configuration.getDataSet().getDocumentType(), builderFactory);
-                        return documentParser.parse(bucket, id);
-                    } catch (TranscodingException e) {
-                        // document is not a non-json, try to get next document
-                    }
+            } else {
+                String id = jsonObject.getString(META_ID_FIELD);
+                if (id == null) {
+                    LOG.error("Cannot find '_meta_id_' field. The query should contain 'meta().id as _meta_id_' field");
+                    return null;
                 }
+                DocumentParser documentParser = ParserFactory
+                        .createDocumentParser(configuration.getDataSet().getDocumentType(), builderFactory);
+                return documentParser.parse(collection, id);
             }
         }
         return null;
@@ -221,7 +193,6 @@ public class CouchbaseInput implements Serializable {
 
     @PreDestroy
     public void release() {
-        service.closeBucket(bucket);
         service.closeConnection(configuration.getDataSet().getDatastore());
     }
 

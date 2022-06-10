@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,12 +21,14 @@ import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
 import org.apache.parquet.io.InputFile;
-import org.talend.components.azure.common.Protocol;
+import org.talend.components.common.connection.azureblob.AzureAuthType;
+import org.talend.components.common.connection.azureblob.Protocol;
 import org.talend.components.azure.dataset.AzureBlobDataset;
-import org.talend.components.azure.runtime.converters.ParquetConverter;
+import org.talend.components.common.converters.ParquetConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.components.azure.service.MessageService;
 import org.talend.components.azure.service.RegionUtils;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -85,11 +87,18 @@ public class ParquetBlobFileReader extends BlobFileReader {
                         .getSasKey4SignatureAuth(getConfig().getContainerName(), accountName, endpointSuffix);
                 String token = ru.getToken4SignatureAuth();
                 hadoopConfig.set(sasKey, token);
-            } else {
+            } else if (getConfig().getConnection().getAccountConnection().getAuthType() == AzureAuthType.BASIC) {
                 accountName = getConfig().getConnection().getAccountConnection().getAccountName();
                 endpointSuffix = getConfig().getConnection().getEndpointSuffix();
                 String accountCredKey = RegionUtils.getAccountCredKey4AccountAuth(accountName, endpointSuffix);
                 hadoopConfig.set(accountCredKey, getConfig().getConnection().getAccountConnection().getAccountKey());
+            } else {
+                /*
+                 * Azure Active Directory auth doesn't supported by hadoop-azure lib for now.
+                 * We do not support it in the component either
+                 * https://issues.apache.org/jira/browse/HADOOP-17973
+                 */
+                throw new ComponentException(getMessageService().authTypeNotSupportedForParquet());
             }
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,20 +20,23 @@ import org.apache.avro.file.DataFileStream;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumReader;
-import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.dataset.AzureBlobDataset;
-import org.talend.components.azure.runtime.converters.AvroConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.components.azure.service.MessageService;
+import org.talend.components.common.formats.AvroFormatOptions;
+import org.talend.components.common.stream.input.avro.AvroToRecord;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.ListBlobItem;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AvroBlobFileReader extends BlobFileReader {
+
+    private AvroFormatOptions config;
 
     public AvroBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
             AzureBlobComponentServices connectionServices, MessageService messageService)
@@ -48,7 +51,7 @@ public class AvroBlobFileReader extends BlobFileReader {
 
     private class AvroFileRecordIterator extends ItemRecordIterator<GenericRecord> {
 
-        private AvroConverter converter;
+        private AvroToRecord converter;
 
         private DataFileStream<GenericRecord> avroItemIterator;
 
@@ -63,7 +66,7 @@ public class AvroBlobFileReader extends BlobFileReader {
         @Override
         protected Record convertToRecord(GenericRecord next) {
             if (converter == null) {
-                converter = AvroConverter.of(getRecordBuilderFactory());
+                converter = new AvroToRecord(getRecordBuilderFactory());
             }
 
             return converter.toRecord(next);
@@ -78,7 +81,7 @@ public class AvroBlobFileReader extends BlobFileReader {
                 DatumReader<GenericRecord> reader = new GenericDatumReader<>();
                 avroItemIterator = new DataFileStream<>(input, reader);
             } catch (Exception e) {
-                throw new BlobRuntimeException(e);
+                throw new RuntimeException(e);
             }
         }
 

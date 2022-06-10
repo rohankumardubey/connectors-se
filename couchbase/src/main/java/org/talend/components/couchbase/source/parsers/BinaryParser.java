@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,13 +14,17 @@ package org.talend.components.couchbase.source.parsers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import com.couchbase.client.deps.io.netty.util.ReferenceCountUtil;
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.document.BinaryDocument;
+import com.couchbase.client.core.deps.io.netty.handler.timeout.TimeoutException;
+import com.couchbase.client.core.error.CouchbaseException;
+import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.codec.RawBinaryTranscoder;
+import com.couchbase.client.java.kv.GetOptions;
+import com.couchbase.client.java.kv.GetResult;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,17 +47,15 @@ public class BinaryParser implements DocumentParser {
     }
 
     @Override
-    public Record parse(Bucket bucket, String id) {
-        BinaryDocument doc;
+    public Record parse(Collection collection, String id) {
+        GetResult result;
         try {
-            doc = bucket.get(id, BinaryDocument.class);
-        } catch (Exception e) {
+            result = collection.get(id, GetOptions.getOptions().transcoder(RawBinaryTranscoder.INSTANCE));
+        } catch (TimeoutException | CouchbaseException e) {
             LOG.error(e.getMessage());
-            throw e;
+            throw new ComponentException(e.getMessage());
         }
-        byte[] data = new byte[doc.content().readableBytes()];
-        doc.content().readBytes(data);
-        ReferenceCountUtil.release(doc.content());
+        byte[] data = result.contentAs(byte[].class);
 
         final Record.Builder recordBuilder = builderFactory.newRecordBuilder(schemaBinaryDocument);
         recordBuilder.withString("id", id);

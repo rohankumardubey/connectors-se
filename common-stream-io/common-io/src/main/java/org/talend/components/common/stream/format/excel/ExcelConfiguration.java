@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,6 +16,8 @@ import java.util.Optional;
 
 import org.talend.components.common.stream.format.ContentFormat;
 import org.talend.components.common.stream.format.Encoding;
+import org.talend.components.common.stream.format.FooterLine;
+import org.talend.components.common.stream.format.HeaderLine;
 import org.talend.components.common.stream.format.OptionalLine;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -59,12 +61,12 @@ public class ExcelConfiguration implements ContentFormat {
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
     @Documentation("Header.")
-    private OptionalLine header;
+    private HeaderLine header;
 
     @Option
     @ActiveIf(target = "excelFormat", value = { "EXCEL2007", "EXCEL97" })
     @Documentation("Footer.")
-    private OptionalLine footer;
+    private FooterLine footer;
 
     public int calcHeader() {
         return Optional.ofNullable(this.header).map(OptionalLine::getSize).orElse(0);

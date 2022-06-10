@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -56,10 +56,10 @@ public class Update extends QueryManagerImpl {
     @Override
     public boolean validateQueryParam(final Record record) {
         final Set<Schema.Entry> entries = new HashSet<>(record.getSchema().getEntries());
-        return keys.stream().allMatch(k -> entries.stream().anyMatch(entry -> entry.getName().equals(k)))
+        return keys.stream().allMatch(k -> entries.stream().anyMatch(entry -> entry.getOriginalFieldName().equals(k)))
                 && entries
                         .stream()
-                        .filter(entry -> keys.contains(entry.getName()))
+                        .filter(entry -> keys.contains(entry.getOriginalFieldName()))
                         .filter(entry -> !entry.isNullable())
                         .map(entry -> valueOf(record, entry))
                         .allMatch(Optional::isPresent);
@@ -83,9 +83,11 @@ public class Update extends QueryManagerImpl {
                 + " SET "
                 + entries
                         .stream()
-                        .filter(e -> !ignoreColumns.contains(e.getName()) && !keys.contains(e.getName()))
+                        .filter(e -> !ignoreColumns.contains(e.getOriginalFieldName())
+                                && !keys.contains(e.getOriginalFieldName()))
                         .peek(e -> queryParams.put(index.incrementAndGet(), e))
-                        .map(c -> getPlatform().identifier(c.getName()))
+                        .map(c -> getPlatform().identifier(
+                                getConfiguration().isUseOriginColumnName() ? c.getOriginalFieldName() : c.getName()))
                         .map(c -> c + " = ?")
                         .collect(joining(","))
                 + " WHERE "
@@ -95,7 +97,7 @@ public class Update extends QueryManagerImpl {
                 .stream()
                 .map(key -> entries
                         .stream()
-                        .filter(e -> key.equals(e.getName()))
+                        .filter(e -> key.equals(e.getOriginalFieldName()))
                         .findFirst()
                         .orElseThrow(() -> new IllegalStateException(getI18n().errorNoFieldForQueryParam(key))))
                 .forEach(entry -> queryParams.put(index.incrementAndGet(), entry));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,7 +17,7 @@ import java.io.Serializable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.talend.components.azure.common.exception.BlobRuntimeException;
+import org.talend.components.azure.migration.AzureStorageRuntimeDatasetMigration;
 import org.talend.components.azure.runtime.output.BlobFileWriter;
 import org.talend.components.azure.runtime.output.BlobFileWriterFactory;
 import org.talend.components.azure.service.AzureBlobComponentServices;
@@ -25,6 +25,7 @@ import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.AfterGroup;
 import org.talend.sdk.component.api.processor.BeforeGroup;
@@ -33,7 +34,7 @@ import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 
-@Version(1)
+@Version(value = 2, migrationHandler = AzureStorageRuntimeDatasetMigration.class)
 @Icon(value = Icon.IconType.CUSTOM, custom = "azure-blob-output")
 @Processor(name = "Output")
 @Documentation("Azure Blob Storage Writer")
@@ -59,7 +60,7 @@ public class BlobOutput implements Serializable {
         try {
             this.fileWriter = BlobFileWriterFactory.getWriter(configuration, service);
         } catch (Exception e) {
-            throw new BlobRuntimeException(messageService.errorCreateBlobItem(), e);
+            throw new ComponentException(messageService.errorCreateBlobItem(), e);
         }
     }
 
@@ -78,7 +79,7 @@ public class BlobOutput implements Serializable {
         try {
             fileWriter.flush();
         } catch (Exception e) {
-            throw new BlobRuntimeException(messageService.errorSubmitRows(), e);
+            throw new ComponentException(messageService.errorSubmitRows(), e);
         }
     }
 
@@ -89,7 +90,7 @@ public class BlobOutput implements Serializable {
                 fileWriter.complete();
             }
         } catch (Exception e) {
-            throw new BlobRuntimeException(messageService.errorSubmitRows(), e);
+            throw new ComponentException(messageService.errorSubmitRows(), e);
         }
     }
 }

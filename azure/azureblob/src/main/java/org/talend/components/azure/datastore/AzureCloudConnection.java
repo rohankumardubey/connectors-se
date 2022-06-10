@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,8 +14,8 @@ package org.talend.components.azure.datastore;
 
 import java.io.Serializable;
 
-import org.talend.components.azure.common.connection.AzureStorageConnectionAccount;
-import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
+import org.talend.components.common.connection.azureblob.AzureStorageConnectionAccount;
+import org.talend.components.common.connection.azureblob.AzureStorageConnectionSignature;
 import org.talend.components.azure.migration.AzureStorageConnectionMigration;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;

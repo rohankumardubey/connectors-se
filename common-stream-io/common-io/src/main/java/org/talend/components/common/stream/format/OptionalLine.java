@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,20 +17,14 @@ import java.io.Serializable;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Min;
-import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
 @Data
-@GridLayout(@GridLayout.Row({ "active", "size" }))
-public class OptionalLine implements Serializable {
+public abstract class OptionalLine implements Serializable {
 
     private static final long serialVersionUID = -5243288997978197551L;
-
-    @Option
-    @Documentation("Active.")
-    private boolean active;
 
     @Option
     @Min(0)
@@ -38,10 +32,9 @@ public class OptionalLine implements Serializable {
     @Documentation("Number of lines.")
     private int size = 1;
 
+    public abstract boolean isActive();
+
     public int getSize() {
-        if (!this.active) {
-            return 0;
-        }
-        return this.size;
+        return isActive() ? size : 0;
     }
 }

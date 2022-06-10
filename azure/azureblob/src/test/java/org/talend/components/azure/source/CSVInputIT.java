@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,10 +23,10 @@ import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.BlobTestUtils;
 import org.talend.components.azure.common.FileFormat;
-import org.talend.components.azure.common.csv.CSVFormatOptions;
-import org.talend.components.azure.common.csv.FieldDelimiter;
-import org.talend.components.azure.common.csv.RecordDelimiter;
 import org.talend.components.azure.dataset.AzureBlobDataset;
+import org.talend.components.common.formats.csv.CSVFieldDelimiter;
+import org.talend.components.common.formats.csv.CSVFormatOptions;
+import org.talend.components.common.formats.csv.CSVRecordDelimiter;
 import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
@@ -44,7 +44,7 @@ public class CSVInputIT extends BaseIT {
         dataset.setFileFormat(FileFormat.CSV);
 
         CSVFormatOptions formatOptions = new CSVFormatOptions();
-        formatOptions.setRecordDelimiter(RecordDelimiter.LF);
+        formatOptions.setRecordDelimiter(CSVRecordDelimiter.LF);
         dataset.setCsvOptions(formatOptions);
         dataset.setContainerName(containerName);
         blobInputProperties = new BlobInputProperties();
@@ -231,7 +231,7 @@ public class CSVInputIT extends BaseIT {
         final int recordSize = 3;
         final int columnSize = 3;
         final int shortColumnSize = 2;
-        blobInputProperties.getDataset().getCsvOptions().setFieldDelimiter(FieldDelimiter.SEMICOLON);
+        blobInputProperties.getDataset().getCsvOptions().setFieldDelimiter(CSVFieldDelimiter.SEMICOLON);
         blobInputProperties.getDataset().setDirectory("csv");
 
         BlobTestUtils

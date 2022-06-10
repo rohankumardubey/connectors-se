@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -55,7 +55,8 @@ public class CSVRecordWriter implements RecordWriter {
         }
 
         final OutputStream outputStream = this.target.find();
-        final PrintStream ps = new PrintStream(outputStream);
+        final PrintStream ps =
+                new PrintStream(outputStream, false, config.getLineConfiguration().getEncoding().getEncoding());
         this.printer = csvFormat.print(ps);
     }
 
@@ -70,11 +71,15 @@ public class CSVRecordWriter implements RecordWriter {
 
     @Override
     public void flush() throws IOException {
-        this.printer.flush();
+        if (printer != null) {
+            this.printer.flush();
+        }
     }
 
     @Override
     public void close() throws IOException {
-        this.printer.close(true);
+        if (printer != null) {
+            this.printer.close(true);
+        }
     }
 }

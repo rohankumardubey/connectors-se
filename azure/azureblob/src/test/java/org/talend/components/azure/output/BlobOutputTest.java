@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,19 +15,18 @@ package org.talend.components.azure.output;
 import java.net.URISyntaxException;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.talend.components.azure.common.FileFormat;
-import org.talend.components.azure.common.csv.CSVFormatOptions;
-import org.talend.components.azure.common.excel.ExcelFormat;
-import org.talend.components.azure.common.excel.ExcelFormatOptions;
-import org.talend.components.azure.common.exception.BlobRuntimeException;
-import org.talend.components.azure.common.service.AzureComponentServices;
+import org.talend.components.common.formats.csv.CSVFormatOptions;
+import org.talend.components.common.formats.excel.ExcelFormat;
+import org.talend.components.common.formats.excel.ExcelFormatOptions;
+import org.talend.components.common.service.azureblob.AzureComponentServices;
 import org.talend.components.azure.dataset.AzureBlobDataset;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.components.azure.service.MessageService;
+import org.talend.sdk.component.api.exception.ComponentException;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
@@ -63,7 +62,7 @@ public class BlobOutputTest {
 
         BlobOutput output =
                 new BlobOutput(outputConfiguration, blobComponentServicesMock, Mockito.mock(MessageService.class));
-        BlobRuntimeException thrownException = Assertions.assertThrows(BlobRuntimeException.class, output::init);
+        ComponentException thrownException = Assertions.assertThrows(ComponentException.class, output::init);
 
         Assertions
                 .assertEquals(expectedExceptionMessage, thrownException.getCause().getMessage(),

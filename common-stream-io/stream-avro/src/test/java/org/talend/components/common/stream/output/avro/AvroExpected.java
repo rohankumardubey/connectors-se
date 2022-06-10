@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -64,7 +64,7 @@ public class AvroExpected implements AssertionsBuilder<GenericRecord> {
     private void checkContains(final GenericRecord record, final Schema.Entry field, final Object expectedValue) {
         final Object value = record.get(field.getName());
         if (expectedValue == null) {
-            Assertions.assertNull(value);
+            Assertions.assertNull(value, "Field " + field.getName() + " not null");
             return;
         }
         Assertions.assertNotNull(value);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,7 +14,7 @@ package org.talend.components.azure.migration;
 
 import java.util.Map;
 
-import org.talend.components.AzureAuthType;
+import org.talend.components.common.connection.azureblob.AzureAuthType;
 import org.talend.sdk.component.api.component.MigrationHandler;
 
 public class AzureStorageConnectionMigration implements MigrationHandler {

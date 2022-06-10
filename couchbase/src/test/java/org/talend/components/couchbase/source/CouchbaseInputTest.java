@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -30,24 +30,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.talend.components.couchbase.CouchbaseUtilTest;
 import org.talend.components.couchbase.TestData;
+import org.talend.components.couchbase.configuration.ConnectionConfiguration;
+import org.talend.components.couchbase.configuration.ConnectionParameter;
 import org.talend.components.couchbase.dataset.CouchbaseDataSet;
 import org.talend.components.couchbase.dataset.DocumentType;
+import org.talend.components.couchbase.datastore.CouchbaseDataStore;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
-import com.couchbase.client.core.message.internal.PingReport;
-import com.couchbase.client.core.message.internal.PingServiceHealth;
-import com.couchbase.client.core.service.ServiceType;
-import com.couchbase.client.deps.io.netty.buffer.ByteBuf;
-import com.couchbase.client.deps.io.netty.buffer.Unpooled;
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.analytics.AnalyticsQuery;
-import com.couchbase.client.java.analytics.AnalyticsQueryResult;
-import com.couchbase.client.java.document.BinaryDocument;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.StringDocument;
-import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.analytics.AnalyticsOptions;
+import com.couchbase.client.java.analytics.AnalyticsScanConsistency;
+import com.couchbase.client.java.codec.RawBinaryTranscoder;
+import com.couchbase.client.java.codec.RawStringTranscoder;
+import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.kv.InsertOptions;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 @WithComponents("org.talend.components.couchbase")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Testing of CouchbaseInput component")
-public class CouchbaseInputTest extends CouchbaseUtilTest {
+class CouchbaseInputTest extends CouchbaseUtilTest {
 
     private void executeJob(CouchbaseInputConfiguration configuration) {
         final String inputConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
@@ -81,8 +79,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
 
         assertNotNull(res);
-        List<Record> data = res
-                .stream()
+        List<Record> data = res.stream()
                 .filter(record -> record.getString("_meta_id_").startsWith(idPrefix))
                 .sorted(Comparator.comparing(r -> r.getString("_meta_id_")))
                 .collect(Collectors.toList());
@@ -93,13 +90,55 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     }
 
     private void insertTestDataToDB(String idPrefix) {
-        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        Collection collection = couchbaseCluster.bucket(BUCKET_NAME).defaultCollection();
 
         List<JsonObject> jsonObjects = createJsonObjects();
         for (int i = 0; i < 2; i++) {
-            bucket.insert(JsonDocument.create(generateDocId(idPrefix, i), jsonObjects.get(i)));
+            collection.insert(generateDocId(idPrefix, i), jsonObjects.get(i));
         }
-        bucket.close();
+    }
+
+    @Test
+    @DisplayName("Test limit input data.")
+    void couchbaseLimitInputDataTest() {
+        log.info("Test start: couchbaseLimitInputDataTest");
+        String idPrefix = "couchbaseLimitInputDataTest";
+        insertTestDataToDB(idPrefix);
+        CouchbaseInputConfiguration limitInputConfiguration = getInputConfiguration();
+        limitInputConfiguration.setLimit("1");
+        limitInputConfiguration.setSelectAction(SelectAction.ALL);
+        executeJob(limitInputConfiguration);
+
+        final List<Record> res = componentsHandler.getCollectedData(Record.class);
+
+        assertNotNull(res);
+        List<Record> data = res.stream()
+                .filter(record -> record.getString("_meta_id_").startsWith(idPrefix))
+                .sorted(Comparator.comparing(r -> r.getString("_meta_id_")))
+                .collect(Collectors.toList());
+        assertEquals(1, data.size());
+
+        assertOneRecord("1", data.get(0));
+    }
+
+    private void assertOneRecord(String id, Record record) {
+        TestData testData = new TestData();
+        assertEquals(testData.getColId() + id, record.getString("t_string"));
+        assertEquals(testData.getColIntMin(), record.getInt("t_int_min"));
+        assertEquals(testData.getColIntMax(), record.getInt("t_int_max"));
+        assertEquals(testData.getColLongMin(), record.getLong("t_long_min"));
+        assertEquals(testData.getColLongMax(), record.getLong("t_long_max"));
+        assertEquals(testData.getColFloatMin(), record.getFloat("t_float_min"));
+        assertEquals(testData.getColFloatMax(), record.getFloat("t_float_max"));
+        assertEquals(testData.getColDoubleMin(), record.getDouble("t_double_min"));
+        assertEquals(testData.getColDoubleMax(), record.getDouble("t_double_max"));
+        assertEquals(testData.isColBoolean(), record.getBoolean("t_boolean"));
+        assertEquals(testData.getColDateTime().toString(), record.getDateTime("t_datetime").toString());
+        String arrayStrOriginal =
+                "[" + testData.getColList().stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(","))
+                        + "]";
+        assertEquals(arrayStrOriginal, record.getString("t_array"));
+
     }
 
     private List<JsonObject> createJsonObjects() {
@@ -113,8 +152,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
     private JsonObject createJsonObject(String id) {
         TestData testData = new TestData();
-        JsonObject json = JsonObject
-                .create()
+        return JsonObject.create()
                 .put("t_string", id)
                 .put("t_int_min", testData.getColIntMin())
                 .put("t_int_max", testData.getColIntMax())
@@ -127,7 +165,6 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
                 .put("t_boolean", testData.isColBoolean())
                 .put("t_datetime", testData.getColDateTime().toString())
                 .put("t_array", testData.getColList());
-        return json;
     }
 
     @Test
@@ -135,10 +172,9 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
     void firstValueIsNullInInputDBTest() {
         log.info("Test start: firstValueIsNullInInputDBTest");
         String idPrefix = "firstValueIsNullInInputDBTest";
-        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        Collection collection = couchbaseCluster.bucket(BUCKET_NAME).defaultCollection();
         JsonObject json = JsonObject.create().put("t_string1", "RRRR1").put("t_string2", "RRRR2").putNull("t_string3");
-        bucket.insert(JsonDocument.create(generateDocId(idPrefix, 0), json));
-        bucket.close();
+        collection.insert(generateDocId(idPrefix, 0), json);
 
         CouchbaseInputConfiguration inputConfiguration = getInputConfiguration();
         inputConfiguration.setSelectAction(SelectAction.N1QL);
@@ -184,9 +220,14 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         insertTestDataToDBAndPrepareAnalytics(idPrefix);
         CouchbaseInputConfiguration configurationWithAnalytics = getInputConfiguration();
         configurationWithAnalytics.setSelectAction(SelectAction.ANALYTICS);
-        configurationWithAnalytics
-                .setQuery("SELECT * FROM " + ANALYTICS_DATASET + " WHERE meta().id LIKE \"" + idPrefix
-                        + "%\" ORDER BY name");
+        // need to increase QUERY_THRESHOLD value to avoid OverThresholdRequestsRecordedEvent warning.
+        CouchbaseDataStore datastore = configurationWithAnalytics.getDataSet().getDatastore();
+        List<ConnectionConfiguration> timeouts = Collections
+                .singletonList(new ConnectionConfiguration(ConnectionParameter.QUERY_THRESHOLD, "100000"));
+        datastore.setUseConnectionParameters(true);
+        datastore.setConnectionParametersList(timeouts);
+        configurationWithAnalytics.setQuery(
+                "SELECT * FROM `" + BUCKET_NAME + "` WHERE meta().id LIKE \"" + idPrefix + "%\" ORDER BY name");
         executeJob(configurationWithAnalytics);
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
         assertNotNull(res);
@@ -195,72 +236,24 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
     private void insertTestDataToDBAndPrepareAnalytics(String idPrefix) {
         int insertCount = 2;
-        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        Collection collection = couchbaseCluster.bucket(BUCKET_NAME).defaultCollection();
 
-        // We need to wait until ping state is OK for Analytics Service. We'll limit it with 10 seconds. Usually
-        // it should take less time.
-        long waitingStartTime = System.currentTimeMillis();
-        PingReport pingReport = bucket.ping(Collections.singletonList(ServiceType.ANALYTICS));
-        while (pingReport.services().get(0).state() != PingServiceHealth.PingState.OK) {
-            try {
-                Thread.sleep(250);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (System.currentTimeMillis() - waitingStartTime > 10000) {
-                break;
-            }
-            pingReport = bucket.ping(Collections.singletonList(ServiceType.ANALYTICS));
-        }
-
-        // Now let's try to create the analytics bucket. We'll retry until the status is not success.
-        // 10 seconds limit.
-        AnalyticsQuery analyticsQuery = AnalyticsQuery
-                .simple("CREATE BUCKET " + ANALYTICS_BUCKET + " WITH {\"name\":\"" + BUCKET_NAME + "\"}");
-        AnalyticsQueryResult result;
-        waitingStartTime = System.currentTimeMillis();
-        while (!(result = bucket.query(analyticsQuery)).status().equalsIgnoreCase("success")) {
-            try {
-                Thread.sleep(250);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (System.currentTimeMillis() - waitingStartTime > 10000) {
-                break;
-            }
-        }
-        assertEquals("success", result.status());
-        analyticsQuery = AnalyticsQuery
-                .simple("CREATE DATASET " + ANALYTICS_DATASET + " ON " + ANALYTICS_BUCKET
-                        + " WHERE `t_string` LIKE \"id%\"");
-        result = bucket.query(analyticsQuery);
-        assertEquals("success", result.status());
-        analyticsQuery = AnalyticsQuery.simple("CONNECT BUCKET " + ANALYTICS_BUCKET);
-        result = bucket.query(analyticsQuery);
-        assertEquals("success", result.status());
-
-        int itemsCountBeforeInsert = bucket.bucketManager().info().raw().getObject("basicStats").getInt("itemCount");
+        couchbaseCluster.analyticsQuery("ALTER COLLECTION `" + BUCKET_NAME + "`._default._default ENABLE ANALYTICS",
+                AnalyticsOptions.analyticsOptions()
+                        .scanConsistency(AnalyticsScanConsistency.REQUEST_PLUS)
+                        .priority(true));
         List<JsonObject> jsonObjects = createJsonObjects();
         for (int i = 0; i < insertCount; i++) {
-            bucket.insert(JsonDocument.create(generateDocId(idPrefix, i), jsonObjects.get(i)));
+            collection.insert(generateDocId(idPrefix, i), jsonObjects.get(i));
         }
 
-        // Bucket needs some time to index newly created entries; analytics dataset will be based on those entries.
-        // We will wait until the data is correct in the statistics. Limit it with 10 seconds.
+        // Bucket needs some time to index newly created entries; analytics dataset will
+        // be based on those entries.
+        // We need to wait until the data is correct in the statistics by sending an
+        // actual query to the dataset using ScanConsistency = Request.PLUS
+        couchbaseCluster.analyticsQuery("select * from " + BUCKET_NAME,
+                AnalyticsOptions.analyticsOptions().scanConsistency(AnalyticsScanConsistency.REQUEST_PLUS));
 
-        while (bucket.bucketManager().info().raw().getObject("basicStats").getInt("itemCount") != itemsCountBeforeInsert
-                + insertCount) {
-            try {
-                Thread.sleep(250);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (System.currentTimeMillis() - waitingStartTime > 10000) {
-                break;
-            }
-        }
-
-        bucket.close();
     }
 
     @Test
@@ -270,14 +263,11 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         String idPrefix = "inputBinaryDocumentTest";
         String docContent = "DocumentContent";
 
-        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        Collection collection = couchbaseCluster.bucket(BUCKET_NAME).defaultCollection();
         for (int i = 0; i < 2; i++) {
-            bucket
-                    .insert(
-                            createBinaryDocument(generateDocId(idPrefix, i),
-                                    (docContent + "_" + i).getBytes(StandardCharsets.UTF_8)));
+            collection.insert(generateDocId(idPrefix, i), (docContent + "_" + i).getBytes(StandardCharsets.UTF_8),
+                    InsertOptions.insertOptions().transcoder(RawBinaryTranscoder.INSTANCE));
         }
-        bucket.close();
 
         CouchbaseInputConfiguration config = getInputConfiguration();
         config.getDataSet().setDocumentType(DocumentType.BINARY);
@@ -286,8 +276,7 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         final List<Record> res = componentsHandler.getCollectedData(Record.class);
 
         assertNotNull(res);
-        List<Record> data = res
-                .stream()
+        List<Record> data = res.stream()
                 .filter(record -> record.getString("id").startsWith(idPrefix))
                 .sorted(Comparator.comparing(r -> r.getString("id")))
                 .collect(Collectors.toList());
@@ -305,11 +294,11 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
         String idPrefix = "inputStringDocumentTest";
         String docContent = "DocumentContent";
 
-        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        Collection collection = couchbaseCluster.bucket(BUCKET_NAME).defaultCollection();
         for (int i = 0; i < 2; i++) {
-            bucket.insert(StringDocument.create(generateDocId(idPrefix, i), (docContent + "_" + i)));
+            collection.insert(generateDocId(idPrefix, i), (docContent + "_" + i),
+                    InsertOptions.insertOptions().transcoder(RawStringTranscoder.INSTANCE));
         }
-        bucket.close();
 
         CouchbaseInputConfiguration config = getInputConfiguration();
         config.getDataSet().setDocumentType(DocumentType.STRING);
@@ -354,31 +343,6 @@ public class CouchbaseInputTest extends CouchbaseUtilTest {
 
         final List<Record> result = componentsHandler.getCollectedData(Record.class);
         assertEquals(0, result.size());
-    }
-
-    private void assertOneRecord(String id, Record record) {
-        TestData testData = new TestData();
-        assertEquals(testData.getColId() + id, record.getString("t_string"));
-        assertEquals(testData.getColIntMin(), record.getInt("t_int_min"));
-        assertEquals(testData.getColIntMax(), record.getInt("t_int_max"));
-        assertEquals(testData.getColLongMin(), record.getLong("t_long_min"));
-        assertEquals(testData.getColLongMax(), record.getLong("t_long_max"));
-        assertEquals(testData.getColFloatMin(), record.getFloat("t_float_min"));
-        assertEquals(testData.getColFloatMax(), record.getFloat("t_float_max"));
-        assertEquals(testData.getColDoubleMin(), record.getDouble("t_double_min"));
-        assertEquals(testData.getColDoubleMax(), record.getDouble("t_double_max"));
-        assertEquals(testData.isColBoolean(), record.getBoolean("t_boolean"));
-        assertEquals(testData.getColDateTime().toString(), record.getDateTime("t_datetime").toString());
-        String arrayStrOriginal =
-                "[" + testData.getColList().stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(","))
-                        + "]";
-        assertEquals(arrayStrOriginal, record.getString("t_array"));
-
-    }
-
-    private BinaryDocument createBinaryDocument(String id, byte[] bytes) {
-        ByteBuf toWrite = Unpooled.copiedBuffer(bytes);
-        return BinaryDocument.create(id, toWrite);
     }
 
     private CouchbaseInputConfiguration getInputConfiguration() {

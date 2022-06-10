@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -152,46 +152,17 @@ class JsonRecordReaderTest {
         final Record next = recordIterator.next();
         final Entry firstField = next.getSchema().getEntries().get(0);
         Assertions.assertEquals(Schema.Type.ARRAY, firstField.getType());
-        Assertions.assertEquals(Schema.Type.RECORD, firstField.getElementSchema().getEntries().get(0).getType());
+        final Entry innerFirstField = firstField.getElementSchema().getEntry("coordinates");
+        Assertions.assertEquals(Schema.Type.RECORD, innerFirstField.getType());
+        Entry latitude = innerFirstField.getElementSchema().getEntry("latitude");
+        Assertions.assertEquals(Schema.Type.ARRAY, latitude.getType());
+        Assertions.assertEquals(Schema.Type.RECORD, latitude
+                .getElementSchema()
+                .getType());
+        Entry longitude = innerFirstField.getElementSchema().getEntry("longitude");
+        Assertions.assertEquals(Schema.Type.ARRAY, longitude.getType());
         Assertions
-                .assertEquals(Schema.Type.ARRAY,
-                        firstField
-                                .getElementSchema()
-                                .getEntries()
-                                .get(0)
-                                .getElementSchema()
-                                .getEntries()
-                                .get(0)
-                                .getType());
-        Assertions
-                .assertEquals(Schema.Type.RECORD, firstField
-                        .getElementSchema()
-                        .getEntries()
-                        .get(0)
-                        .getElementSchema()
-                        .getEntries()
-                        .get(0)
-                        .getElementSchema()
-                        .getType());
-
-        Assertions
-                .assertEquals(Schema.Type.ARRAY,
-                        firstField
-                                .getElementSchema()
-                                .getEntries()
-                                .get(0)
-                                .getElementSchema()
-                                .getEntries()
-                                .get(1)
-                                .getType());
-        Assertions
-                .assertEquals(Schema.Type.LONG, firstField
-                        .getElementSchema()
-                        .getEntries()
-                        .get(0)
-                        .getElementSchema()
-                        .getEntries()
-                        .get(1)
+                .assertEquals(Schema.Type.LONG, longitude
                         .getElementSchema()
                         .getType());
 

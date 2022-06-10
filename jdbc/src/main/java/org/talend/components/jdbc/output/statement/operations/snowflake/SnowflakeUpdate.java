@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -35,6 +35,7 @@ public class SnowflakeUpdate extends Update {
 
     public SnowflakeUpdate(Platform platform, OutputConfig configuration, I18nMessage i18n) {
         super(platform, configuration, i18n);
+        snowflakeCopy.setUseOriginColumnName(configuration.isUseOriginColumnName());
     }
 
     @Override
@@ -62,9 +63,9 @@ public class SnowflakeUpdate extends Update {
                                     + getQueryParams()
                                             .values()
                                             .stream()
-                                            .filter(p -> !getIgnoreColumns().contains(p.getName())
-                                                    && !getKeys().contains(p.getName()))
-                                            .map(e -> getPlatform().identifier(e.getName()))
+                                            .filter(p -> !getIgnoreColumns().contains(p.getOriginalFieldName())
+                                                    && !getKeys().contains(p.getOriginalFieldName()))
+                                            .map(e -> getPlatform().identifier(e.getOriginalFieldName()))
                                             .map(name -> "target." + name + "= source." + name)
                                             .collect(joining(",", "", " ")));
                 }

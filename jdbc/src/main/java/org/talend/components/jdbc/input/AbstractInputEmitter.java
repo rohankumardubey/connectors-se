@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,12 +21,17 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
+import org.jooq.impl.ParserException;
 import org.talend.components.jdbc.configuration.InputConfig;
+import org.talend.components.jdbc.dataset.BaseDataSet;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.input.Producer;
@@ -41,7 +46,7 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     private final InputConfig inputConfig;
 
-    private RecordBuilderFactory recordBuilderFactory;
+    private final RecordBuilderFactory recordBuilderFactory;
 
     private final JdbcService jdbcDriversService;
 
@@ -57,6 +62,8 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     private transient Schema schema;
 
+    private transient JdbcService.ColumnInfo[] columnInfoList;
+
     AbstractInputEmitter(final InputConfig inputConfig, final JdbcService jdbcDriversService,
             final RecordBuilderFactory recordBuilderFactory, final I18nMessage i18nMessage) {
         this.inputConfig = inputConfig;
@@ -67,22 +74,38 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     @PostConstruct
     public void init() {
-        String query = inputConfig.getDataSet()
-                .getQuery(
-                        jdbcDriversService.getPlatformService().getPlatform(inputConfig.getDataSet().getConnection()));
+        BaseDataSet dataSet = inputConfig.getDataSet();
+        String query = dataSet.getQuery(
+                jdbcDriversService.getPlatformService().getPlatform(dataSet.getConnection()));
         if (query == null || query.trim().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyQuery());
         }
-        if (jdbcDriversService.isNotReadOnlySQLQuery(query)) {
+        try {
+            if (jdbcDriversService.isNotReadOnlySQLQuery(query) ||
+                    DSL.using(new DefaultConfiguration()).parser().parse(query).queries().length > 1) {
+                throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
+            }
+        } catch (ParserException e) {
             throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
         }
 
         try {
-            dataSource = jdbcDriversService.createDataSource(inputConfig.getDataSet().getConnection());
+            dataSource = jdbcDriversService.createDataSource(dataSet.getConnection());
             connection = dataSource.getConnection();
             statement = connection.createStatement();
-            statement.setFetchSize(inputConfig.getDataSet().getFetchSize());
+            statement.setFetchSize(dataSet.getFetchSize());
             resultSet = statement.executeQuery(query);
+
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(RECORD);
+            columnInfoList = IntStream.rangeClosed(1, metaData.getColumnCount())
+                    .mapToObj(index -> jdbcDriversService.addField(schemaBuilder, metaData, index))
+                    .toArray(JdbcService.ColumnInfo[]::new);
+            schema = schemaBuilder.build();
+
+            log.debug("Input schema: {}", schema);
+            log.debug("SchemaRaw: {}",
+                    schema.getEntries().stream().map(Schema.Entry::getRawName).collect(Collectors.joining(",")));
         } catch (final SQLException e) {
             throw toIllegalStateException(e);
         }
@@ -94,20 +117,10 @@ public abstract class AbstractInputEmitter implements Serializable {
             if (!resultSet.next()) {
                 return null;
             }
-
-            final ResultSetMetaData metaData = resultSet.getMetaData();
-            if (schema == null) {
-                final Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(RECORD);
-                IntStream
-                        .rangeClosed(1, metaData.getColumnCount())
-                        .forEach(index -> jdbcDriversService.addField(schemaBuilder, metaData, index));
-                schema = schemaBuilder.build();
-            }
-
             final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
-            IntStream
-                    .rangeClosed(1, metaData.getColumnCount())
-                    .forEach(index -> jdbcDriversService.addColumn(recordBuilder, metaData, index, resultSet));
+            for (int index = 0; index < columnInfoList.length; index++) {
+                jdbcDriversService.addColumn(recordBuilder, columnInfoList[index], resultSet.getObject(index + 1));
+            }
             return recordBuilder.build();
         } catch (final SQLException e) {
             throw toIllegalStateException(e);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,13 +23,11 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.hadoop.ParquetFileWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
-import org.talend.components.azure.common.exception.BlobRuntimeException;
-import org.talend.components.azure.common.service.AzureComponentServices;
+import org.talend.components.common.service.azureblob.AzureComponentServices;
 import org.talend.components.azure.output.BlobOutputConfiguration;
-import org.talend.components.azure.runtime.converters.ParquetConverter;
+import org.talend.components.common.converters.ParquetConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlob;
@@ -55,7 +53,7 @@ public class ParquetBlobFileWriter extends BlobFileWriter {
         try {
             generateFile();
         } catch (Exception e) {
-            throw new BlobRuntimeException(e);
+            throw new RuntimeException(e);
         }
 
     }
@@ -98,7 +96,7 @@ public class ParquetBlobFileWriter extends BlobFileWriter {
             blobOutputStream.flush();
             blobOutputStream.close();
         } catch (IOException | StorageException e) {
-            throw new BlobRuntimeException(e);
+            throw new RuntimeException(e);
         } finally {
             getBatch().clear();
             if (tempFilePath != null) {

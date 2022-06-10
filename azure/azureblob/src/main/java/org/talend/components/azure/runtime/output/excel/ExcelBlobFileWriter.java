@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,11 +23,10 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.talend.components.azure.common.excel.ExcelFormat;
-import org.talend.components.azure.common.exception.BlobRuntimeException;
-import org.talend.components.azure.common.service.AzureComponentServices;
+import org.talend.components.common.formats.excel.ExcelFormat;
+import org.talend.components.common.service.azureblob.AzureComponentServices;
 import org.talend.components.azure.output.BlobOutputConfiguration;
-import org.talend.components.azure.runtime.converters.ExcelConverter;
+import org.talend.components.common.converters.ExcelConverter;
 import org.talend.components.azure.runtime.output.BlobFileWriter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.sdk.component.api.record.Record;
@@ -96,7 +95,7 @@ public class ExcelBlobFileWriter extends BlobFileWriter {
                 newBatch();
             }
         } catch (Exception e) {
-            throw new BlobRuntimeException("Failed to split oversized batch", e);
+            throw new RuntimeException("Failed to split oversized batch", e);
         }
     }
 
@@ -106,7 +105,7 @@ public class ExcelBlobFileWriter extends BlobFileWriter {
         try {
             generateFile();
         } catch (Exception e) {
-            throw new BlobRuntimeException(e);
+            throw new RuntimeException(e);
         }
     }
 

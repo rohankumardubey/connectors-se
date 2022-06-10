@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,23 +15,20 @@ package org.talend.components.azure.service;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.talend.components.azure.common.exception.BlobRuntimeException;
-import org.talend.components.azure.common.service.AzureComponentServices;
+import javax.json.JsonBuilderFactory;
 import org.talend.components.azure.datastore.AzureCloudConnection;
+import org.talend.components.common.service.azureblob.AzureComponentServices;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
-
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.OperationContext;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
 import lombok.Getter;
-
-import javax.json.JsonBuilderFactory;
 
 @Service
 public class AzureBlobComponentServices {
@@ -91,7 +88,7 @@ public class AzureBlobComponentServices {
             }
 
         } catch (Exception e) {
-            throw new BlobRuntimeException(i18nService.errorRetrieveContainers(), e);
+            throw new ComponentException(i18nService.errorRetrieveContainers(), e);
         }
 
         return new SuggestionValues(true, containerNames);

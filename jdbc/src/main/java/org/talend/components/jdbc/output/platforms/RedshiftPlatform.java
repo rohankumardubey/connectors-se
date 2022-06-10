@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -51,7 +51,8 @@ public class RedshiftPlatform extends Platform {
     }
 
     @Override
-    protected String buildQuery(final Connection connection, final Table table) throws SQLException {
+    protected String buildQuery(final Connection connection, final Table table, final boolean useOriginColumnName)
+            throws SQLException {
         // keep the string builder for readability
         final StringBuilder sql = new StringBuilder("CREATE TABLE");
         sql.append(" ");
@@ -64,7 +65,7 @@ public class RedshiftPlatform extends Platform {
         sql.append("(");
         List<Column> columns = table.getColumns();
         sql
-                .append(createColumns(columns, table.getSortStrategy(),
+                .append(createColumns(columns, table.getSortStrategy(), useOriginColumnName,
                         columns.stream().filter(Column::isSortKey).collect(toList())));
         sql
                 .append(createPKs(connection.getMetaData(), table.getName(),
@@ -88,7 +89,7 @@ public class RedshiftPlatform extends Platform {
     private String createSortKeys(final RedshiftSortStrategy sortStrategy, final List<Column> columns) {
         return columns.isEmpty() ? ""
                 : sortStrategy.name() + " sortkey"
-                        + columns.stream().map(Column::getName).collect(joining(",", "(", ")"));
+                        + columns.stream().map(Column::getOriginalFieldName).collect(joining(",", "(", ")"));
     }
 
     private String createDistributionKeys(final DistributionStrategy distributionStrategy, final List<Column> columns) {
@@ -99,7 +100,8 @@ public class RedshiftPlatform extends Platform {
             return " diststyle even ";
         case KEYS:
             return columns.isEmpty() ? ""
-                    : " diststyle key distkey" + columns.stream().map(Column::getName).collect(joining(",", "(", ") "));
+                    : " diststyle key distkey"
+                            + columns.stream().map(Column::getOriginalFieldName).collect(joining(",", "(", ") "));
         default:
         case AUTO:
             return " diststyle auto ";
@@ -114,13 +116,17 @@ public class RedshiftPlatform extends Platform {
     }
 
     private String createColumns(final List<Column> columns, final RedshiftSortStrategy sortStrategy,
+            final boolean useOriginColumnName,
             final List<Column> sortKeys) {
-        return columns.stream().map(c -> createColumn(c, sortStrategy, sortKeys)).collect(Collectors.joining(","));
+        return columns.stream()
+                .map(c -> createColumn(c, sortStrategy, useOriginColumnName, sortKeys))
+                .collect(Collectors.joining(","));
     }
 
     private String createColumn(final Column column, final RedshiftSortStrategy sortStrategy,
+            final boolean useOriginColumnName,
             final List<Column> sortKeys) {
-        return identifier(column.getName())//
+        return identifier(useOriginColumnName ? column.getOriginalFieldName() : column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
                 + (RedshiftSortStrategy.SINGLE.equals(sortStrategy) && sortKeys.contains(column) ? " sortkey" : "");
@@ -144,11 +150,12 @@ public class RedshiftPlatform extends Platform {
         case DATETIME:
             return "TIMESTAMP";
         case BYTES:
-            throw new IllegalStateException(getI18n().errorRedshiftUnsupportedBytes(column.getName()));
+            throw new IllegalStateException(getI18n().errorRedshiftUnsupportedBytes(column.getOriginalFieldName()));
         case RECORD:
         case ARRAY:
         default:
-            throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
+            throw new IllegalStateException(
+                    getI18n().errorUnsupportedType(column.getType().name(), column.getOriginalFieldName()));
         }
     }
 

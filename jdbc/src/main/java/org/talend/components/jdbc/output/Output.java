@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -69,7 +69,7 @@ public abstract class Output implements Serializable {
 
     @BeforeGroup
     public void beforeGroup() {
-        this.records = new ArrayList<>();
+        this.records = new ArrayList<>(1000);
     }
 
     @ElementListener
@@ -98,13 +98,14 @@ public abstract class Output implements Serializable {
 
     @AfterGroup
     public void afterGroup() throws SQLException {
+        log.debug("Batch size: " + records.size());
         if (!tableExistsCheck && !tableCreated && configuration.isCreateTableIfNotExists()) {
             try (final Connection connection = datasource.getConnection()) {
                 getPlatform()
                         .createTableIfNotExist(connection, configuration.getDataset().getTableName(),
                                 configuration.getKeys(), configuration.getSortStrategy(), configuration.getSortKeys(),
                                 configuration.getDistributionStrategy(), configuration.getDistributionKeys(),
-                                configuration.getVarcharLength(), records);
+                                configuration.getVarcharLength(), configuration.isUseOriginColumnName(), records);
                 tableCreated = true;
             }
         }

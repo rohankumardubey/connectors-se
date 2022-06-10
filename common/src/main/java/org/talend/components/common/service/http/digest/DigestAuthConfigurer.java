@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,18 +12,19 @@
  */
 package org.talend.components.common.service.http.digest;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
+
 import org.talend.sdk.component.api.service.http.Configurer;
 
-import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DigestAuthConfigurer implements Configurer {
 
-    private final static String AUTHORIZATION_HEADER = System
+    private static final String AUTHORIZATION_HEADER = System
             .getProperty("org.talend.components.common.service.http.digest.authorization_header", "Authorization");
 
-    public final static String DIGEST_CONTEXT_CONF = "digestContext";
+    public static final String DIGEST_CONTEXT_CONF = "digestContext";
 
     @Override
     public void configure(Connection connection, ConfigurerConfiguration configuration) {

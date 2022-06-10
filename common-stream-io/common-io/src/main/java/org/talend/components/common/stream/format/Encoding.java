@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,6 +15,7 @@ package org.talend.components.common.stream.format;
 import java.io.Serializable;
 
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -49,6 +50,7 @@ public class Encoding implements Serializable {
     private Encoding.Type encodingType = Encoding.Type.UTF8;
 
     @Option
+    @Validable(value = Validations.VALIDATION_ENCODING, parameters = { "../encoding", "../encodingType" })
     @ActiveIf(target = "encodingType", value = "OTHER")
     @Documentation("Custom content encoding.")
     private String encoding;

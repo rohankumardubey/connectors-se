@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,14 +21,17 @@ import static org.talend.sdk.component.junit.SimpleFactory.configurationByExampl
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.couchbase.client.deps.io.netty.util.ReferenceCountUtil;
 import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.document.BinaryDocument;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.codec.RawBinaryTranscoder;
+import com.couchbase.client.java.codec.RawStringTranscoder;
+import com.couchbase.client.java.json.JsonObject;
+import com.couchbase.client.java.kv.GetOptions;
+import com.couchbase.client.java.kv.GetResult;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -53,7 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 @WithComponents("org.talend.components.couchbase")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Testing of CouchbaseOutput component")
-public class CouchbaseOutputTest extends CouchbaseUtilTest {
+class CouchbaseOutputTest extends CouchbaseUtilTest {
 
     @Injected
     private BaseComponentsHandler componentsHandler;
@@ -61,15 +64,16 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
     @Service
     private RecordBuilderFactory recordBuilderFactory;
 
-    private List<JsonDocument> retrieveDataFromDatabase(String prefix, int count) {
-        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
-        List<JsonDocument> resultList = new ArrayList<>();
+    private List<JsonObject> retrieveDataFromDatabase(String prefix, int count) {
+        List<JsonObject> resultList = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            JsonDocument doc1 = bucket.get(generateDocId(prefix, i));
-            doc1.content().put(META_ID_FIELD, generateDocId(prefix, i));
-            resultList.add(doc1);
+            JsonObject jsonObject = couchbaseCluster.bucket(BUCKET_NAME)
+                    .defaultCollection()
+                    .get(generateDocId(prefix, i))
+                    .contentAsObject();
+            jsonObject.put(META_ID_FIELD, generateDocId(prefix, i));
+            resultList.add(jsonObject);
         }
-        bucket.close();
         return resultList;
     }
 
@@ -94,9 +98,10 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         componentsHandler.setInputData(records);
         executeJob(getOutputConfiguration());
 
-        List<JsonDocument> resultList = retrieveDataFromDatabase(SIMPLE_OUTPUT_TEST_ID, 2);
+        List<JsonObject> resultList = retrieveDataFromDatabase(SIMPLE_OUTPUT_TEST_ID, 2);
+
         assertEquals(2, resultList.size());
-        assertJsonEquals(new TestData(), resultList.get(0).content());
+        assertJsonEquals(new TestData(), resultList.get(0));
     }
 
     private void assertJsonEquals(TestData expected, JsonObject actual) {
@@ -147,25 +152,63 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         configuration.setIdFieldName("id");
         executeJob(configuration);
 
-        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
-        List<BinaryDocument> resultList = new ArrayList<>();
-        try {
-            for (int i = 0; i < docCount; i++) {
-                BinaryDocument doc = bucket.get(generateDocId(idPrefix, i), BinaryDocument.class);
-                resultList.add(doc);
-            }
-        } finally {
-            bucket.close();
+        Collection collection = couchbaseCluster.bucket(BUCKET_NAME).defaultCollection();
+        List<GetResult> resultList = new ArrayList<>();
+        for (int i = 0; i < docCount; i++) {
+            GetResult result = collection.get(generateDocId(idPrefix, i),
+                    GetOptions.getOptions().transcoder(RawBinaryTranscoder.INSTANCE));
+            resultList.add(result);
         }
 
         assertEquals(2, resultList.size());
         for (int i = 0; i < docCount; i++) {
-            BinaryDocument doc = resultList.get(i);
-            byte[] data = new byte[doc.content().readableBytes()];
-            doc.content().readBytes(data);
-            ReferenceCountUtil.release(doc.content());
+            GetResult getResult = resultList.get(i);
+            byte[] data = getResult.contentAs(byte[].class);
             assertArrayEquals((docContent + "_" + i).getBytes(StandardCharsets.UTF_8), data);
         }
+    }
+
+    @Test
+    @DisplayName("Check String document output")
+    void outputStringDocumentTest() {
+        log.info("Test start: outputStringDocumentTest");
+        String idPrefix = "outputStringDocumentTest";
+        String docContent = "StringDocumentContent";
+        int docCount = 2;
+
+        List<Record> records = new ArrayList<>();
+        final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
+        for (int i = 0; i < docCount; i++) {
+            Record record = recordBuilderFactory.newRecordBuilder()
+                    .withString(entryBuilder.withName("id").withType(Schema.Type.STRING).build(),
+                            generateDocId(idPrefix, i))
+                    .withString(entryBuilder.withName("content").withType(Schema.Type.STRING).build(),
+                            (docContent + "_" + i).toString())
+                    .build();
+            records.add(record);
+        }
+
+        componentsHandler.setInputData(records);
+        CouchbaseOutputConfiguration configuration = getOutputConfiguration();
+        configuration.getDataSet().setDocumentType(DocumentType.STRING);
+        configuration.setIdFieldName("id");
+        executeJob(configuration);
+
+        Collection collection = couchbaseCluster.bucket(BUCKET_NAME).defaultCollection();
+        List<GetResult> resultList = new ArrayList<>();
+        for (int i = 0; i < docCount; i++) {
+            GetResult result = collection.get(generateDocId(idPrefix, i),
+                    GetOptions.getOptions().transcoder(RawStringTranscoder.INSTANCE));
+            resultList.add(result);
+        }
+
+        assertEquals(2, resultList.size());
+        for (int i = 0; i < docCount; i++) {
+            GetResult getResult = resultList.get(i);
+            String content = getResult.contentAs(String.class);
+            assertEquals((docContent + "_" + i).toString(), content);
+        }
+
     }
 
     @Test
@@ -188,9 +231,9 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         configuration.setQuery(qry);
         componentsHandler.setInputData(createRecords(new TestData(), N1QL_WITH_NO_PARAMETERS_ID_PREFIX));
         executeJob(configuration);
-        List<JsonDocument> resultList = retrieveDataFromDatabase(N1QL_WITH_NO_PARAMETERS_ID_PREFIX, 1);
+        List<JsonObject> resultList = retrieveDataFromDatabase(N1QL_WITH_NO_PARAMETERS_ID_PREFIX, 1);
         assertEquals(1, resultList.size());
-        JsonObject result = resultList.get(0).content();
+        JsonObject result = resultList.get(0);
         assertJsonEquals(td, result);
         assertEquals(generateDocId(N1QL_WITH_NO_PARAMETERS_ID_PREFIX, 0), result.getString(META_ID_FIELD));
     }
@@ -227,10 +270,10 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
 
         componentsHandler.setInputData(createRecords(td, N1QL_WITH_PARAMETERS_ID_PREFIX));
         executeJob(configuration);
-        List<JsonDocument> resultList = retrieveDataFromDatabase(N1QL_WITH_PARAMETERS_ID_PREFIX, 2);
+        List<JsonObject> resultList = retrieveDataFromDatabase(N1QL_WITH_PARAMETERS_ID_PREFIX, 2);
         assertEquals(2, resultList.size());
-        for (JsonDocument jsonDocument : resultList) {
-            assertJsonEquals(td, jsonDocument.content());
+        for (JsonObject json : resultList) {
+            assertJsonEquals(td, json);
         }
     }
 
@@ -261,12 +304,12 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         log.info("Test start: partialUpdate");
         final String PARTIAL_UPDATE_ID_PREFIX = "partialUpdate";
         // prepare data
-        Bucket bucket = couchbaseCluster.openBucket(BUCKET_NAME, BUCKET_PASSWORD);
+        Bucket bucket = couchbaseCluster.bucket(BUCKET_NAME);
+        Collection collection = bucket.defaultCollection();
         for (int i = 0; i < 2; i++) {
             JsonObject js = new TestData().createJson(PARTIAL_UPDATE_ID_PREFIX);
-            bucket.insert(JsonDocument.create(generateDocId(PARTIAL_UPDATE_ID_PREFIX, i), js));
+            collection.insert(generateDocId(PARTIAL_UPDATE_ID_PREFIX, i), js);
         }
-        bucket.close();
 
         // update data
         CouchbaseOutputConfiguration config = getOutputConfiguration();
@@ -274,35 +317,35 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
         componentsHandler.setInputData(createPartialUpdateRecords(PARTIAL_UPDATE_ID_PREFIX));
         executeJob(config);
         //
-        List<JsonDocument> resultList = retrieveDataFromDatabase(PARTIAL_UPDATE_ID_PREFIX, 2);
+        List<JsonObject> resultList = retrieveDataFromDatabase(PARTIAL_UPDATE_ID_PREFIX, 2);
         assertEquals(2, resultList.size());
         TestData testData = new TestData();
         Stream.iterate(0, o -> o + 1).limit(2).forEach(idx -> {
             // untouched properties
-            assertEquals(Integer.valueOf(testData.getColIntMax()), resultList.get(idx).content().getInt("t_int_max"));
-            assertEquals(Long.valueOf(testData.getColLongMin()), resultList.get(idx).content().getLong("t_long_min"));
-            assertEquals(Long.valueOf(testData.getColLongMax()), resultList.get(idx).content().getLong("t_long_max"));
+            assertEquals(Integer.valueOf(testData.getColIntMax()), resultList.get(idx).getInt("t_int_max"));
+            assertEquals(Long.valueOf(testData.getColLongMin()), resultList.get(idx).getLong("t_long_min"));
+            assertEquals(Long.valueOf(testData.getColLongMax()), resultList.get(idx).getLong("t_long_max"));
             assertEquals(testData.getColFloatMin(),
-                    resultList.get(idx).content().getNumber("t_float_min").floatValue());
+                    resultList.get(idx).getNumber("t_float_min").floatValue());
             assertEquals(testData.getColFloatMax(),
-                    resultList.get(idx).content().getNumber("t_float_max").floatValue());
-            assertEquals(testData.getColDoubleMin(), resultList.get(idx).content().getDouble("t_double_min"));
-            assertEquals(testData.getColDoubleMax(), resultList.get(idx).content().getDouble("t_double_max"));
-            assertEquals(testData.getColDateTime().toString(), resultList.get(idx).content().getString("t_datetime"));
+                    resultList.get(idx).getNumber("t_float_max").floatValue());
+            assertEquals(testData.getColDoubleMin(), resultList.get(idx).getDouble("t_double_min"));
+            assertEquals(testData.getColDoubleMax(), resultList.get(idx).getDouble("t_double_max"));
+            assertEquals(testData.getColDateTime().toString(), resultList.get(idx).getString("t_datetime"));
             assertArrayEquals(testData.getColList().toArray(),
-                    resultList.get(idx).content().getArray("t_array").toList().toArray());
+                    resultList.get(idx).getArray("t_array").toList().toArray());
             // upserted proterties
             if (idx == 0) {
-                assertEquals(1971, resultList.get(idx).content().getInt("t_int_min"));
-                assertEquals(testData.isColBoolean(), resultList.get(idx).content().getBoolean("t_boolean"));
-                assertEquals("path new", resultList.get(idx).content().getString("extra_content"));
-                assertNull(resultList.get(idx).content().getString("extra_content2"));
+                assertEquals(1971, resultList.get(idx).getInt("t_int_min"));
+                assertEquals(testData.isColBoolean(), resultList.get(idx).getBoolean("t_boolean"));
+                assertEquals("path new", resultList.get(idx).getString("extra_content"));
+                assertNull(resultList.get(idx).getString("extra_content2"));
             } else {
                 assertEquals(Integer.valueOf(testData.getColIntMin()),
-                        resultList.get(idx).content().getInt("t_int_min"));
-                assertEquals(Boolean.FALSE, resultList.get(idx).content().getBoolean("t_boolean"));
-                assertEquals("path zap", resultList.get(idx).content().getString("extra_content2"));
-                assertNull(resultList.get(idx).content().getString("extra_content"));
+                        resultList.get(idx).getInt("t_int_min"));
+                assertEquals(Boolean.FALSE, resultList.get(idx).getBoolean("t_boolean"));
+                assertEquals("path zap", resultList.get(idx).getString("extra_content2"));
+                assertNull(resultList.get(idx).getString("extra_content"));
             }
         });
     }
@@ -319,22 +362,22 @@ public class CouchbaseOutputTest extends CouchbaseUtilTest {
     }
 
     @Test
+    @DisplayName("Document with encoded string")
     void toJsonDocumentWithBytesType() {
         byte[] bytes = "aloha".getBytes(Charset.defaultCharset());
+        String encoded = new String(Base64.getEncoder().encode(bytes));
         String idValue = "fixBytes";
         Record test = recordBuilderFactory.newRecordBuilder()
                 .withString("ID", idValue)
                 .withInt("id", 101)
                 .withString("name", "kamikaze")
-                .withBytes("byties", bytes)
+                .withString("byties", encoded)
                 .build();
-        CouchbaseOutput couch = new CouchbaseOutput(getOutputConfiguration(), null);
-        JsonDocument jsonDoc = couch.toJsonDocument("ID", test);
-        assertEquals(idValue, jsonDoc.id());
-        JsonObject jsonObject = jsonDoc.content();
+        JsonObject jsonObject = JsonObject.fromJson(test.toString());
+        assertEquals(idValue, jsonObject.getString("ID"));
         assertEquals(101, jsonObject.getInt("id"));
         assertEquals("kamikaze", jsonObject.getString("name"));
-        byte[] rbytes = com.couchbase.client.core.utils.Base64.decode(jsonObject.getString("byties"));
+        byte[] rbytes = Base64.getDecoder().decode(jsonObject.getString("byties"));
         assertEquals(bytes.length, rbytes.length);
         assertEquals("aloha", new String(rbytes, Charset.defaultCharset()));
     }

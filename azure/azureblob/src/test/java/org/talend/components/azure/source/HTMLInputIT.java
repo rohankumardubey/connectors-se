@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,28 +17,33 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
 import org.talend.components.azure.BlobTestUtils;
-import org.talend.components.azure.common.Encoding;
+import org.talend.components.azure.service.MessageService;
+import org.talend.components.common.formats.Encoding;
 import org.talend.components.azure.common.FileFormat;
-import org.talend.components.azure.common.excel.ExcelFormat;
-import org.talend.components.azure.common.excel.ExcelFormatOptions;
+import org.talend.components.common.formats.excel.ExcelFormat;
+import org.talend.components.common.formats.excel.ExcelFormatOptions;
 import org.talend.components.azure.dataset.AzureBlobDataset;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
 import com.microsoft.azure.storage.StorageException;
+import lombok.SneakyThrows;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @WithComponents("org.talend.components.azure")
 class HTMLInputIT extends BaseIT {
 
     private static BlobInputProperties blobInputProperties;
+
+    @Service
+    private MessageService messageService;
 
     @BeforeEach
     void initDataset() {
@@ -47,7 +52,7 @@ class HTMLInputIT extends BaseIT {
         dataset.setFileFormat(FileFormat.EXCEL);
         ExcelFormatOptions excelFormatOptions = new ExcelFormatOptions();
         excelFormatOptions.setExcelFormat(ExcelFormat.HTML);
-        excelFormatOptions.setEncoding(Encoding.UFT8);
+        excelFormatOptions.setEncoding(Encoding.UTF8);
         dataset.setExcelOptions(excelFormatOptions);
 
         dataset.setContainerName(containerName);
@@ -174,5 +179,72 @@ class HTMLInputIT extends BaseIT {
         Assertions
                 .assertTrue(firstRecord.getString("Billing_State_Province").isEmpty(),
                         "Billing_State_Province should be empty");
+    }
+
+    @SneakyThrows
+    @Test
+    void testCustomEncoding() {
+        int expectedNumberOfRecords = 26;
+        String specialSymbolStrings = "テスト";
+
+        blobInputProperties.getDataset().getExcelOptions().setEncoding(Encoding.OTHER);
+        blobInputProperties.getDataset().getExcelOptions().setCustomEncoding("SJIS");
+        BlobTestUtils
+                .uploadTestFile(storageAccount, blobInputProperties, "excelHTML/report_encodingshif.html",
+                        "report_encodingshif.html");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        Job
+                .components()
+                .component("azureInput", "Azure://Input?" + inputConfig)
+                .component("collector", "test://collector")
+                .connections()
+                .from("azureInput")
+                .to("collector")
+                .build()
+                .run();
+        List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        Assertions.assertEquals(expectedNumberOfRecords, records.size());
+        Assertions.assertEquals(specialSymbolStrings, records.get(0).getString("Subject"));
+    }
+
+    @SneakyThrows
+    @Test
+    void testReadAvroAsHTMLException() {
+        BlobTestUtils
+                .uploadTestFile(storageAccount, blobInputProperties, "avro/testAvro1Record.avro",
+                        "testAvro1Record.html");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        ComponentException expectedException = Assertions.assertThrows(ComponentException.class, () -> Job.components()
+                .component("azureInput", "Azure://Input?" + inputConfig)
+                .component("collector", "test://collector")
+                .connections()
+                .from("azureInput")
+                .to("collector")
+                .build()
+                .run());
+
+        Assertions.assertTrue(expectedException.getMessage().contains(messageService.fileIsNotValidExcelHTML()));
+    }
+
+    @Test
+    void testReadFormattedHTMLException() throws URISyntaxException, IOException, StorageException {
+        BlobTestUtils
+                .uploadTestFile(storageAccount, blobInputProperties, "excelHTML/testIncorrectSalesforceHTMLReport.html",
+                        "testIncorrectSalesforceHTMLReport.html");
+
+        String inputConfig = configurationByExample().forInstance(blobInputProperties).configured().toQueryString();
+        ComponentException expectedException = Assertions.assertThrows(ComponentException.class, () -> Job.components()
+                .component("azureInput", "Azure://Input?" + inputConfig)
+                .component("collector", "test://collector")
+                .connections()
+                .from("azureInput")
+                .to("collector")
+                .build()
+                .run());
+
+        Assertions.assertTrue(expectedException.getMessage().contains(messageService.fileIsNotValidExcelHTML()));
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -46,7 +46,8 @@ public class PostgreSQLPlatform extends Platform {
     }
 
     @Override
-    protected String buildQuery(final Connection connection, final Table table) throws SQLException {
+    protected String buildQuery(final Connection connection, final Table table, final boolean useOriginColumnName)
+            throws SQLException {
         // keep the string builder for readability
         final StringBuilder sql = new StringBuilder("CREATE TABLE");
         sql.append(" ");
@@ -57,7 +58,7 @@ public class PostgreSQLPlatform extends Platform {
         }
         sql.append(identifier(table.getName()));
         sql.append("(");
-        sql.append(createColumns(table.getColumns()));
+        sql.append(createColumns(table.getColumns(), useOriginColumnName));
         sql
                 .append(createPKs(connection.getMetaData(), table.getName(),
                         table.getColumns().stream().filter(Column::isPrimaryKey).collect(Collectors.toList())));
@@ -76,12 +77,13 @@ public class PostgreSQLPlatform extends Platform {
         return e instanceof SQLException && "23505".equals(((SQLException) e).getSQLState());
     }
 
-    private String createColumns(final List<Column> columns) {
-        return columns.stream().map(this::createColumn).collect(Collectors.joining(","));
+    private String createColumns(final List<Column> columns, final boolean useOriginColumnName) {
+        return columns.stream().map(e -> createColumn(e, useOriginColumnName)).collect(Collectors.joining(","));
     }
 
-    private String createColumn(final Column column) {
-        return identifier(column.getName())//
+    private String createColumn(final Column column, final boolean useOriginColumnName) {
+        log.debug("createColumn column: " + column);
+        return identifier(useOriginColumnName ? column.getOriginalFieldName() : column.getName())//
                 + " " + toDBType(column)//
                 + " " + isRequired(column)//
         ;
@@ -108,7 +110,8 @@ public class PostgreSQLPlatform extends Platform {
         case RECORD:
         case ARRAY:
         default:
-            throw new IllegalStateException(getI18n().errorUnsupportedType(column.getType().name(), column.getName()));
+            throw new IllegalStateException(
+                    getI18n().errorUnsupportedType(column.getType().name(), column.getOriginalFieldName()));
         }
     }
 

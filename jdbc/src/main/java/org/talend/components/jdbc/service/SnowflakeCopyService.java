@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -63,6 +63,8 @@ public class SnowflakeCopyService implements Serializable {
             + "PURGE=TRUE ON_ERROR='CONTINUE'";
 
     private final List<Path> tmpFiles = new ArrayList<>();
+
+    private boolean isUseOriginColumnName;
 
     private Path tmpFolder;
 
@@ -153,6 +155,7 @@ public class SnowflakeCopyService implements Serializable {
         final String query = String
                 .format(COPY_INTO_QUERY, fqTableName, getColumnNamesList(chunks), fqStageName,
                         joinFileNamesString(chunks));
+        log.debug("Copy query: " + query);
         try (final Statement statement = connection.createStatement();
                 final ResultSet result = statement.executeQuery(query)) {
             final List<CopyError> errors = new ArrayList<>();
@@ -209,7 +212,7 @@ public class SnowflakeCopyService implements Serializable {
                 .filter(schemaEntries -> !schemaEntries.isEmpty())
                 .map(schemaEntries -> schemaEntries
                         .stream()
-                        .map(Schema.Entry::getName)
+                        .map(e -> isUseOriginColumnName ? e.getOriginalFieldName() : e.getName())
                         .collect(joining("\",\"", "(\"", "\")")))
                 .orElse("");
     }
@@ -232,6 +235,14 @@ public class SnowflakeCopyService implements Serializable {
                 .stream()
                 .map(chunk -> "'" + chunk.getChunk().getFileName() + ".gz'")
                 .collect(joining(",", "(", ")"));
+    }
+
+    public boolean isUseOriginColumnName() {
+        return isUseOriginColumnName;
+    }
+
+    public void setUseOriginColumnName(boolean useOriginColumnName) {
+        isUseOriginColumnName = useOriginColumnName;
     }
 
     @Data
@@ -367,7 +378,7 @@ public class SnowflakeCopyService implements Serializable {
         case RECORD:
         default:
             throw new IllegalArgumentException(
-                    "Unsupported \"" + entry.getType().name() + "\" type for field: " + entry.getName());
+                    "Unsupported \"" + entry.getType().name() + "\" type for field: " + entry.getOriginalFieldName());
         }
     }
 

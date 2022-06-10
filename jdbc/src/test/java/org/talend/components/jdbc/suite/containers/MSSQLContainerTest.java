@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,7 +14,7 @@ package org.talend.components.jdbc.suite.containers;
 
 import org.junit.jupiter.api.Tag;
 import org.talend.components.jdbc.containers.JdbcTestContainer;
-import org.talend.components.jdbc.containers.MySQLTestContainer;
+import org.talend.components.jdbc.containers.MSSQLServerTestContainer;
 import org.talend.components.jdbc.suite.JDBCBaseContainerTest;
 
 @Tag("IT")
@@ -22,7 +22,7 @@ public class MSSQLContainerTest extends JDBCBaseContainerTest {
 
     @Override
     public JdbcTestContainer buildContainer() {
-        return new MySQLTestContainer();
+        return new MSSQLServerTestContainer();
     }
 
     public class MSSQLPlatform extends PlatformTests {

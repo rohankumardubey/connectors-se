@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -49,7 +49,7 @@ public class SalesforceService {
 
     public static final String ACTIVE_ENDPOINT = "login.salesforce.com";
 
-    public static final String DEFAULT_API_VERSION = "47.0";
+    public static final String DEFAULT_API_VERSION = "53.0";
 
     public static final String URL = "https://" + ACTIVE_ENDPOINT + "/services/Soap/u/" + DEFAULT_API_VERSION;
 

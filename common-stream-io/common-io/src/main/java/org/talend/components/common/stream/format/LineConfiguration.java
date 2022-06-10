@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream.format;
 
+import java.nio.charset.Charset;
 import java.util.Optional;
 
 import org.talend.sdk.component.api.configuration.Option;
@@ -62,10 +63,14 @@ public class LineConfiguration implements ContentFormat {
 
     @Option
     @Documentation("Header.")
-    private OptionalLine header;
+    private HeaderLine header;
 
     public int calcHeader() {
         return Optional.ofNullable(this.header).map(OptionalLine::getSize).orElse(0);
+    }
+
+    public Charset getEncodingCharset() {
+        return Charset.forName(encoding.getEncoding());
     }
 
 }

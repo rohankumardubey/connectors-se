@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,11 +17,11 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.input.RecordReader;
-import org.talend.components.common.stream.format.OptionalLine;
+import org.talend.components.common.stream.format.FooterLine;
+import org.talend.components.common.stream.format.HeaderLine;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
 import org.talend.sdk.component.api.record.Record;
@@ -39,10 +39,10 @@ class ExcelReaderSupplierTest {
         config.setSheetName("Sheet1");
         config.setExcelFormat(ExcelFormat.EXCEL2007);
         // config.setEncoding(new Encoding());
-        config.setHeader(new OptionalLine());
+        config.setHeader(new HeaderLine());
         config.getHeader().setActive(false);
 
-        config.setFooter(new OptionalLine());
+        config.setFooter(new FooterLine());
         config.getFooter().setActive(false);
     }
 

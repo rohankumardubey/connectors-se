@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,7 +15,6 @@ package org.talend.components.common.stream.input.excel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -31,7 +30,7 @@ public class HTMLReader implements FormatReader {
     private final HTMLToRecord toRecord;
 
     public HTMLReader(RecordBuilderFactory recordBuilderFactory) {
-        this.toRecord = new HTMLToRecord(recordBuilderFactory);
+        this.toRecord = new HTMLToRecord(recordBuilderFactory, () -> "File is not valid excel HTML");
     }
 
     @Override

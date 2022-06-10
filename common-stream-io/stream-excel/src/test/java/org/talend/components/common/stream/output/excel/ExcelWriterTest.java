@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,7 +23,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.TargetFinder;
-import org.talend.components.common.stream.format.OptionalLine;
+import org.talend.components.common.stream.format.FooterLine;
+import org.talend.components.common.stream.format.HeaderLine;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration;
 import org.talend.components.common.stream.format.excel.ExcelConfiguration.ExcelFormat;
 import org.talend.sdk.component.api.record.Record;
@@ -37,11 +38,11 @@ class ExcelWriterTest {
     @Test
     void add() throws IOException {
         final ExcelConfiguration cfg = new ExcelConfiguration();
-        cfg.setFooter(new OptionalLine());
+        cfg.setFooter(new FooterLine());
         cfg.getFooter().setActive(true);
         cfg.getFooter().setSize(2);
 
-        cfg.setHeader(new OptionalLine());
+        cfg.setHeader(new HeaderLine());
         cfg.getHeader().setActive(true);
         cfg.getHeader().setSize(2);
 

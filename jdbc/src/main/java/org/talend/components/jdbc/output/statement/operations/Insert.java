@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -46,27 +46,30 @@ public class Insert extends QueryManagerImpl {
                 .flatMap(r -> r.getSchema().getEntries().stream())
                 .distinct()
                 .collect(toList());
-        return queries.computeIfAbsent(entries.stream().map(Schema.Entry::getName).collect(joining("::")), key -> {
-            final AtomicInteger index = new AtomicInteger(0);
-            namedParams = new HashMap<>();
-            entries.forEach(name -> namedParams.put(index.incrementAndGet(), name));
-            final List<Map.Entry<Integer, Schema.Entry>> params = namedParams
-                    .entrySet()
-                    .stream()
-                    .sorted(comparing(Map.Entry::getKey))
-                    .collect(toList());
-            final StringBuilder query = new StringBuilder("INSERT INTO ")
-                    .append(getPlatform().identifier(getConfiguration().getDataset().getTableName()));
-            query
-                    .append(params
+        return queries.computeIfAbsent(entries.stream().map(Schema.Entry::getOriginalFieldName).collect(joining("::")),
+                key -> {
+                    final AtomicInteger index = new AtomicInteger(0);
+                    namedParams = new HashMap<>();
+                    entries.forEach(name -> namedParams.put(index.incrementAndGet(), name));
+                    final List<Map.Entry<Integer, Schema.Entry>> params = namedParams
+                            .entrySet()
                             .stream()
-                            .map(e -> e.getValue().getName())
-                            .map(name -> getPlatform().identifier(name))
-                            .collect(joining(",", "(", ")")));
-            query.append(" VALUES");
-            query.append(params.stream().map(e -> "?").collect((joining(",", "(", ")"))));
-            return query.toString();
-        });
+                            .sorted(comparing(Map.Entry::getKey))
+                            .collect(toList());
+                    final StringBuilder query = new StringBuilder("INSERT INTO ")
+                            .append(getPlatform().identifier(getConfiguration().getDataset().getTableName()));
+                    query
+                            .append(params
+                                    .stream()
+                                    .map(e -> getConfiguration().isUseOriginColumnName()
+                                            ? e.getValue().getOriginalFieldName()
+                                            : e.getValue().getName())
+                                    .map(name -> getPlatform().identifier(name))
+                                    .collect(joining(",", "(", ")")));
+                    query.append(" VALUES");
+                    query.append(params.stream().map(e -> "?").collect((joining(",", "(", ")"))));
+                    return query.toString();
+                });
     }
 
     @Override

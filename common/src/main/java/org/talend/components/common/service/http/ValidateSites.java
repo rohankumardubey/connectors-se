@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,9 +12,6 @@
  */
 package org.talend.components.common.service.http;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,17 +20,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.talend.daikon.security.url.URLUtils;
 
 @Slf4j
 public class ValidateSites {
 
-    private final static List<String> ADDITIONAL_LOCAL_HOSTS = Arrays.asList(
+    private static final List<String> ADDITIONAL_LOCAL_HOSTS = Arrays.asList(
             // local multicast from 224.0.0.0 to 224.0.0.255
             "224.0.0.");
 
-    private final static class Constants {
+    private static final class Constants {
 
         private Constants() {
         }
@@ -104,7 +106,7 @@ public class ValidateSites {
             }
         }
         accesses.trimToSize();
-        if (accesses.size() == 0) {
+        if (accesses.isEmpty()) {
             return (final URL url, final InetAddress inetAddress) -> true;
         }
         return new GlobalAccessChecker(accesses);
@@ -114,7 +116,7 @@ public class ValidateSites {
     public enum AccessControls {
 
         LOCAL(
-                (final URL url, final InetAddress inetAddress) -> !AccessControls.isLocalAddress(inetAddress)
+                (final URL url, final InetAddress inetAddress) -> !URLUtils.isLocalAddress(inetAddress)
                         && ADDITIONAL_LOCAL_HOSTS.stream()
                                 .noneMatch(h -> url.getHost().contains(h)),
                 (Environment env) -> env.getValue(Constants.ENV_ENABLE_LOCAL_NETWORK_ACCESS,
@@ -147,12 +149,6 @@ public class ValidateSites {
             }
         }
 
-        private static boolean isLocalAddress(final InetAddress inetAddress) {
-            return inetAddress.isSiteLocalAddress() || inetAddress.isLoopbackAddress()
-                    || inetAddress.isLinkLocalAddress() || inetAddress.isAnyLocalAddress() // Unicast
-                    || inetAddress.isMCLinkLocal() || inetAddress.isMCSiteLocal() || inetAddress.isMCNodeLocal()
-                    || inetAddress.isMCOrgLocal(); // Multicast
-        }
     }
 
     private ValidateSites() {
@@ -182,12 +178,12 @@ public class ValidateSites {
         }
     }
 
-    public static String buildErrorMessage(final Function<String, String> msgBuilder,
+    public static String buildErrorMessage(final UnaryOperator<String> msgBuilder,
             final String endPoint) {
         return buildErrorMessage(msgBuilder, endPoint, ValidateSites.systemEnvironment);
     }
 
-    public static String buildErrorMessage(final Function<String, String> msgBuilder,
+    public static String buildErrorMessage(final UnaryOperator<String> msgBuilder,
             final String endPoint,
             final Environment env) {
         final StringBuilder builder = new StringBuilder(msgBuilder.apply(endPoint));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,12 +12,12 @@
  */
 package org.talend.components.azure.service;
 
-import static org.talend.components.azure.common.service.AzureComponentServices.SAS_PATTERN;
+import static org.talend.components.common.service.azureblob.AzureComponentServices.SAS_PATTERN;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.talend.components.azure.common.connection.AzureStorageConnectionSignature;
+import org.talend.components.common.connection.azureblob.AzureStorageConnectionSignature;
 
 public class RegionUtils {
 

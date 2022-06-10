@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,10 +12,11 @@
  */
 package org.talend.components.couchbase.source.parsers;
 
-import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Collection;
+
 import org.talend.sdk.component.api.record.Record;
 
 public interface DocumentParser {
 
-    Record parse(Bucket bucket, String id);
+    Record parse(Collection collection, String id);
 }

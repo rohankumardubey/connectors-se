@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,29 +14,14 @@ package org.talend.components.salesforce.input;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.talend.components.salesforce.service.SalesforceService.URL;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.apache.beam.sdk.Pipeline;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.talend.components.salesforce.SalesforceTestBase;
 import org.talend.components.salesforce.configuration.InputModuleConfig;
 import org.talend.components.salesforce.configuration.InputSOQLConfig;
@@ -44,6 +29,7 @@ import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.dataset.SOQLQueryDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
@@ -291,7 +277,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         inputConfig.setDataSet(moduleDataSet);
 
         final String config = configurationByExample().forInstance(inputConfig).configured().toQueryString();
-        final IllegalStateException ex = assertThrows(IllegalStateException.class,
+        assertThrows(IllegalStateException.class,
                 () -> Job
                         .components()
                         .component("salesforce-input", "Salesforce://Input?" + config)
@@ -314,7 +300,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         inputConfig.setDataSet(moduleDataSet);
 
         final String config = configurationByExample().forInstance(inputConfig).configured().toQueryString();
-        Pipeline.PipelineExecutionException ex = assertThrows(Pipeline.PipelineExecutionException.class,
+        ComponentException ex = assertThrows(ComponentException.class,
                 () -> Job
                         .components()
                         .component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
@@ -339,7 +325,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         inputConfig.setDataSet(moduleDataSet);
 
         final String config = configurationByExample().forInstance(inputConfig).configured().toQueryString();
-        Pipeline.PipelineExecutionException ex = assertThrows(Pipeline.PipelineExecutionException.class,
+        assertThrows(IllegalStateException.class,
                 () -> Job
                         .components()
                         .component("salesforce-input", "Salesforce://ModuleQueryInput?" + config)
@@ -349,7 +335,6 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
                         .to("collector")
                         .build()
                         .run());
-        assertEquals(IllegalStateException.class, ex.getCause().getClass());
     }
 
     // SOQL Query part
@@ -418,7 +403,7 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
         inputConfig.setDataSet(soqlQueryDataSet);
 
         final String config = configurationByExample().forInstance(inputConfig).configured().toQueryString();
-        Pipeline.PipelineExecutionException ex = assertThrows(Pipeline.PipelineExecutionException.class,
+        assertThrows(IllegalStateException.class,
                 () -> Job
                         .components()
                         .component("salesforce-input", "Salesforce://SOQLQueryInput?" + config)
@@ -428,7 +413,6 @@ public class SalesforceInputEmitterTest extends SalesforceTestBase {
                         .to("collector")
                         .build()
                         .run());
-        assertEquals(IllegalStateException.class, ex.getCause().getClass());
     }
 
     @Test

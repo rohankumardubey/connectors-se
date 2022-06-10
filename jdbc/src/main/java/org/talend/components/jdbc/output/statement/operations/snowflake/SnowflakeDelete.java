@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -29,12 +29,16 @@ import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SnowflakeDelete extends Delete {
 
     SnowflakeCopyService snowflakeCopy = new SnowflakeCopyService();
 
     public SnowflakeDelete(Platform platform, OutputConfig configuration, I18nMessage i18n) {
         super(platform, configuration, i18n);
+        snowflakeCopy.setUseOriginColumnName(configuration.isUseOriginColumnName());
     }
 
     @Override
@@ -51,15 +55,16 @@ public class SnowflakeDelete extends Delete {
             rejects.addAll(snowflakeCopy.putAndCopy(connection, records, fqStageName, fqTableName, fqTmpTableName));
             if (records.size() != rejects.size()) {
                 try (final Statement statement = connection.createStatement()) {
-                    statement
-                            .execute("delete from " + fqTableName + " target using " + fqTmpTableName
-                                    + " as source where "
-                                    + getConfiguration()
-                                            .getKeys()
-                                            .stream()
-                                            .map(key -> getPlatform().identifier(key))
-                                            .map(key -> "source." + key + "= target." + key)
-                                            .collect(joining(" AND ")));
+                    String query = "delete from " + fqTableName + " target using " + fqTmpTableName
+                            + " as source where "
+                            + getConfiguration()
+                                    .getKeys()
+                                    .stream()
+                                    .map(key -> getPlatform().identifier(key))
+                                    .map(key -> "source." + key + "= target." + key)
+                                    .collect(joining(" AND "));
+                    log.debug("Delete query: {}", query);
+                    statement.execute(query);
                 }
             }
             connection.commit();

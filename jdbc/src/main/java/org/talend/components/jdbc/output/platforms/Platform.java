@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -61,7 +61,8 @@ public abstract class Platform implements Serializable {
 
     abstract protected String delimiterToken();
 
-    protected abstract String buildQuery(final Connection connection, final Table table) throws SQLException;
+    protected abstract String buildQuery(final Connection connection, final Table table,
+            final boolean useOriginColumnName) throws SQLException;
 
     /**
      * @param e if the exception if a table already exist ignore it. otherwise re throw e
@@ -113,7 +114,8 @@ public abstract class Platform implements Serializable {
     public void createTableIfNotExist(final Connection connection, final String name, final List<String> keys,
             final RedshiftSortStrategy sortStrategy, final List<String> sortKeys,
             final DistributionStrategy distributionStrategy,
-            final List<String> distributionKeys, final int varcharLength, final List<Record> records)
+            final List<String> distributionKeys, final int varcharLength, final boolean useOriginColumnName,
+            final List<Record> records)
             throws SQLException {
         if (records.isEmpty()) {
             return;
@@ -121,7 +123,7 @@ public abstract class Platform implements Serializable {
         final Table table =
                 getTableModel(connection, name, keys, sortStrategy, sortKeys, distributionStrategy, distributionKeys,
                         varcharLength, records);
-        final String sql = buildQuery(connection, table);
+        final String sql = buildQuery(connection, table, useOriginColumnName);
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
             if (!connection.getAutoCommit()) {
@@ -152,7 +154,7 @@ public abstract class Platform implements Serializable {
                 : ", CONSTRAINT " + pkConstraintName(metaData, table, primaryKeys) + " PRIMARY KEY "
                         + primaryKeys
                                 .stream()
-                                .map(Column::getName)
+                                .map(Column::getOriginalFieldName)
                                 .map(this::identifier)
                                 .collect(joining(",", "(", ")"));
     }
@@ -161,8 +163,9 @@ public abstract class Platform implements Serializable {
             throws SQLException {
         final String uuid = UUID.randomUUID().toString();
         final int nameLength = metaData.getMaxColumnNameLength();
-        String constraint = "pk_" + table + "_" + primaryKeys.stream().map(Column::getName).collect(joining("_")) + "_"
-                + uuid.substring(0, Math.min(4, uuid.length()));
+        String constraint =
+                "pk_" + table + "_" + primaryKeys.stream().map(Column::getOriginalFieldName).collect(joining("_")) + "_"
+                        + uuid.substring(0, Math.min(4, uuid.length()));
         if (nameLength > 0 && constraint.length() > nameLength) {
             constraint = "pk_" + uuid.replace('-', '_');
             if (constraint.length() > nameLength) {
@@ -190,20 +193,27 @@ public abstract class Platform implements Serializable {
         } catch (final SQLException e) {
             log.warn("can't get database catalog or schema", e);
         }
+        log.debug("Schema getRawName: " + records.get(0)
+                .getSchema()
+                .getEntries()
+                .stream()
+                .map(Schema.Entry::getRawName)
+                .collect(Collectors.joining(",")));
         final List<Schema.Entry> entries = records
                 .stream()
                 .flatMap(record -> record.getSchema().getEntries().stream())
                 .distinct()
                 .collect(toList());
+        log.debug("Schema Entries: " + entries);
         return builder
                 .columns(entries
                         .stream()
                         .map(entry -> Column
                                 .builder()
                                 .entry(entry)
-                                .primaryKey(keys.contains(entry.getName()))
-                                .sortKey(sortKeys.contains(entry.getName()))
-                                .distributionKey(distributionKeys.contains(entry.getName()))
+                                .primaryKey(keys.contains(entry.getOriginalFieldName()))
+                                .sortKey(sortKeys.contains(entry.getOriginalFieldName()))
+                                .distributionKey(distributionKeys.contains(entry.getOriginalFieldName()))
                                 .size(STRING == entry.getType() ? varcharLength : null)
                                 .build())
                         .collect(toList()))

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,25 +15,26 @@ package org.talend.components.azure.runtime.input;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Iterator;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.dataset.AzureBlobDataset;
-import org.talend.components.azure.runtime.converters.HTMLConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.components.azure.service.MessageService;
+import org.talend.components.common.stream.input.excel.HTMLToRecord;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 
 public class ExcelHTMLBlobFileReader extends BlobFileReader {
 
-    private HTMLConverter converter;
+    private HTMLToRecord converter;
+
+    private Schema columns;
 
     public ExcelHTMLBlobFileReader(AzureBlobDataset config, RecordBuilderFactory recordBuilderFactory,
             AzureBlobComponentServices connectionServices, MessageService messageService)
@@ -57,19 +58,23 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
 
         @Override
         protected void readItem() {
-
             try (InputStream input = getCurrentItem().openInputStream()) {
                 Document document =
-                        Jsoup.parse(input, getConfig().getExcelOptions().getEncoding().getEncodingValue(), "");
+                        Jsoup.parse(input, getConfig().getExcelOptions()
+                                .effectiveHTMLFileEncoding(getMessageService()::encodingNotSupported), "");
+
                 Element body = document.body();
                 Elements rows = body.getElementsByTag("tr");
+                if (rows.isEmpty()) {
+                    throw new ComponentException(getMessageService().fileIsNotValidExcelHTML());
+                }
                 rowIterator = rows.iterator();
                 if (rows.first().getElementsByTag("th").size() > 0) {
                     // infer schema of html header row and ignore result
                     convertToRecord(rowIterator.next());
                 }
             } catch (Exception e) {
-                throw new BlobRuntimeException(e);
+                throw new RuntimeException(e);
             }
         }
 
@@ -86,10 +91,14 @@ public class ExcelHTMLBlobFileReader extends BlobFileReader {
         @Override
         protected Record convertToRecord(Element row) {
             if (converter == null) {
-                converter = HTMLConverter.of(getRecordBuilderFactory());
+                converter = new HTMLToRecord(getRecordBuilderFactory(),
+                        () -> getMessageService().fileIsNotValidExcelHTML());
             }
 
-            return converter.toRecord(row);
+            if (columns == null) {
+                columns = converter.inferSchema(row);
+            }
+            return converter.toRecord(columns, row);
         }
 
         @Override

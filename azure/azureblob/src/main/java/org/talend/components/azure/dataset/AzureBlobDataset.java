@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,10 +15,12 @@ package org.talend.components.azure.dataset;
 import java.io.Serializable;
 
 import org.talend.components.azure.common.FileFormat;
-import org.talend.components.azure.common.csv.CSVFormatOptions;
-import org.talend.components.azure.common.excel.ExcelFormatOptions;
+import org.talend.components.azure.migration.AzureStorageDatasetMigration;
 import org.talend.components.azure.datastore.AzureCloudConnection;
 import org.talend.components.azure.service.AzureBlobComponentServices;
+import org.talend.components.common.formats.csv.CSVFormatOptions;
+import org.talend.components.common.formats.excel.ExcelFormatOptions;
+import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -33,6 +35,7 @@ import lombok.Data;
         @GridLayout.Row("fileFormat"), @GridLayout.Row("csvOptions"), @GridLayout.Row("excelOptions") })
 @Data
 @DataSet("AzureDataSet")
+@Version(value = 2, migrationHandler = AzureStorageDatasetMigration.class)
 public class AzureBlobDataset implements Serializable {
 
     @Option

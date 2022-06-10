@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -93,10 +93,14 @@ public class BasicHeaderElement implements Cloneable {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public BasicHeaderElement clone() {
         // parameters array is considered immutable
         // no need to make a copy of it
-        return super.clone();
+        try {
+            return (BasicHeaderElement) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new RuntimeException("clone unsupported", ex);
+        }
     }
 
 }

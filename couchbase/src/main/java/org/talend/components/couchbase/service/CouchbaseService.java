@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -27,12 +27,17 @@ import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
 import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 
 import java.io.Serializable;
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.Optional;
+import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,15 +59,22 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 
+import com.couchbase.client.core.diagnostics.ClusterState;
+import com.couchbase.client.core.diagnostics.PingResult;
+import com.couchbase.client.core.env.ThresholdLoggingTracerConfig;
+import com.couchbase.client.core.env.TimeoutConfig;
+import com.couchbase.client.core.env.TimeoutConfig.Builder;
+import com.couchbase.client.core.env.SecurityConfig;
+import com.couchbase.client.core.error.AuthenticationFailureException;
+import com.couchbase.client.core.error.UnambiguousTimeoutException;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment.Builder;
-import com.couchbase.client.java.error.InvalidPasswordException;
+import com.couchbase.client.java.ClusterOptions;
+import com.couchbase.client.java.Collection;
+import com.couchbase.client.java.diagnostics.WaitUntilReadyOptions;
+import com.couchbase.client.java.env.ClusterEnvironment;
+import com.couchbase.client.java.json.JsonArray;
+import com.couchbase.client.java.json.JsonObject;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +95,7 @@ public class CouchbaseService implements Serializable {
     private RecordBuilderFactory builderFactory;
 
     public String[] resolveAddresses(String nodes) {
-        String[] addresses = nodes.replaceAll(" ", "").split(",");
+        String[] addresses = nodes.replace(" ", "").split(",");
         for (int i = 0; i < addresses.length; i++) {
             LOG.info(i18n.bootstrapNodes(i, addresses[i]));
         }
@@ -94,43 +106,61 @@ public class CouchbaseService implements Serializable {
         String bootStrapNodes = dataStore.getBootstrapNodes();
         String username = dataStore.getUsername();
         String password = dataStore.getPassword();
+        String urls = Arrays.stream(resolveAddresses(bootStrapNodes)).collect(Collectors.joining(","));
 
-        String[] urls = resolveAddresses(bootStrapNodes);
-        try {
-            ClusterHolder holder = clustersPool.computeIfAbsent(dataStore, ds -> {
-                Builder envBuilder = new DefaultCouchbaseEnvironment.Builder();
-                if (dataStore.isUseConnectionParameters()) {
-                    dataStore
-                            .getConnectionParametersList()
-                            .forEach(conf -> setTimeout(envBuilder, conf.getParameterName(),
-                                    parseValue(conf.getParameterValue())));
-                }
-                CouchbaseEnvironment environment = envBuilder.build();
-                Cluster cluster = CouchbaseCluster.create(environment, urls);
-                cluster.authenticate(username, password);
-                return new ClusterHolder(environment, cluster);
-            });
-            holder.use();
-            Cluster cluster = holder.getCluster();
-            String clusterName = cluster.clusterManager().info().raw().get("name").toString();
-            LOG.debug(i18n.connectedToCluster(clusterName));
-            return cluster;
-        } catch (Exception e) {
-            LOG.error(i18n.connectionKO());
-            throw new ComponentException(e);
-        }
+        ClusterHolder holder = clustersPool.computeIfAbsent(dataStore, ds -> {
+            ClusterEnvironment.Builder envBuilder = ClusterEnvironment.builder();
 
+            if (dataStore.isEnableTLS()) {
+                envBuilder.securityConfig(
+                        SecurityConfig.enableTls(true)
+                                .trustStore(
+                                        Paths.get(dataStore.getTrustStorePath()),
+                                        dataStore.getTrustStorePassword(),
+                                        Optional.of(dataStore.getTrustStoreType())));
+            }
+            if (dataStore.isUseConnectionParameters()) {
+                Builder timeoutBuilder = TimeoutConfig.builder();
+                dataStore.getConnectionParametersList()
+                        .forEach(conf -> setTimeout(timeoutBuilder, envBuilder,
+                                conf.getParameterName(), parseValue(conf.getParameterValue())));
+                envBuilder.timeoutConfig(timeoutBuilder);
+            }
+            ClusterEnvironment environment = envBuilder.build();
+            Cluster cluster = Cluster.connect(urls,
+                    ClusterOptions.clusterOptions(username, password).environment(environment));
+            try {
+                cluster.waitUntilReady(Duration.ofSeconds(3),
+                        WaitUntilReadyOptions.waitUntilReadyOptions().desiredState(ClusterState.ONLINE));
+            } catch (UnambiguousTimeoutException e) {
+                LOG.error(i18n.connectionKO());
+                throw new ComponentException(e);
+            }
+            return new ClusterHolder(environment, cluster);
+        });
+        holder.use();
+        Cluster cluster = holder.getCluster();
+        // connection is lazily initialized; need to send actual request to test it
+        cluster.buckets().getAllBuckets();
+        PingResult pingResult = cluster.ping();
+        LOG.debug(i18n.connectedToCluster(pingResult.id()));
+
+        return cluster;
     }
 
-    private void setTimeout(Builder envBuilder, ConnectionParameter parameterName, long value) {
+    private void setTimeout(Builder timeoutBuilder, ClusterEnvironment.Builder envBuilder,
+            ConnectionParameter parameterName, long value) {
         if (parameterName == ConnectionParameter.CONNECTION_TIMEOUT) {
-            envBuilder.connectTimeout(value);
+            timeoutBuilder.connectTimeout(Duration.ofMillis(value));
         } else if (parameterName == ConnectionParameter.QUERY_TIMEOUT) {
-            envBuilder.queryTimeout(value);
+            timeoutBuilder.queryTimeout(Duration.ofMillis(value));
         } else if (parameterName == ConnectionParameter.ANALYTICS_TIMEOUT) {
-            envBuilder.analyticsTimeout(value);
-        } else {
-            envBuilder.maxRequestLifetime(value);
+            timeoutBuilder.analyticsTimeout(Duration.ofMillis(value));
+        } else { // QUERY_THRESHOLD
+            envBuilder.thresholdLoggingTracerConfig(ThresholdLoggingTracerConfig.builder()
+                    .queryThreshold(Duration.ofMillis(value))
+                    .analyticsThreshold(Duration.ofMillis(value))
+                    .emitInterval(Duration.ofMillis(value)));
         }
     }
 
@@ -143,14 +173,15 @@ public class CouchbaseService implements Serializable {
     }
 
     @HealthCheck("healthCheck")
-    public HealthCheckStatus
-            healthCheck(@Option("configuration.dataset.connection") final CouchbaseDataStore datastore) {
+    public HealthCheckStatus healthCheck(
+            @Option("configuration.dataset.connection") final CouchbaseDataStore datastore) {
         try {
             openConnection(datastore);
+            LOG.debug(i18n.connectionOK());
             return new HealthCheckStatus(HealthCheckStatus.Status.OK, "Connection OK");
         } catch (Exception exception) {
             String message = "";
-            if (exception.getCause() instanceof InvalidPasswordException) {
+            if (exception.getCause() instanceof AuthenticationFailureException) {
                 message = i18n.invalidPassword();
             } else if (exception.getCause() instanceof RuntimeException
                     && exception.getCause().getCause() instanceof TimeoutException) {
@@ -171,10 +202,10 @@ public class CouchbaseService implements Serializable {
         configuration.setDataSet(dataSet);
         CouchbaseInput couchbaseInput = new CouchbaseInput(configuration, this, builderFactory, i18n);
         couchbaseInput.init();
-        Record record = couchbaseInput.next();
+        Record rec = couchbaseInput.next();
         couchbaseInput.release();
 
-        return record.getSchema();
+        return rec.getSchema();
     }
 
     @Suggestions(DETECT_SCHEMA)
@@ -197,25 +228,20 @@ public class CouchbaseService implements Serializable {
         return new SuggestionValues(false, emptyList());
     }
 
-    public Bucket openBucket(Cluster cluster, String bucketName) {
+    public Collection openDefaultCollection(Cluster cluster, String bucketName) {
         Bucket bucket;
+        Collection collection;
         try {
-            bucket = cluster.openBucket(bucketName);
+            // fetching BucketSettings will send an actual request to cluster
+            // and raise an exception if bucket does not exists.
+            cluster.buckets().getBucket(bucketName);
+            bucket = cluster.bucket(bucketName);
+            collection = bucket.defaultCollection();
         } catch (Exception e) {
             LOG.error(i18n.cannotOpenBucket());
             throw new ComponentException(e);
         }
-        return bucket;
-    }
-
-    public void closeBucket(Bucket bucket) {
-        if (bucket != null) {
-            if (Boolean.TRUE.equals(bucket.close())) {
-                LOG.debug(i18n.bucketWasClosed(bucket.name()));
-            } else {
-                LOG.debug(i18n.cannotCloseBucket(bucket.name()));
-            }
-        }
+        return collection;
     }
 
     public void closeConnection(CouchbaseDataStore ds) {
@@ -229,18 +255,20 @@ public class CouchbaseService implements Serializable {
         }
         clustersPool.remove(ds);
         Cluster cluster = holder.getCluster();
-        CouchbaseEnvironment environment = holder.getEnv();
+        ClusterEnvironment environment = holder.getEnv();
         if (cluster != null) {
-            if (Boolean.TRUE.equals(cluster.disconnect())) {
+            try {
+                cluster.disconnect();
                 log.debug(i18n.clusterWasClosed());
-            } else {
+            } catch (ComponentException e) {
                 log.debug(i18n.cannotCloseCluster());
             }
         }
         if (environment != null) {
-            if (environment.shutdown()) {
+            try {
+                environment.shutdown();
                 log.debug(i18n.couchbaseEnvWasClosed());
-            } else {
+            } catch (ComponentException e) {
                 log.debug(i18n.cannotCloseCouchbaseEnv());
             }
         }
@@ -333,14 +361,14 @@ public class CouchbaseService implements Serializable {
     public static class ClusterHolder {
 
         @Getter
-        private final CouchbaseEnvironment env;
+        private final ClusterEnvironment env;
 
         @Getter
         private final Cluster cluster;
 
         private final AtomicInteger usages = new AtomicInteger();
 
-        public ClusterHolder(final CouchbaseEnvironment env, final Cluster cluster) {
+        public ClusterHolder(final ClusterEnvironment env, final Cluster cluster) {
             this.env = env;
             this.cluster = cluster;
         }

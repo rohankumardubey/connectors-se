@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -46,8 +46,8 @@ import java.util.Locale;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -74,7 +74,7 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public abstract class JDBCBaseContainerTest {
@@ -178,7 +178,7 @@ public abstract class JDBCBaseContainerTest {
                             .getPlatform(dataStore)
                             .createTableIfNotExist(connection, testTable,
                                     asList("id"), RedshiftSortStrategy.COMPOUND, emptyList(), DistributionStrategy.KEYS,
-                                    emptyList(), -1,
+                                    emptyList(), -1, true,
                                     records);
                 }
             }
@@ -199,7 +199,7 @@ public abstract class JDBCBaseContainerTest {
                             .createTableIfNotExist(connection, testTable,
                                     asList("id", "email"), RedshiftSortStrategy.COMPOUND, emptyList(),
                                     DistributionStrategy.KEYS,
-                                    emptyList(), -1, records);
+                                    emptyList(), -1, true, records);
                 }
             }
         }
@@ -215,12 +215,12 @@ public abstract class JDBCBaseContainerTest {
                     Platform platform = getJdbcService().getPlatformService().getPlatform(dataStore);
                     platform.createTableIfNotExist(connection, testTable, asList("id", "email"),
                             RedshiftSortStrategy.COMPOUND,
-                            emptyList(), DistributionStrategy.KEYS, emptyList(), -1, records);
+                            emptyList(), DistributionStrategy.KEYS, emptyList(), -1, true, records);
                     // recreate the table should not fail
                     platform
                             .createTableIfNotExist(connection, testTable, asList("id", "email"),
                                     RedshiftSortStrategy.COMPOUND,
-                                    emptyList(), DistributionStrategy.KEYS, emptyList(), -1, records);
+                                    emptyList(), DistributionStrategy.KEYS, emptyList(), -1, true, records);
                 }
             }
         }
@@ -304,7 +304,7 @@ public abstract class JDBCBaseContainerTest {
                             .createTableIfNotExist(connection, testTableName,
                                     singletonList("id"), RedshiftSortStrategy.COMPOUND, emptyList(),
                                     DistributionStrategy.KEYS,
-                                    emptyList(), -1,
+                                    emptyList(), -1, true,
                                     singletonList(this.getRecordBuilderFactory()
                                             .newRecordBuilder()
                                             .withInt("id", 1)
@@ -400,6 +400,7 @@ public abstract class JDBCBaseContainerTest {
                     Platform platform = getJdbcService().getPlatformService().getPlatform(dataStore);
                     platform.createTableIfNotExist(connection, testTableName, asList("id", "email"),
                             RedshiftSortStrategy.COMPOUND, emptyList(), DistributionStrategy.KEYS, emptyList(), -1,
+                            true,
                             records);
                 }
             }
@@ -515,6 +516,31 @@ public abstract class JDBCBaseContainerTest {
             final SqlQueryDataset dataset = new SqlQueryDataset();
             dataset.setConnection(newConnection());
             dataset.setSqlQuery("INSERT INTO users(id, name) VALUES (1, 'user1')");
+            final InputQueryConfig config = new InputQueryConfig();
+            config.setDataSet(dataset);
+            final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
+            assertThrows(IllegalArgumentException.class,
+                    () -> Job
+                            .components()
+                            .component("jdbcInput", "Jdbc://QueryInput?" + configURI)
+                            .component("collector", "test://collector")
+                            .connections()
+                            .from("jdbcInput")
+                            .to("collector")
+                            .build()
+                            .run());
+        }
+
+        @Test
+        @DisplayName("Query -  non authorized query (multiple queries)")
+        void unauthorizedMultipleQueries() {
+            final String MULTIPLE_QUERIES_TEMPLATE = "SELECT * FROM %s; SELECT * FROM %s";
+            final JdbcConnection connection = newConnection();
+            final Platform platform = getJdbcService().getPlatformService().getPlatform(connection);
+            final SqlQueryDataset dataset = new SqlQueryDataset();
+            dataset.setConnection(connection);
+            dataset.setSqlQuery(String.format(MULTIPLE_QUERIES_TEMPLATE,
+                    platform.identifier("table1"), platform.identifier("table2")));
             final InputQueryConfig config = new InputQueryConfig();
             config.setDataSet(dataset);
             final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
@@ -697,6 +723,83 @@ public abstract class JDBCBaseContainerTest {
         }
 
         @Test
+        @DisplayName("Insert - Special Characters")
+        void insertSpecialCharacters(final TestInfo testInfo) throws ParseException, SQLException {
+            final Date date = new Date(new SimpleDateFormat("yyyy-MM-dd").parse("2018-12-6").getTime());
+            final Date datetime = new Date();
+            final Date time = new Date(1000 * 60 * 60 * 15 + 1000 * 60 * 20 + 39000); // 15:20:39
+            final RecordBuilderFactory recordBuilderFactory = this.getRecordBuilderFactory();
+            final Record.Builder builder = recordBuilderFactory
+                    .newRecordBuilder()
+                    .withInt(recordBuilderFactory
+                            .newEntryBuilder()
+                            .withType(Schema.Type.INT)
+                            .withNullable(true)
+                            .withName("id")
+                            .build(), 1)
+                    .withLong(recordBuilderFactory
+                            .newEntryBuilder()
+                            .withType(Schema.Type.LONG)
+                            .withNullable(true)
+                            .withName("t_long")
+                            .withRawName("30岁")
+                            .build(), 10L)
+                    .withDouble(recordBuilderFactory
+                            .newEntryBuilder()
+                            .withType(Schema.Type.DOUBLE)
+                            .withNullable(true)
+                            .withName("t_double")
+                            .withRawName("comment%$")
+                            .build(), 20.02d)
+                    .withFloat(recordBuilderFactory
+                            .newEntryBuilder()
+                            .withType(Schema.Type.FLOAT)
+                            .withNullable(true)
+                            .withName("t_float")
+                            .withRawName("hello##dog")
+                            .build(), 30.03f)
+                    .withDateTime("date", date)
+                    .withDateTime("datetime", datetime)
+                    .withDateTime("time", time);
+            if (!JDBCBaseContainerTest.this.getContainer().getDatabaseType().equalsIgnoreCase("oracle")) {
+                builder
+                        .withBoolean(recordBuilderFactory
+                                .newEntryBuilder()
+                                .withType(Schema.Type.BOOLEAN)
+                                .withNullable(true)
+                                .withName("t_boolean")
+                                .build(), false);
+            }
+            final Record build = builder.build();
+
+            final String testTableName = getTestTableName(testInfo);
+
+            final List<Record> data = new ArrayList<>();
+            data.add(build);
+            getComponentsHandler().setInputData(data);
+            final OutputConfig configuration = new OutputConfig();
+            configuration.setDataset(newTableNameDataset(testTableName));
+            configuration.setActionOnData(OutputConfig.ActionOnData.INSERT.name());
+            configuration.setCreateTableIfNotExists(true);
+            final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
+            Job
+                    .components()
+                    .component("emitter", "test://emitter")
+                    .component("jdbcOutput", "Jdbc://Output?" + config)
+                    .connections()
+                    .from("emitter")
+                    .to("jdbcOutput")
+                    .build()
+                    .run();
+            List<Record> inserted = readAll(testTableName, this.getComponentsHandler());
+            Record record = inserted.get(0);
+            final List<String> collect =
+                    record.getSchema().getEntries().stream().map(Schema.Entry::getOriginalFieldName).collect(toList());
+            final List<String> specials = Arrays.asList("30岁", "hello##dog", "comment%$");
+            Assertions.assertTrue(collect.containsAll(specials));
+        }
+
+        @Test
         @DisplayName("Insert - Invalid types handling")
         void insertBadTypes(final TestInfo testInfo) throws ParseException, SQLException {
             final Date date = new Date(new SimpleDateFormat("yyyy-MM-dd").parse("2018-12-6").getTime());
@@ -750,7 +853,7 @@ public abstract class JDBCBaseContainerTest {
                         .getPlatform(dataStore)
                         .createTableIfNotExist(connection, testTableName,
                                 emptyList(), RedshiftSortStrategy.COMPOUND, emptyList(), DistributionStrategy.KEYS,
-                                emptyList(), -1,
+                                emptyList(), -1, true,
                                 Collections.singletonList(builder.build()));
             }
             runWithBad("id", "bad id", testTableName);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,15 +12,15 @@
  */
 package org.talend.components.common.service.http.digest;
 
-import org.talend.components.common.service.http.common.BasicHeader;
-import org.talend.sdk.component.api.service.http.HttpException;
-import org.talend.sdk.component.api.service.http.Response;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import org.talend.components.common.service.http.common.BasicHeader;
+import org.talend.sdk.component.api.service.http.HttpException;
+import org.talend.sdk.component.api.service.http.Response;
 
 public class DigestAuthService {
 

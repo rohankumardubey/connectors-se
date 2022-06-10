@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,17 +12,18 @@
  */
 package org.talend.components.common.service.http.basic;
 
-import lombok.extern.slf4j.Slf4j;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import org.talend.components.common.service.http.common.UserNamePassword;
 import org.talend.sdk.component.api.service.http.Configurer;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class BasicAuthConfigurer implements Configurer {
 
-    public final static String BASIC_CONTEXT_CONF = "basicContext";
+    public static final String BASIC_CONTEXT_CONF = "basicContext";
 
     @Override
     public void configure(Connection connection, ConfigurerConfiguration configuration) {

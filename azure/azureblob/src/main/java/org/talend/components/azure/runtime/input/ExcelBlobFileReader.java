@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,21 +18,17 @@ import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
-
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.talend.components.azure.common.excel.ExcelFormat;
-import org.talend.components.azure.common.exception.BlobRuntimeException;
+import org.talend.components.common.formats.excel.ExcelFormat;
 import org.talend.components.azure.dataset.AzureBlobDataset;
-import org.talend.components.azure.runtime.converters.ExcelConverter;
+import org.talend.components.common.converters.ExcelConverter;
 import org.talend.components.azure.service.AzureBlobComponentServices;
 import org.talend.components.azure.service.MessageService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.ListBlobItem;
 import com.monitorjbl.xlsx.StreamingReader;
@@ -96,9 +92,7 @@ public class ExcelBlobFileReader extends BlobFileReader {
                     if (getConfig().getExcelOptions().isUseHeader() && getConfig().getExcelOptions().getHeader() >= 1) {
 
                         Row headerRow = sheet.getRow(getConfig().getExcelOptions().getHeader() - 1);
-                        if (converter.getColumnNames() == null) {
-                            converter.inferSchemaNames(headerRow, true);
-                        }
+                        converter.inferSchemaNames(headerRow, true);
                     }
                     boolean isHeaderUsed = getConfig().getExcelOptions().isUseHeader();
 
@@ -115,7 +109,7 @@ public class ExcelBlobFileReader extends BlobFileReader {
                 }
 
             } catch (StorageException | IOException e) {
-                throw new BlobRuntimeException(e);
+                throw new RuntimeException(e);
             }
         }
 
@@ -194,9 +188,8 @@ public class ExcelBlobFileReader extends BlobFileReader {
                     }
                     if (rowIterator.hasNext()) {
                         Row headerRow = rowIterator.next();
-                        if (converter.getColumnNames() == null) {
-                            converter.inferSchemaNames(headerRow, true);
-                        }
+                        converter.inferSchemaNames(headerRow, true);
+
                     }
                 }
 
@@ -207,7 +200,7 @@ public class ExcelBlobFileReader extends BlobFileReader {
                     }
                 }
             } catch (StorageException e) {
-                throw new BlobRuntimeException(e);
+                throw new RuntimeException(e);
             }
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,18 +23,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.apache.beam.sdk.Pipeline;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.talend.components.salesforce.SalesforceTestBase;
 import org.talend.components.salesforce.configuration.InputModuleConfig;
 import org.talend.components.salesforce.configuration.OutputConfig;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.components.salesforce.datastore.BasicDataStore;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -182,7 +177,7 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
 
         getComponentsHandler().setInputData(asList(record));
         // run the pipeline and ensure the execution was successful
-        assertThrows(IllegalStateException.class,
+        assertThrows(ComponentException.class,
                 () -> Job
                         .components()
                         .component("emitter", "test://emitter")
@@ -312,7 +307,7 @@ public class SalesforceOutputProcessorTest extends SalesforceTestBase {
 
         final String outputConfig = configurationByExample().forInstance(configuration).configured().toQueryString();
         getComponentsHandler().setInputData(asList(record_1, record_2, record_3));
-        assertThrows(Pipeline.PipelineExecutionException.class,
+        assertThrows(ComponentException.class,
                 () -> Job
                         .components()
                         .component("emitter", "test://emitter")

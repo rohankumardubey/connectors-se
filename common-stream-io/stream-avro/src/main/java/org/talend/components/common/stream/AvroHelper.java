@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,31 +12,52 @@
  */
 package org.talend.components.common.stream;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.List;
+import java.util.Optional;
 
 import org.apache.avro.Schema;
 
+import static org.talend.components.common.stream.Constants.AVRO_LOGICAL_TYPE;
+
 public class AvroHelper {
 
-    public static org.apache.avro.Schema getUnionSchema(org.apache.avro.Schema inputSchema) {
-        org.apache.avro.Schema elementType;
-        if (inputSchema.getType() == org.apache.avro.Schema.Type.UNION) {
-            List<Schema> extractedSchemas = inputSchema
+    private AvroHelper() {
+    }
+
+    /**
+     * Extract non nullable type from nullable.
+     * (In Avro, nullable type is a union between Null type and 'Non nullable type',
+     * This method allow to extract the non nullable type inside the union)
+     * 
+     * @param nullableType : avro type that can be a union with Null.
+     * @return type inside union.
+     */
+    public static org.apache.avro.Schema nonNullableType(org.apache.avro.Schema nullableType) {
+        final org.apache.avro.Schema elementType;
+        if (nullableType.getType() == org.apache.avro.Schema.Type.UNION) {
+            final Optional<Schema> extractedSchemas = nullableType
                     .getTypes()
                     .stream()
-                    .filter(schema -> !schema.getType().equals(org.apache.avro.Schema.Type.NULL))
-                    .collect(toList());
+                    .filter(schema -> schema.getType() != org.apache.avro.Schema.Type.NULL)
+                    .map((org.apache.avro.Schema sub) -> {
+                        if (org.apache.avro.Schema.Type.UNION.equals(sub.getType())) {
+                            return AvroHelper.nonNullableType(sub);
+                        }
+                        return sub;
+                    })
+                    .findFirst();
             // should have only one schema element with nullable (UNION)
-            elementType = extractedSchemas.get(0);
+            elementType = extractedSchemas.orElse(null);
         } else {
-            elementType = inputSchema;
+            elementType = nullableType;
         }
         return elementType;
     }
 
     public static org.apache.avro.Schema.Type getFieldType(org.apache.avro.Schema.Field field) {
-        return getUnionSchema(field.schema()).getType();
+        return nonNullableType(field.schema()).getType();
+    }
+
+    public static String getLogicalType(Schema.Field field) {
+        return nonNullableType(field.schema()).getProp(AVRO_LOGICAL_TYPE);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -76,7 +76,7 @@ public class UpsertDefault extends QueryManagerImpl {
                                 .put(index.incrementAndGet(),
                                         entries
                                                 .stream()
-                                                .filter(e -> e.getName().equals(key))
+                                                .filter(e -> e.getOriginalFieldName().equals(key))
                                                 .findFirst()
                                                 .orElseThrow(() -> new IllegalStateException(
                                                         getI18n().errorNoFieldForQueryParam(key)))))
@@ -88,10 +88,10 @@ public class UpsertDefault extends QueryManagerImpl {
     @Override
     public boolean validateQueryParam(final Record record) {
         final Set<Schema.Entry> entries = new HashSet<>(record.getSchema().getEntries());
-        return keys.stream().allMatch(k -> entries.stream().anyMatch(entry -> entry.getName().equals(k)))
+        return keys.stream().allMatch(k -> entries.stream().anyMatch(entry -> entry.getOriginalFieldName().equals(k)))
                 && entries
                         .stream()
-                        .filter(entry -> keys.contains(entry.getName()))
+                        .filter(entry -> keys.contains(entry.getOriginalFieldName()))
                         .filter(entry -> !entry.isNullable())
                         .map(entry -> valueOf(record, entry))
                         .allMatch(Optional::isPresent);

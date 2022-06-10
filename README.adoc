@@ -2,3 +2,21 @@
 
 Open source Talend Component Kit (TCK) connectors implementation.
 
+== How to build
+=== Locally
+This is a maven project, so you simply have to execute:
+....
+mvn clean install
+....
+
+=== within continuous integration
+
+==== The Jenkins file
+Here we will describe the  structure of the `Jenkinsfile`:
+
+* First, it defines some credentials. Those credentials could be used in following stage. They are
+* Then, global variables are set:
+** slack channel that will be used in `post` section in `slackChannel`
+** The nexus deployment repository in `PRODUCTION_DEPLOYMENT_REPOSITORY`
+
+* There is a `post` section that send a successful/failure message in slack `${slackChannel}`.

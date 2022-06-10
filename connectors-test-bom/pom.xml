@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>connectors-se</artifactId>
-        <version>1.27.0-SNAPSHOT</version>
+        <version>1.35.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>connectors-test-bom</artifactId>
@@ -13,6 +13,20 @@
 
     <name>Connectors SE :: Testing Dependencies</name>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>3.19.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.talend.sdk.component</groupId>
@@ -35,7 +49,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-scala_2.12</artifactId>
-            <version>${jackson.version}</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -65,12 +78,20 @@
                     <groupId>org.apache.hadoop</groupId>
                     <artifactId>hadoop-client</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-reload4j</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
-            <version>3.2.2</version>
+            <version>3.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
@@ -94,6 +115,11 @@
         <dependency>
             <groupId>org.talend.sdk.component</groupId>
             <artifactId>component-runtime-junit</artifactId>
+            <version>${component-runtime.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.sdk.component</groupId>
+            <artifactId>component-runtime-testing-spark</artifactId>
             <version>${component-runtime.version}</version>
         </dependency>
         <dependency>

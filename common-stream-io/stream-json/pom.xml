@@ -18,34 +18,59 @@
   <parent>
     <groupId>org.talend.components</groupId>
     <artifactId>common-stream-io</artifactId>
-    <version>1.27.0-SNAPSHOT</version>
+    <version>1.35.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>stream-json</artifactId>
 
   <name>Connectors SE :: Common Stream IO :: stream-json</name>
 
+  <properties>
+    <spark-scala.version>2.12</spark-scala.version>
+  </properties>
+
   <dependencies>
     <!-- file line formats -->
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>common</artifactId>
-      <version>1.27.0-SNAPSHOT</version>
+      <version>1.35.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>stream-api</artifactId>
-      <version>1.27.0-SNAPSHOT</version>
+      <version>1.35.0-SNAPSHOT</version>
     </dependency>
     <!-- Testing -->
     <dependency>
+      <groupId>org.talend.components</groupId>
+      <artifactId>connectors-test-bom</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+      <scope>test</scope>
+    </dependency>
+
+
+    <dependency>
       <groupId>org.talend.sdk.component</groupId>
-      <artifactId>component-runtime-junit</artifactId>
+      <artifactId>component-runtime-beam-junit</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.jboss.shrinkwrap.resolver</groupId>
-      <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+      <groupId>org.apache.beam</groupId>
+      <artifactId>beam-sdks-java-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.reload4j</groupId>
+      <artifactId>reload4j</artifactId>
+      <version>${reload4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.beam</groupId>
+      <artifactId>beam-runners-direct-java</artifactId>
+      <version>${beam.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -57,6 +82,18 @@
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_2.12</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-reload4j</artifactId>
+      <version>1.7.36</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
@@ -64,19 +101,33 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-core-asl</artifactId>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-core_2.12</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-streaming_2.12</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
+      <groupId>org.apache.beam</groupId>
+      <artifactId>beam-runners-spark-3</artifactId>
+      <version>${beam.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.module</groupId>
-      <artifactId>jackson-module-scala_2.12</artifactId>
-      <scope>test</scope>
+      <exclusions>
+        <!-- prevent PipelineOptionsFactory to get instantiated if present -->
+        <exclusion>
+          <groupId>com.fasterxml.jackson.module</groupId>
+          <artifactId>jackson-module-scala_${spark-scala.version}</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.talend.components</groupId>

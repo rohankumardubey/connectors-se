@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,7 +23,7 @@ public class JsonWriterSupplier implements RecordWriterSupplier {
     @Override
     public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
 
-        if (!JsonConfiguration.class.isInstance(config)) {
+        if (!(config instanceof JsonConfiguration)) {
             throw new IllegalArgumentException("try to get json-writer with other than json config");
         }
 

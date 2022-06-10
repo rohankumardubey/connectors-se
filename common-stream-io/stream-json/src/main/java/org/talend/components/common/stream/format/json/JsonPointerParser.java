@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,6 +14,7 @@ package org.talend.components.common.stream.format.json;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import javax.json.JsonValue;
 import javax.json.stream.JsonParser;
@@ -106,6 +107,9 @@ public class JsonPointerParser {
 
         @Override
         public JsonValue next() {
+            if (!this.hasNext()) {
+                throw new NoSuchElementException("End of Json Iterator reached");
+            }
             final JsonValue result = this.current;
             this.current = this.findNext(parser);
             return result;
