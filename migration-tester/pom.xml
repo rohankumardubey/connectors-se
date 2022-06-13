@@ -13,11 +13,6 @@
   <name>Connectors SE :: migration-tester</name>
 
   <dependencies>
-   <dependency>
-       <groupId>org.talend.components</groupId>
-       <artifactId>migration-tester-locales</artifactId>
-       <version>${locales.version}</version>
-   </dependency>
     <!-- Testing -->
       <dependency>
           <groupId>org.talend.components</groupId>

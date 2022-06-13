@@ -27,11 +27,6 @@
 
   <dependencies>
     <dependency>
-        <groupId>org.talend.components</groupId>
-        <artifactId>stream-api-locales</artifactId>
-        <version>${locales.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>common-io</artifactId>
       <version>1.35.0-SNAPSHOT</version>

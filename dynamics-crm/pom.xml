@@ -51,11 +51,6 @@
     <dependencies>
         <dependency>
             <groupId>org.talend.components</groupId>
-            <artifactId>dynamics-crm-locales</artifactId>
-            <version>${locales.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.talend.components</groupId>
             <artifactId>talend-mscrm</artifactId>
             <version>${talend-mscrm.version}</version>
             <exclusions>

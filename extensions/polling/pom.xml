@@ -14,12 +14,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.talend.components.extension</groupId>
-            <artifactId>polling-locales</artifactId>
-            <version>${locales.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.talend.sdk.component</groupId>
             <artifactId>component-runtime-design-extension</artifactId>
             <version>${component-runtime.version}</version>

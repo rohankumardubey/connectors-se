@@ -12,11 +12,4 @@
 
     <name>Connectors SE :: Common Stream IO :: common-io</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.talend.components</groupId>
-            <artifactId>common-io-locales</artifactId>
-            <version>${locales.version}</version>
-        </dependency>
-    </dependencies>
 </project>

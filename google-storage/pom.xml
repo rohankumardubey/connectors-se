@@ -23,11 +23,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.talend.components</groupId>
-            <artifactId>google-storage-locales</artifactId>
-            <version>${locales.version}</version>
-        </dependency>
         <!-- Google Cloud Storage Dependencie -->
         <dependency>
             <groupId>com.google.cloud</groupId>

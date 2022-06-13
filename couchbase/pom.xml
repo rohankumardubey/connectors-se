@@ -18,11 +18,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.talend.components</groupId>
-      <artifactId>couchbase-locales</artifactId>
-      <version>${locales.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.couchbase.client</groupId>
       <artifactId>java-client</artifactId>
       <version>${couchbase.client.version}</version>

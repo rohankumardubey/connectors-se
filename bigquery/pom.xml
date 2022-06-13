@@ -22,11 +22,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.talend.components</groupId>
-            <artifactId>bigquery-locales</artifactId>
-            <version>${locales.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-bigquery</artifactId>
             <version>${google.bq.sdk.version}</version>
