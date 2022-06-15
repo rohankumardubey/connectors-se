@@ -20,8 +20,6 @@ import java.io.OutputStreamWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.Data;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -34,8 +32,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
-import org.talend.components.adlsgen2.service.AdlsGen2Service;
-import org.talend.components.adlsgen2.service.I18n;
 import org.talend.components.common.connection.adls.AuthMethod;
 import org.talend.components.common.converters.CSVConverter;
 import org.talend.components.common.formats.csv.CSVFormatOptions;
@@ -66,12 +62,6 @@ public class AdlsGen2IntegrationTestBase {
 
     @Service
     private RecordBuilderFactory recordBuilderFactory;
-
-    @Service
-    protected AdlsGen2Service service;
-
-    @Service
-    protected I18n i18n;
 
     @DecryptedServer("azure-dls-gen2.sas")
     private static Server mvnAccountSAS;
@@ -175,12 +165,6 @@ public class AdlsGen2IntegrationTestBase {
         printer.flush();
         printer.close();
         return byteArrayOutputStream.toByteArray();
-    }
-
-    protected boolean blobExits(String blob) {
-        DataLakeFileSystemClient fsClient = connectionClient.getFileSystemClient(storageFs);
-        DataLakeFileClient fileClient = fsClient.getFileClient(blob);
-        return fileClient.exists();
     }
 
     @AfterEach
