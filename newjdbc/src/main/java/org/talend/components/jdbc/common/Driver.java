@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.ModuleList;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
@@ -35,7 +36,7 @@ import java.io.Serializable;
 @Documentation("")
 public class Driver implements Serializable {
 
-    // @ModuleList
+    @ModuleList
     @Option
     @Documentation("")
     private String path;
