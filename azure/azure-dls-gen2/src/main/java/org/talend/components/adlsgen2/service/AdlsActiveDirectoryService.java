@@ -12,11 +12,13 @@
  */
 package org.talend.components.adlsgen2.service;
 
-import javax.json.JsonObject;
-
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.http.Response;
+
+import javax.json.JsonObject;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import static org.talend.components.adlsgen2.service.AdlsGen2Service.handleResponse;
 
@@ -31,9 +33,15 @@ public class AdlsActiveDirectoryService {
         String requestBodyFormat =
                 "grant_type=client_credentials&scope=https://storage.azure.com/.default&client_id=%s&client_secret=%s";
 
-        Response<JsonObject> result = handleResponse(tokenGetter
-                .getAccessToken(connection.getTenantId(),
-                        String.format(requestBodyFormat, connection.getClientId(), connection.getClientSecret())));
+        Response<JsonObject> result = null;
+        try {
+            result = handleResponse(tokenGetter
+                    .getAccessToken(connection.getTenantId(),
+                            String.format(requestBodyFormat, connection.getClientId(),
+                                    URLEncoder.encode(connection.getClientSecret(), "utf-8"))));
+        } catch (UnsupportedEncodingException e) {
+            // no exception should happen here
+        }
 
         return result.body().getString("access_token");
     }
