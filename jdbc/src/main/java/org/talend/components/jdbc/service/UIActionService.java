@@ -19,8 +19,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.talend.sdk.component.api.record.Schema.Type.RECORD;
 
-import org.talend.sdk.component.api.service.update.Update;
-
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -58,6 +56,7 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
+import org.talend.sdk.component.api.service.update.Update;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

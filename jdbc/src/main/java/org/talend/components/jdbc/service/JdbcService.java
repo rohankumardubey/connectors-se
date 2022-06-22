@@ -175,6 +175,7 @@ public class JdbcService {
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource = new HikariDataSource();
+                dataSource.setLeakDetectionThreshold();
                 if ("MSSQL_JTDS".equals(driverId)) {
                     dataSource.setConnectionTestQuery("SELECT 1");
                 }

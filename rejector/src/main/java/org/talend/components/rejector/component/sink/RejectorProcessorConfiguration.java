@@ -31,7 +31,7 @@ import lombok.Data;
         @GridLayout.Row({ "code" }),
         @GridLayout.Row({ "displayRowStuct" }),
 } //
-        ) })
+) })
 public class RejectorProcessorConfiguration implements Serializable {
 
     @Option
