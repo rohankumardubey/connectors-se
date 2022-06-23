@@ -209,6 +209,10 @@ public abstract class QueryManagerImpl implements QueryManager {
             return record.getOptionalDateTime(entry.getName()).isPresent()
                     ? of(record.getOptionalDateTime(entry.getName()).get())
                     : empty();
+        case DECIMAL:
+            return record.getOptionalDecimal(entry.getName()).isPresent()
+                    ? of(record.getOptionalDecimal(entry.getName()).get())
+                    : empty();
         case STRING:
             return record.getOptionalString(entry.getName()).isPresent()
                     ? of(record.getOptionalString(entry.getName()).get())

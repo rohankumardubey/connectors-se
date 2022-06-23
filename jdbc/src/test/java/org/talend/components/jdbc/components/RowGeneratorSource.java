@@ -16,6 +16,7 @@ import static java.util.Optional.ofNullable;
 import static org.talend.sdk.component.api.record.Schema.Type.BOOLEAN;
 import static org.talend.sdk.component.api.record.Schema.Type.BYTES;
 import static org.talend.sdk.component.api.record.Schema.Type.DATETIME;
+import static org.talend.sdk.component.api.record.Schema.Type.DECIMAL;
 import static org.talend.sdk.component.api.record.Schema.Type.DOUBLE;
 import static org.talend.sdk.component.api.record.Schema.Type.FLOAT;
 import static org.talend.sdk.component.api.record.Schema.Type.INT;
@@ -23,6 +24,7 @@ import static org.talend.sdk.component.api.record.Schema.Type.LONG;
 import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -121,6 +123,12 @@ public class RowGeneratorSource implements Serializable {
                         .withName("t_float")
                         .withType(FLOAT)
                         .withNullable(config.withNullValues)
+                        .build())
+                .withEntry(recordBuilderFactory
+                        .newEntryBuilder()
+                        .withName("t_decimal")
+                        .withType(DECIMAL)
+                        .withNullable(config.withNullValues)
                         .build());
         if (config.withBytes) {
             schemaBuilder
@@ -167,6 +175,9 @@ public class RowGeneratorSource implements Serializable {
             builder.withLong("t_long", 10000000000L);
             builder.withDouble("t_double", 1000.85d);
             builder.withFloat("t_float", 15.50f);
+
+            builder.withDecimal("t_decimal", new BigDecimal("1.2345"));
+
             builder.withDateTime("t_date", date);
             builder.withDateTime("t_datetime", datetime);
             builder.withDateTime("t_time", time);
