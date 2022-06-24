@@ -46,6 +46,9 @@ public class BulkFormatter {
 
             if (type == Schema.Type.DATETIME) {
                 writer = new DateTypeWriter(inputValueName, pattern);
+            } else if (type == Schema.Type.DECIMAL) {
+                // TODO may need to do format special for decimal
+                writer = new StringTypeWriter(inputValueName);
             } else if (type == Schema.Type.BYTES) {
                 writer = new BytesTypeWriter(inputValueName);
             } else {

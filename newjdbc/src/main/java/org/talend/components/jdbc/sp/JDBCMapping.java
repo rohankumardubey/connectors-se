@@ -14,6 +14,7 @@ package org.talend.components.jdbc.sp;
 
 import org.talend.sdk.component.api.record.Schema;
 
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -45,6 +46,8 @@ public class JDBCMapping {
                 statement.setNull(index, Types.INTEGER);
             } else if (type == Schema.Type.DATETIME) {
                 statement.setNull(index, Types.TIMESTAMP);
+            } else if (type == Schema.Type.DECIMAL) {
+                statement.setNull(index, Types.DECIMAL);
             } else if (type == Schema.Type.LONG) {
                 statement.setNull(index, Types.BIGINT);
             } else if (type == Schema.Type.DOUBLE) {
@@ -74,6 +77,9 @@ public class JDBCMapping {
         } else if (type == Schema.Type.DATETIME) {
             java.util.Date date = (java.util.Date) value;
             statement.setTimestamp(index, new java.sql.Timestamp((date).getTime()));
+        } else if (type == Schema.Type.DECIMAL) {
+            BigDecimal dec = (BigDecimal) value;
+            statement.setBigDecimal(index, dec);
         } else if (type == Schema.Type.LONG) {
             statement.setLong(index, (Long) value);
         } else if (type == Schema.Type.DOUBLE) {
@@ -107,6 +113,8 @@ public class JDBCMapping {
             return Types.INTEGER;
         } else if (type == Schema.Type.DATETIME) {
             return Types.DATE;
+        } else if (type == Schema.Type.DECIMAL) {
+            return Types.DECIMAL;
         } else if (type == Schema.Type.LONG) {
             return Types.BIGINT;
         } else if (type == Schema.Type.DOUBLE) {
