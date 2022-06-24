@@ -249,6 +249,15 @@ pipeline {
                         testResults: '*/target/surefire-reports/*.xml',
                         allowEmptyResults: false
                     )
+                    recordIssues(
+                        tools: [
+                            taskScanner(
+                                name: '@disabled / Fixme / Todo',
+                                highTags: '@disabled',
+                                includePattern: '**/*.java',
+                                lowTags: 'TODO, todo',
+                                normalTags: 'FIXME, FIX_ME, fixme')
+                        ])
                 }
             }
         }
