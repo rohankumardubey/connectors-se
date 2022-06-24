@@ -90,7 +90,8 @@ public class JDBCInputReader {
             }
         }
 
-        log.debug("QuerySchema: " + querySchema.toString());
+        // this toString cost performance a lot
+        // log.debug("QuerySchema: " + querySchema.toString());
 
         return querySchema;
     }
@@ -168,6 +169,8 @@ public class JDBCInputReader {
             log.debug("Retrieving the record: " + totalCount);
 
             final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(getSchema());
+            // final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();// test prove this is low
+            // performance
 
             SchemaInferer.fillValue(recordBuilder, getSchema(), resultSet);
 

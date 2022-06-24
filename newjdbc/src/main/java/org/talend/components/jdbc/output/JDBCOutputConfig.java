@@ -89,7 +89,7 @@ public class JDBCOutputConfig implements Serializable {
 
     @Option
     @Documentation("")
-    private boolean useBatch;
+    private boolean useBatch = true;
 
     // TODO be care this, seems have tck inside implement for this, conflict
     @Option
