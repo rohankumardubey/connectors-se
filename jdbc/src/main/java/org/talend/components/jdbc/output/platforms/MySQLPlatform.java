@@ -103,22 +103,20 @@ public class MySQLPlatform extends Platform {
         case STRING:
             return column.getSize() <= -1 ? (column.isPrimaryKey() ? "VARCHAR(255)" : "TEXT")
                     : "VARCHAR(" + column.getSize() + ")";
-        case INT:
-            return "INT";
         case BOOLEAN:
             return "BOOLEAN";
-        case DATETIME:
-            return "DATETIME(6)";
-        case DECIMAL:
-            return "DECIMAL(20, 10)";
         case DOUBLE:
             return "DOUBLE";
         case FLOAT:
             return "FLOAT";
         case LONG:
             return "BIGINT";
+        case INT:
+            return "INT";
         case BYTES:
             return "BLOB";
+        case DATETIME:
+            return "DATETIME(6)";
         case RECORD:
         case ARRAY:
         default:

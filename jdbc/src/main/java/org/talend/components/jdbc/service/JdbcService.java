@@ -18,7 +18,6 @@ import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
 import static org.talend.sdk.component.api.record.Schema.Type.BOOLEAN;
 import static org.talend.sdk.component.api.record.Schema.Type.BYTES;
 import static org.talend.sdk.component.api.record.Schema.Type.DATETIME;
-import static org.talend.sdk.component.api.record.Schema.Type.DECIMAL;
 import static org.talend.sdk.component.api.record.Schema.Type.DOUBLE;
 import static org.talend.sdk.component.api.record.Schema.Type.FLOAT;
 import static org.talend.sdk.component.api.record.Schema.Type.INT;
@@ -29,8 +28,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -371,8 +368,6 @@ public class JdbcService {
             case java.sql.Types.BIGINT:
             case java.sql.Types.DECIMAL:
             case java.sql.Types.NUMERIC:
-                builder.withEntry(entryBuilder.withType(DECIMAL).build());
-                break;
             case java.sql.Types.VARCHAR:
             case java.sql.Types.LONGVARCHAR:
             case java.sql.Types.CHAR:
@@ -445,9 +440,6 @@ public class JdbcService {
         case java.sql.Types.BIGINT:
         case java.sql.Types.DECIMAL:
         case java.sql.Types.NUMERIC:
-            builder.withDecimal(entryBuilder.withType(DECIMAL).build(),
-                    value == null ? null : convertToBigDecimal(value));
-            break;
         case java.sql.Types.VARCHAR:
         case java.sql.Types.LONGVARCHAR:
         case java.sql.Types.CHAR:
@@ -455,21 +447,6 @@ public class JdbcService {
             builder.withString(entryBuilder.withType(STRING).build(), value == null ? null : String.valueOf(value));
             break;
         }
-    }
-
-    private BigDecimal convertToBigDecimal(Object value) {
-        if (value instanceof BigDecimal) {
-            return BigDecimal.class.cast(value);
-        } else if (value instanceof BigInteger) {
-            return new BigDecimal(BigInteger.class.cast(value));
-        } else if (value instanceof Long) {
-            return new BigDecimal(Long.class.cast(value));
-        } else if (value instanceof Integer) {
-            return new BigDecimal(Integer.class.cast(value));
-        } else if (value instanceof String) {
-            return new BigDecimal(String.class.cast(value));
-        }
-        throw new RuntimeException(value + " can't be converted to BigDecimal");
     }
 
 }

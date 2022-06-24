@@ -134,8 +134,6 @@ public class SnowflakePlatform extends Platform {
              * TIMESTAMP WITH LOCAL TIME ZONE
              */
             return "TIMESTAMP_LTZ";
-        case DECIMAL:
-            return "DECIMAL(20, 10)";
         case RECORD:
             return "OBJECT";
         case ARRAY:

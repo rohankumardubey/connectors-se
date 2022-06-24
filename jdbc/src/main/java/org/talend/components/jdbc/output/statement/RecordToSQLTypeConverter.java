@@ -12,7 +12,6 @@
  */
 package org.talend.components.jdbc.output.statement;
 
-import lombok.SneakyThrows;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
@@ -158,20 +157,6 @@ public enum RecordToSQLTypeConverter {
                             .getOptionalDateTime(entry.getName())
                             .map(d -> new Timestamp(d.toInstant().toEpochMilli()))
                             .orElse(null));
-        }
-
-    },
-
-    DECIMAL {
-
-        @Override
-        public void setValue(final PreparedStatement statement, final int index, final Schema.Entry entry,
-                final Record record) throws SQLException {
-            if (record.getOptionalDecimal(entry.getName()).isPresent()) {
-                statement.setBigDecimal(index, record.getDecimal(entry.getName()));
-            } else {
-                statement.setNull(index, Types.DECIMAL);
-            }
         }
 
     };
