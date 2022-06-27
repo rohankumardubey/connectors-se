@@ -261,27 +261,6 @@ pipeline {
                     recordIssues(
                         enabledForFailure: true,
                         tools: [
-                            taskScanner(
-                                id: 'todo-test',
-                                name: 'Test - @disabled/Fixme/Todo',
-                                includePattern: '**/*Test.java',
-                                ignoreCase: true,
-                                isRegularExpression: true,
-                                highTags: '(@disabled(?:[0-9]*))(.*$), (\\s+\\R\\s+void\\s.+Test)(.*$)',
-                                normalTags: '(FI.?XME(?:[0-9]*))(.*$)',
-                                lowTags: '(TO.?DO(?:[0-9]*))(.*$)'
-                            ),
-                            taskScanner(
-                                id: 'todo-src',
-                                name: 'Src - @disabled/Fixme/Todo',
-                                includePattern: '**/*.java',
-                                excluedPattern: '**/*Test.java',
-                                ignoreCase: true,
-                                isRegularExpression: true,
-                                highTags: '(@disabled(?:[0-9]*))(.*$)',
-                                normalTags: '(FI.?XME(?:[0-9]*))(.*$)',
-                                lowTags: '(TO.?DO(?:[0-9]*))(.*$)'
-                            ),
                             junitParser(
                                 id: 'unit-test',
                                 name: 'Unit Test',
@@ -384,6 +363,32 @@ pipeline {
                     artifacts: """\
                         **/target/surefire-reports/*, 
                         **/sonar-report.json""".stripIndent()
+                )
+                recordIssues(
+                    enabledForFailure: true,
+                    tools: [
+                        taskScanner(
+                            id: 'todo-test',
+                            name: 'Test - @disabled/Fixme/Todo',
+                            includePattern: '**/*Test.java',
+                            ignoreCase: true,
+                            isRegularExpression: true,
+                            highTags: '(?i)^.*(@Disabled)(.*)$',
+                            normalTags: '(?i)^.*(FIX_?ME)(.*)$',
+                            lowTags: '(?i)^.*(TO_?DO)(.*)$'
+                        ),
+                        taskScanner(
+                            id: 'todo-src',
+                            name: 'Src - @disabled/Fixme/Todo',
+                            includePattern: '**/*.java',
+                            excluedPattern: '**/*Test.java',
+                            ignoreCase: true,
+                            isRegularExpression: true,
+                            highTags: '(?i)^.*(@Disabled)(.*)$',
+                            normalTags: '(?i)^.*(FIX_?ME)(.*)$',
+                            lowTags: '(?i)^.*(TO_?DO)(.*)$'
+                        )
+                    ]
                 )
             }
         }
