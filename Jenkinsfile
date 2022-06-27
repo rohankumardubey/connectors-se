@@ -284,7 +284,7 @@ pipeline {
                             junitParser(
                                 id: 'unit-test',
                                 name: 'Unit Test',
-                                pattern: '*/target/surefire-reports/*.xml'
+                                pattern: '**/target/surefire-reports/*.xml'
                             ),
                             mavenConsole(
                                 id: 'maven-build',
