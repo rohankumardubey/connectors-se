@@ -139,6 +139,23 @@ pipeline {
     stages {
         stage('Validate parameters') {
             steps {
+                wrap([$class: 'BuildUser']) {
+                    script {
+                        echo 'Update description'
+                        try {
+                            USER_NAME = "${BUILD_USER}"
+                        }
+                        catch (groovy.lang.MissingPropertyException ignored) {
+                            USER_NAME = "auto"
+                        }
+
+                        // updating build description
+                        currentBuild.description = (
+                            "User: " + "${USER_NAME}" + " - " + "Sonar: ${params.SONAR_ANALYSIS}" + "\n" +
+                                "Branch: " + "${env.BRANCH_NAME}"
+                        )
+                    }
+                }
                 script {
                     final def pom = readMavenPom file: 'pom.xml'
                     final String pomVersion = pom.version
