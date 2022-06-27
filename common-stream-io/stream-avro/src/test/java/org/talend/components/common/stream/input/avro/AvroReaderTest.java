@@ -74,6 +74,7 @@ class AvroReaderTest {
 
     /**
      * When some avro arrays contains null elements.
+     * 
      * @throws IOException : if can't read file.
      */
     @Test
