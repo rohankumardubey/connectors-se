@@ -272,6 +272,10 @@ pipeline {
                             java(
                                 id: 'java',
                                 name: 'Java Build'
+                            ),
+                            mavenConsole(
+                                id: 'maven_build',
+                                name: 'Maven Build'
                             )
                         ])
                 }
