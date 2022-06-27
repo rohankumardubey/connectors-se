@@ -245,7 +245,7 @@ pipeline {
                         enabledForFailure: true,
                         tools: [
                             taskScanner(
-                                id: 'todo_test',
+                                id: 'todo-test',
                                 name: '@disabled / Fixme / Todo on Tests',
                                 includePattern: '**/*Test.java',
                                 ignoreCase: true,
@@ -255,7 +255,7 @@ pipeline {
                                 lowTags: '(TO.?DO(?:[0-9]*))(.*)$)'
                             ),
                             taskScanner(
-                                id: 'todo',
+                                id: 'todo-src',
                                 name: '@disabled / Fixme / Todo on Source',
                                 includePattern: '**/*.java',
                                 ignoreCase: true,
@@ -270,11 +270,11 @@ pipeline {
                                 pattern: '*/target/surefire-reports/*.xml'
                             ),
                             java(
-                                id: 'java',
+                                id: 'java-build',
                                 name: 'Java Build'
                             ),
                             mavenConsole(
-                                id: 'maven_build',
+                                id: 'maven-build',
                                 name: 'Maven Build'
                             )
                         ])
