@@ -152,7 +152,7 @@ pipeline {
                         // updating build description
                         currentBuild.description = (
                             "User: " + "${USER_NAME}" + " - " + "Sonar: ${params.SONAR_ANALYSIS}" + "\n" +
-                                "Branch: " + "${env.BRANCH_NAME}"
+                            "Branch: " + "${env.BRANCH_NAME}"
                         )
                     }
                 }
