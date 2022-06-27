@@ -289,7 +289,11 @@ pipeline {
                             mavenConsole(
                                 id: 'maven-build',
                                 name: 'Maven Build'
-                            )
+                            ),
+                            sonarQube(
+                                id: 'sonar',
+                                name: 'Sonar issues',
+                                pattern: '**/sonar-report.json')
                         ]
                     )
                 }
