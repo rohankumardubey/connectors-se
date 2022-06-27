@@ -246,7 +246,7 @@ pipeline {
                         tools: [
                             taskScanner(
                                 id: 'todo-test',
-                                name: '@disabled / Fixme / Todo on Tests',
+                                name: 'Test - @disabled/Fixme/Todo',
                                 includePattern: '**/*Test.java',
                                 ignoreCase: true,
                                 isRegularExpression: true,
@@ -256,7 +256,7 @@ pipeline {
                             ),
                             taskScanner(
                                 id: 'todo-src',
-                                name: '@disabled / Fixme / Todo on Source',
+                                name: 'Src - @disabled/Fixme/Todo',
                                 includePattern: '**/*.java',
                                 ignoreCase: true,
                                 isRegularExpression: true,
@@ -269,15 +269,12 @@ pipeline {
                                 name: 'Unit Test',
                                 pattern: '*/target/surefire-reports/*.xml'
                             ),
-                            java(
-                                id: 'java-build',
-                                name: 'Java Build'
-                            ),
                             mavenConsole(
                                 id: 'maven-build',
                                 name: 'Maven Build'
                             )
-                        ])
+                        ]
+                    )
                 }
             }
         }
