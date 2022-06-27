@@ -242,17 +242,23 @@ pipeline {
             post {
                 always {
                     recordIssues(
+                        enabledForFailure: true,
                         tools: [
                             taskScanner(
+                                id: 'todo',
                                 name: '@disabled / Fixme / Todo',
                                 includePattern: '**/*.java',
+                                ignoreCase: true,
                                 highTags: '@disabled',
-                                normalTags: 'FIXME, FIX_ME, fixme',
-                                lowTags: 'TODO, todo'),
+                                normalTags: 'FIXME, FIX_ME, ',
+                                lowTags: 'TODO'),
                             junitParser(
                                 id: 'unit-test',
                                 name: 'Unit test',
-                                pattern: '*/target/surefire-reports/*.xml')
+                                pattern: '*/target/surefire-reports/*.xml'),
+                            java(
+                                id: 'java',
+                                name: 'Java Build')
                         ])
                 }
             }
