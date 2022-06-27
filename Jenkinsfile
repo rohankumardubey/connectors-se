@@ -241,22 +241,18 @@ pipeline {
 
             post {
                 always {
-                    junit(
-                        testResults: '*/target/surefire-reports/*.xml',
-                        allowEmptyResults: false
-                    )
-                    junit(
-                        testResults: '*/target/surefire-reports/*.xml',
-                        allowEmptyResults: false
-                    )
                     recordIssues(
                         tools: [
                             taskScanner(
                                 name: '@disabled / Fixme / Todo',
-                                highTags: '@disabled',
                                 includePattern: '**/*.java',
-                                lowTags: 'TODO, todo',
-                                normalTags: 'FIXME, FIX_ME, fixme')
+                                highTags: '@disabled',
+                                normalTags: 'FIXME, FIX_ME, fixme',
+                                lowTags: 'TODO, todo'),
+                            junitParser(
+                                id: 'unit-test',
+                                name: 'Unit test',
+                                pattern: '*/target/surefire-reports/*.xml')
                         ])
                 }
             }
