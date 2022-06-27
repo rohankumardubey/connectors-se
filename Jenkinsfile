@@ -245,20 +245,34 @@ pipeline {
                         enabledForFailure: true,
                         tools: [
                             taskScanner(
+                                id: 'todo_test',
+                                name: '@disabled / Fixme / Todo on Tests',
+                                includePattern: '**/*Test.java',
+                                ignoreCase: true,
+                                isRegularExpression: true,
+                                highTags: '(@disabled(?:[0-9]*))(.*)$)', '(\\s+\\R\\s+void\\s.+Test)(.*)$)',
+                                normalTags: '(FI.?XME(?:[0-9]*))(.*)$)',
+                                lowTags: '(TO.?DO(?:[0-9]*))(.*)$)'
+                            ),
+                            taskScanner(
                                 id: 'todo',
-                                name: '@disabled / Fixme / Todo',
+                                name: '@disabled / Fixme / Todo on Source',
                                 includePattern: '**/*.java',
                                 ignoreCase: true,
-                                highTags: '@disabled',
-                                normalTags: 'FIXME, FIX_ME, ',
-                                lowTags: 'TODO'),
+                                isRegularExpression: true,
+                                highTags: '(@disabled(?:[0-9]*))(.*)$)',
+                                normalTags: '(FI.?XME(?:[0-9]*))(.*)$)',
+                                lowTags: '(TO.?DO(?:[0-9]*))(.*)$)'
+                            ),
                             junitParser(
                                 id: 'unit-test',
-                                name: 'Unit test',
-                                pattern: '*/target/surefire-reports/*.xml'),
+                                name: 'Unit Test',
+                                pattern: '*/target/surefire-reports/*.xml'
+                            ),
                             java(
                                 id: 'java',
-                                name: 'Java Build')
+                                name: 'Java Build'
+                            )
                         ])
                 }
             }
