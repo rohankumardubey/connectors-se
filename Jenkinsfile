@@ -250,7 +250,7 @@ pipeline {
                                 includePattern: '**/*Test.java',
                                 ignoreCase: true,
                                 isRegularExpression: true,
-                                highTags: '(@disabled(?:[0-9]*))(.*)$)', '(\\s+\\R\\s+void\\s.+Test)(.*)$)',
+                                highTags: '(@disabled(?:[0-9]*))(.*)$), (\\s+\\R\\s+void\\s.+Test)(.*)$)',
                                 normalTags: '(FI.?XME(?:[0-9]*))(.*)$)',
                                 lowTags: '(TO.?DO(?:[0-9]*))(.*)$)'
                             ),
