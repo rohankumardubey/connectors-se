@@ -97,7 +97,7 @@ pipeline {
         buildDiscarder(
                 logRotator(
                         artifactNumToKeepStr: '5',
-                        numToKeepStr: isOnMasterOrMaintenanceBranch ? '10' : '2'
+                        numToKeepStr: isOnMasterOrMaintenanceBranch ? '30' : '10'
                 )
         )
         timeout(time: 60, unit: 'MINUTES')
