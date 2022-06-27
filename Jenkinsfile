@@ -275,6 +275,7 @@ pipeline {
                                 id: 'todo-src',
                                 name: 'Src - @disabled/Fixme/Todo',
                                 includePattern: '**/*.java',
+                                excluedPattern: '**/*Test.java',
                                 ignoreCase: true,
                                 isRegularExpression: true,
                                 highTags: '(@disabled(?:[0-9]*))(.*$)',
