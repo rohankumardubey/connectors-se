@@ -377,5 +377,15 @@ pipeline {
                 }
             }
         }
+        always {
+            container(tsbiImage) {
+                archiveArtifacts(
+                    allowEmptyArchive: true,
+                    artifacts: """\
+                        **/target/surefire-reports/*, 
+                        **/sonar-report.json""".stripIndent()
+                )
+            }
+        }
     }
 }
