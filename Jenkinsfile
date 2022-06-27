@@ -28,7 +28,7 @@ final String branchName = BRANCH_NAME.startsWith("PR-")
 final String escapedBranch = branchName.toLowerCase().replaceAll("/", "_")
 final boolean isOnMasterOrMaintenanceBranch = env.BRANCH_NAME == "master" || env.BRANCH_NAME.startsWith("maintenance/")
 
-final String devNexusRepository = isOnMasterOrMaintenanceBranch
+final GString devNexusRepository = isOnMasterOrMaintenanceBranch
         ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}"
         : "dev_branch_snapshots/branch_${escapedBranch}"
 
@@ -152,7 +152,7 @@ pipeline {
                     }
 
                     echo 'Processing parameters'
-                    final List<String> buildParamsAsArray = ['--settings', env.MAVEN_SETTINGS, env.DECRYPTER_ARG]
+                    final ArrayList buildParamsAsArray = ['--settings', env.MAVEN_SETTINGS, env.DECRYPTER_ARG]
                     if (!isOnMasterOrMaintenanceBranch) {
                         // Properties documented in the pom.
                         buildParamsAsArray.addAll([
