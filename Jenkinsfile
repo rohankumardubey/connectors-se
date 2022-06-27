@@ -267,9 +267,9 @@ pipeline {
                                 includePattern: '**/*Test.java',
                                 ignoreCase: true,
                                 isRegularExpression: true,
-                                highTags: '(@disabled(?:[0-9]*))(.*)$), (\\s+\\R\\s+void\\s.+Test)(.*)$)',
-                                normalTags: '(FI.?XME(?:[0-9]*))(.*)$)',
-                                lowTags: '(TO.?DO(?:[0-9]*))(.*)$)'
+                                highTags: '(@disabled(?:[0-9]*))(.*$), (\\s+\\R\\s+void\\s.+Test)(.*$)',
+                                normalTags: '(FI.?XME(?:[0-9]*))(.*$)',
+                                lowTags: '(TO.?DO(?:[0-9]*))(.*$)'
                             ),
                             taskScanner(
                                 id: 'todo-src',
@@ -277,9 +277,9 @@ pipeline {
                                 includePattern: '**/*.java',
                                 ignoreCase: true,
                                 isRegularExpression: true,
-                                highTags: '(@disabled(?:[0-9]*))(.*)$)',
-                                normalTags: '(FI.?XME(?:[0-9]*))(.*)$)',
-                                lowTags: '(TO.?DO(?:[0-9]*))(.*)$)'
+                                highTags: '(@disabled(?:[0-9]*))(.*$)',
+                                normalTags: '(FI.?XME(?:[0-9]*))(.*$)',
+                                lowTags: '(TO.?DO(?:[0-9]*))(.*$)'
                             ),
                             junitParser(
                                 id: 'unit-test',
