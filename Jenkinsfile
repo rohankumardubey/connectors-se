@@ -370,7 +370,7 @@ pipeline {
                         taskScanner(
                             id: 'todo-test',
                             name: 'Test - @disabled/Fixme/Todo',
-                            includePattern: '**/*Test.java',
+                            includePattern: '**/*Test.java, **/*TestIT.java',
                             ignoreCase: true,
                             isRegularExpression: true,
                             highTags: '(?i)^.*(@Disabled)(.*)$',
@@ -381,7 +381,7 @@ pipeline {
                             id: 'todo-src',
                             name: 'Src - @disabled/Fixme/Todo',
                             includePattern: '**/*.java',
-                            excluedPattern: '**/*Test.java',
+                            excluedPattern: '**/*Test.java, **/*TestIT.java',
                             ignoreCase: true,
                             isRegularExpression: true,
                             highTags: '(?i)^.*(@Disabled)(.*)$',
