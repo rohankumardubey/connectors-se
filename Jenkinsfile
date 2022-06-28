@@ -367,27 +367,27 @@ pipeline {
                 recordIssues(
                     enabledForFailure: true,
                     tools: [
-                        taskScanner(
-                            id: 'todo-test',
-                            name: 'Test - @disabled/Fixme/Todo',
-                            includePattern: '**/*Test.java, **/*TestIT.java',
-                            ignoreCase: true,
-                            isRegularExpression: true,
-                            highTags: '(?i)^.*(@Disabled)(.*)$',
-                            normalTags: '(?i)^.*(FIX_?ME)(.*)$',
-                            lowTags: '(?i)^.*(TO_?DO)(.*)$'
-                        ),
-                        taskScanner(
-                            id: 'todo-src',
-                            name: 'Src - @disabled/Fixme/Todo',
-                            includePattern: '**/*.java',
-                            excluedPattern: '**/*Test.java, **/*TestIT.java',
-                            ignoreCase: true,
-                            isRegularExpression: true,
-                            highTags: '(?i)^.*(@Disabled)(.*)$',
-                            normalTags: '(?i)^.*(FIX_?ME)(.*)$',
-                            lowTags: '(?i)^.*(TO_?DO)(.*)$'
-                        )
+                        tools: [
+                            taskScanner(
+                                id: 'todo-test',
+                                name: 'Test - @Disabled/Fixme/Todo',
+                                includePattern: '**/*Test.java, **/*TestIT.java',
+                                ignoreCase: true,
+                                highTags: '@Disabled',
+                                normalTags: 'FIX_ME, FIXME',
+                                lowTags: 'TO_DO, TODO'
+                            ),
+                            taskScanner(
+                                id: 'todo-src',
+                                name: 'Src - @Disabled/Fixme/Todo',
+                                includePattern: '**/*.java',
+                                excluedPattern: '**/*Test.java, **/*TestIT.java',
+                                ignoreCase: true,
+                                highTags: '@Disabled',
+                                normalTags: 'FIX_ME, FIXME',
+                                lowTags: 'TO_DO, TODO'
+                            )
+                        ]
                     ]
                 )
             }
