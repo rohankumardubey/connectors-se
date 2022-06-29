@@ -15,6 +15,11 @@ def sonarCredentials = usernamePassword(
         credentialsId: 'sonar-credentials',
         passwordVariable: 'SONAR_PASSWORD',
         usernameVariable: 'SONAR_LOGIN')
+// ITs credentials
+def AzureCredentials = usernamePassword(
+        credentialsId: 'azure-credentials',
+        passwordVariable: 'AZURE_ACCOUNT_KEY',
+        usernameVariable: 'AZURE_ACCOUNT_NAME')
 
 
 //----------------- Global variables
@@ -203,7 +208,10 @@ pipeline {
             //        As soon as the build is stable enough not to rely on this crutch, let's get rid of it.
             steps {
                 container(tsbiImage) {
-                    withCredentials([nexusCredentials, gitCredentials, artifactoryCredentials]) {
+                    withCredentials([nexusCredentials,
+                                     gitCredentials,
+                                     artifactoryCredentials,
+                                     azureCredentials]) {
                         script {
                             if (params.POST_LOGIN_SCRIPT?.trim()) {
                                 try {
@@ -224,8 +232,9 @@ pipeline {
             steps {
                 container(tsbiImage) {
                     script {
-                        withCredentials([nexusCredentials
-                                         , sonarCredentials]) {
+                        withCredentials([nexusCredentials,
+                                         sonarCredentials,
+                                         azureCredentials]) {
                             sh """
                                 bash .jenkins/build.sh \
                                     '${params.Action}' \
@@ -253,7 +262,8 @@ pipeline {
             steps {
                 withCredentials([gitCredentials,
                                  nexusCredentials,
-                                 artifactoryCredentials]) {
+                                 artifactoryCredentials,
+                                 azureCredentials]) {
                     container(tsbiImage) {
                         script {
                             sh """

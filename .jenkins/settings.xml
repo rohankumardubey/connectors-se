@@ -29,6 +29,11 @@
         <timeout>30000</timeout>
       </configuration>
     </server>
+    <server>
+      <id>azure.account</id>
+      <username>${env.AZURE_ACCOUNT_NAME}</username>
+      <password>${env.AZURE_ACCOUNT_KEY}</password>
+    </server>
   </servers>
 
   <mirrors>
