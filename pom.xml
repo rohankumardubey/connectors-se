@@ -144,7 +144,7 @@
     <netty-tcnative-boringssl-static.version>2.0.46.Final</netty-tcnative-boringssl-static.version>
 
     <jetty.version>9.4.38.v20210224</jetty.version>
-    <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
+    <nimbus-jose-jwt.version>9.22</nimbus-jose-jwt.version>
     <zookeeper.version>3.4.14</zookeeper.version>
     <guava.version>30.0-jre</guava.version>
 
