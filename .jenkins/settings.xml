@@ -44,6 +44,16 @@
       <username>${env.AZURE_GEN2_SHAREDKEY_USER}</username>
       <password>${env.AZURE_GEN2_SHAREDKEY_KEY}</password>
     </server>
+    <server>
+      <id>marketo-nocrm</id>
+      <username>${env.MARKETO_CLIENT_ID}</username>
+      <password>${env.MARKETO_SECRET}</password>
+    </server>
+    <server>
+      <id>marketo-nocrm-instance</id>
+      <username>${env.MARKETO_INSTANCE}</username>
+      <password></password>
+    </server>
   </servers>
 
   <mirrors>

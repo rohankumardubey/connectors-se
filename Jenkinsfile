@@ -28,6 +28,14 @@ def azureGen2KeyCredentials = usernamePassword(
         credentialsId: 'azure-dls-gen2.sharedkey',
         passwordVariable: 'AZURE_GEN2_SHAREDKEY_KEY',
         usernameVariable: 'AZURE_GEN2_SHAREDKEY_USER')
+def marketoCredentials = usernamePassword(
+        credentialsId: 'marketo-nocrm',
+        passwordVariable: 'MARKETO_SECRET',
+        usernameVariable: 'MARKETO_CLIENT_ID')
+def marketoInstanceCredentials = usernamePassword(
+        credentialsId: 'marketo-nocrm-instance',
+        passwordVariable: '',
+        usernameVariable: 'MARKETO_INSTANCE')
 
 //----------------- Global variables
 final String slackChannel = 'components-ci'
