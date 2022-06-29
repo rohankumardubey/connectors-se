@@ -746,9 +746,8 @@
                         <execution>
                             <phase>test</phase>
                             <goals>
-                                <!--TODO uncomment it to enable its on CI once creds are added -->
                                 <goal>integration-test</goal>
-                                <!--<goal>verify</goal>-->
+                                <goal>verify</goal>
                             </goals>
                             <configuration>
                                 <classpathDependencyExcludes>
@@ -1085,10 +1084,8 @@
                     <execution>
                         <phase>test</phase>
                         <goals>
-                            <!--TODO uncomment it to enable its on CI once creds are added -->
                             <goal>integration-test</goal>
                             <goal>verify</goal>
-                            <!--<goal>verify</goal>-->
                         </goals>
                         <configuration>
                             <classpathDependencyExcludes>
