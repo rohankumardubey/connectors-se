@@ -16,11 +16,18 @@ def sonarCredentials = usernamePassword(
         passwordVariable: 'SONAR_PASSWORD',
         usernameVariable: 'SONAR_LOGIN')
 // ITs credentials
-def AzureCredentials = usernamePassword(
+def azureCredentials = usernamePassword(
         credentialsId: 'azure-credentials',
         passwordVariable: 'AZURE_ACCOUNT_KEY',
         usernameVariable: 'AZURE_ACCOUNT_NAME')
-
+def azureGen2SasCredentials = usernamePassword(
+        credentialsId: 'azure-dls-gen2.sas',
+        passwordVariable: 'AZURE_GEN2_SAS_SAS',
+        usernameVariable: 'AZURE_GEN2_SAS_USER')
+def azureGen2KeyCredentials = usernamePassword(
+        credentialsId: 'azure-dls-gen2.sharedkey',
+        passwordVariable: 'AZURE_GEN2_SHAREDKEY_KEY',
+        usernameVariable: 'AZURE_GEN2_SHAREDKEY_USER')
 
 //----------------- Global variables
 final String slackChannel = 'components-ci'
@@ -211,7 +218,9 @@ pipeline {
                     withCredentials([nexusCredentials,
                                      gitCredentials,
                                      artifactoryCredentials,
-                                     azureCredentials]) {
+                                     azureCredentials,
+                                     azureGen2SasCredentials,
+                                     azureGen2KeyCredentials]) {
                         script {
                             if (params.POST_LOGIN_SCRIPT?.trim()) {
                                 try {
@@ -234,7 +243,9 @@ pipeline {
                     script {
                         withCredentials([nexusCredentials,
                                          sonarCredentials,
-                                         azureCredentials]) {
+                                         azureCredentials,
+                                         azureGen2SasCredentials,
+                                         azureGen2KeyCredentials]) {
                             sh """
                                 bash .jenkins/build.sh \
                                     '${params.Action}' \
@@ -263,7 +274,9 @@ pipeline {
                 withCredentials([gitCredentials,
                                  nexusCredentials,
                                  artifactoryCredentials,
-                                 azureCredentials]) {
+                                 azureCredentials,
+                                 azureGen2SasCredentials,
+                                 azureGen2KeyCredentials]) {
                     container(tsbiImage) {
                         script {
                             sh """

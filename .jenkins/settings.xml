@@ -34,6 +34,16 @@
       <username>${env.AZURE_ACCOUNT_NAME}</username>
       <password>${env.AZURE_ACCOUNT_KEY}</password>
     </server>
+    <server>
+      <id>azure-dls-gen2.sas</id>
+      <username>${env.AZURE_GEN2_SAS_USER}</username>
+      <password>${env.AZURE_GEN2_SAS_SAS}</password>
+    </server>
+    <server>
+      <id>azure-dls-gen2.sharedkey</id>
+      <username>${env.AZURE_GEN2_SHAREDKEY_USER}</username>
+      <password>${env.AZURE_GEN2_SHAREDKEY_KEY}</password>
+    </server>
   </servers>
 
   <mirrors>
