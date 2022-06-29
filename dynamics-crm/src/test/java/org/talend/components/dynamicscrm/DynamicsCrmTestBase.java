@@ -70,10 +70,10 @@ public abstract class DynamicsCrmTestBase {
     @Service
     protected I18n i18n;
 
-    @DecryptedServer("dynamicscrm.userpwd")
+    @DecryptedServer("dynamics-crm.userpwd")
     protected Server userPass;
 
-    @DecryptedServer("dynamicscrm.clientidsecret")
+    @DecryptedServer("dynamics-crm.clientidsecret")
     protected Server clientIdSecret;
 
     public String getUsername() {

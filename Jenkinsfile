@@ -36,6 +36,14 @@ def marketoInstanceCredentials = usernamePassword(
         credentialsId: 'marketo-nocrm-instance',
         passwordVariable: '',
         usernameVariable: 'MARKETO_INSTANCE')
+def dynamicsCrmUserCredentials = usernamePassword(
+        credentialsId: 'dynamics-crm.userpwd',
+        passwordVariable: 'DYNAMICS_CRM_PASS',
+        usernameVariable: 'DYNAMICS_CRM_USER')
+def dynamicsCrmClientCredentials = usernamePassword(
+        credentialsId: 'dynamics-crm.clientidsecret',
+        passwordVariable: 'DYNAMICS_CRM_CLIENT_SECRET',
+        usernameVariable: 'DYNAMICS_CRM_CLIENT_ID')
 
 //----------------- Global variables
 final String slackChannel = 'components-ci'
@@ -228,7 +236,9 @@ pipeline {
                                      artifactoryCredentials,
                                      azureCredentials,
                                      azureGen2SasCredentials,
-                                     azureGen2KeyCredentials]) {
+                                     azureGen2KeyCredentials,
+                                     dynamicsCrmUserCredentials,
+                                     dynamicsCrmClientCredentials]) {
                         script {
                             if (params.POST_LOGIN_SCRIPT?.trim()) {
                                 try {
@@ -253,7 +263,9 @@ pipeline {
                                          sonarCredentials,
                                          azureCredentials,
                                          azureGen2SasCredentials,
-                                         azureGen2KeyCredentials]) {
+                                         azureGen2KeyCredentials,
+                                         dynamicsCrmUserCredentials,
+                                         dynamicsCrmClientCredentials]) {
                             sh """
                                 bash .jenkins/build.sh \
                                     '${params.Action}' \
@@ -284,7 +296,9 @@ pipeline {
                                  artifactoryCredentials,
                                  azureCredentials,
                                  azureGen2SasCredentials,
-                                 azureGen2KeyCredentials]) {
+                                 azureGen2KeyCredentials,
+                                 dynamicsCrmUserCredentials,
+                                 dynamicsCrmClientCredentials]) {
                     container(tsbiImage) {
                         script {
                             sh """

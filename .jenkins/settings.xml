@@ -54,6 +54,16 @@
       <username>${env.MARKETO_INSTANCE}</username>
       <password></password>
     </server>
+    <server>
+      <id>dynamics-crm.userpwd</id>
+      <username>${env.DYNAMICS_CRM_USER}</username>
+      <password>${env.DYNAMICS_CRM_PASS}</password>
+    </server>
+    <server>
+      <id>dynamics-crm.clientidsecret</id>
+      <username>${env.DYNAMICS_CRM_CLIENT_ID}</username>
+      <password>${env.DYNAMICS_CRM_CLIENT_SECRET}</password>
+    </server>
   </servers>
 
   <mirrors>
