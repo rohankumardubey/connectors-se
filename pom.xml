@@ -18,7 +18,7 @@
 
   <groupId>org.talend.components</groupId>
   <artifactId>connectors-se</artifactId>
-  <version>1.27.11-SNAPSHOT</version>
+  <version>1.27.12-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Connectors SE</name>
@@ -74,8 +74,8 @@
   </distributionManagement>
 
   <properties>
-    <connectors-test-bom.version>1.27.11-SNAPSHOT</connectors-test-bom.version>
-    <common.version>1.27.11-SNAPSHOT</common.version>
+    <connectors-test-bom.version>1.27.12-SNAPSHOT</connectors-test-bom.version>
+    <common.version>1.27.12-SNAPSHOT</common.version>
 
     <timestamp.year>${maven.build.timestamp}</timestamp.year>
     <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
