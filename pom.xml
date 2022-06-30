@@ -142,6 +142,7 @@
         <hadoop.version>3.2.3</hadoop.version>
         <axis2.version>1.8.0</axis2.version>
         <lombok.version>1.18.24</lombok.version>
+        <woodstox.version>6.2.8</woodstox.version>
 
         <!-- code quality enforcer default values.
              run build w/ -Pcode-quality to have a full validation -->
@@ -596,7 +597,11 @@
                <artifactId>protobuf-java</artifactId>
                <version>${protobuf-java.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>com.fasterxml.woodstox</groupId>
+                <artifactId>woodstox-core</artifactId>
+                <version>${woodstox.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
