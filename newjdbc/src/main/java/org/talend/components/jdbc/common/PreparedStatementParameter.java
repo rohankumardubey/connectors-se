@@ -19,6 +19,7 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import javax.json.bind.annotation.JsonbTransient;
 import java.io.Serializable;
 
 @Data
@@ -40,9 +41,10 @@ public class PreparedStatementParameter implements Serializable {
 
     // TODO it works? how to pass to main part, in loop logic for flow line
     // TODO to string type?
+    @JsonbTransient
     @Option
     @Documentation("")
-    private String dataValue;
+    private transient Object dataValue;
     // TODO can't use Object type here, if that, ui will not show this column
 
 }
