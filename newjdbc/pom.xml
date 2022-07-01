@@ -26,11 +26,13 @@
 
     <dependencies>
         <!-- traductions -->
+        <!--
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>jdbc-locales</artifactId>
             <version>${locales.version}</version>
         </dependency>
+        -->
 
         <dependency>
             <groupId>com.zaxxer</groupId>
