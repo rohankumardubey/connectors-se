@@ -170,10 +170,7 @@ public class JDBCSPRecordCreator {
                         return result;
                     }
                 };
-            } else if (TalendType.BIG_DECIMAL.getName().equals(talendType)) {// TODO remove this as we already support
-                                                                             // tck DECIMAL type?
-                System.out.println("meet decimal with TCK STRING type, not expected, should use TCK DECIMAL type.");
-
+            } else if (TalendType.BIG_DECIMAL.getName().equals(talendType)) {
                 return new JDBCSPConverter() {
 
                     public Object convert(CallableStatement value) throws SQLException {
@@ -226,13 +223,6 @@ public class JDBCSPRecordCreator {
 
                 public Object convert(CallableStatement value) throws SQLException {
                     return value.getObject(index) == null ? null : value.getLong(index);
-                }
-            };
-        } else if (type == Schema.Type.DECIMAL) {
-            return new JDBCSPConverter() {
-
-                public Object convert(CallableStatement value) throws SQLException {
-                    return value.getObject(index) == null ? null : value.getBigDecimal(index);
                 }
             };
         } else if (type == Schema.Type.DOUBLE) {

@@ -186,8 +186,7 @@ public class SchemaInferer {
             case java.sql.Types.BIGINT:
             case java.sql.Types.DECIMAL:
             case java.sql.Types.NUMERIC:
-                // entryBuilder.withType(STRING).withProp("talend.studio.type", "id_BigDecimal");
-                entryBuilder.withType(DECIMAL).withProp("talend.studio.type", "id_BigDecimal");
+                entryBuilder.withType(STRING).withProp("talend.studio.type", "id_BigDecimal");
                 break;
             case java.sql.Types.CHAR:
                 entryBuilder.withType(STRING).withProp("talend.studio.type", "id_Character");
@@ -341,9 +340,6 @@ public class SchemaInferer {
             case DATETIME:
                 builder.withDateTime(entry, resultSet.getDate(index + 1));
                 break;
-            case DECIMAL:
-                builder.withDecimal(entry, resultSet.getBigDecimal(index + 1));
-                break;
             case BYTES:
                 builder.withBytes(entry, resultSet.getBytes(index + 1));
                 break;
@@ -380,11 +376,11 @@ public class SchemaInferer {
             // no Schema.Type.CHARACTER
             return STRING;
         case BIG_DECIMAL:
-            return DECIMAL;
+            // no Schema.Type.DECIMA
+            return STRING;
         case DATE:
             return DATETIME;
         case OBJECT:
-            // TODO no tck object type, impossible have it as can't ser/deser by AvroCoder for beam
             return STRING;
         default:
             throw new UnsupportedOperationException("Unrecognized type " + talendType);

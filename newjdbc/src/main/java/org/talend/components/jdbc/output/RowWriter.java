@@ -70,8 +70,7 @@ public class RowWriter {
                 writer = new StringTypeWriter(statement, statementIndex, inputValueName);
 
                 // TODO : now we map unsupported type to string, not right, should support them
-                if ("id_BigDecimal".equals(talendType)) {// TODO need it now as we support DECIMAL already?
-                    System.out.println("meet decimal with TCK STRING type, not expected, should use TCK DECIMAL type.");
+                if ("id_BigDecimal".equals(talendType)) {
                     writer = new BigDecimalTypeWriter(statement, statementIndex, inputValueName);
                 } else if ("id_Short".equals(talendType)) {
                     writer = new ShortTypeWriter(statement, statementIndex, inputValueName);
@@ -84,8 +83,6 @@ public class RowWriter {
                 writer = new IntTypeWriter(statement, statementIndex, inputValueName);
             } else if (type == Schema.Type.DATETIME) {
                 writer = new DateTypeWriter(statement, statementIndex, inputValueName, pattern);
-            } else if (type == Schema.Type.DECIMAL) {
-                writer = new BigDecimalTypeWriter(statement, statementIndex, inputValueName);
             } else if (type == Schema.Type.LONG) {
                 writer = new LongTypeWriter(statement, statementIndex, inputValueName);
             } else if (type == Schema.Type.DOUBLE) {
