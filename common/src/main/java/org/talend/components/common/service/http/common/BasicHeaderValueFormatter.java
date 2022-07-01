@@ -30,22 +30,22 @@ public class BasicHeaderValueFormatter {
      * @deprecated (4.3) use {@link #INSTANCE}
      */
     @Deprecated
-    public final static BasicHeaderValueFormatter DEFAULT = new BasicHeaderValueFormatter();
+    public static final BasicHeaderValueFormatter DEFAULT = new BasicHeaderValueFormatter();
 
-    public final static BasicHeaderValueFormatter INSTANCE = new BasicHeaderValueFormatter();
+    public static final BasicHeaderValueFormatter INSTANCE = new BasicHeaderValueFormatter();
 
     /**
      * Special characters that can be used as separators in HTTP parameters.
      * These special characters MUST be in a quoted string to be used within
      * a parameter value .
      */
-    public final static String SEPARATORS = " ;,:@()<>\\\"/[]?={}\t";
+    public static final String SEPARATORS = " ;,:@()<>\\\"/[]?={}\t";
 
     /**
      * Unsafe special characters that must be escaped using the backslash
      * character
      */
-    public final static String UNSAFE_CHARS = "\"\\";
+    public static final String UNSAFE_CHARS = "\"\\";
 
     // non-javadoc, see interface HeaderValueFormatter
     public CharArrayBuffer formatNameValuePair(final CharArrayBuffer charBuffer, final BasicNameValuePair nvp,

@@ -75,7 +75,8 @@ class AvroRecordWriterTest {
                 .requiredInt("ID") //
                 .requiredString("content") //
                 .endRecord();
-        cfg.setAvroSchema(avroSchema.toString(true));
+        final String avrSchema = avroSchema.toString(true);
+        cfg.setAvroSchema(avrSchema);
         final RecordWriterSupplier writerSupplier = new AvroWriterSupplier();
 
         final Record record1 = factory

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>connectors-se</artifactId>
-        <version>1.34.0-SNAPSHOT</version>
+        <version>1.35.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>jdbc</artifactId>
@@ -26,13 +26,6 @@
     </properties>
 
     <dependencies>
-        <!-- traductions -->
-        <dependency>
-            <groupId>org.talend.components</groupId>
-            <artifactId>jdbc-locales</artifactId>
-            <version>${locales.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
@@ -122,7 +115,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.2.14</version>
+            <version>42.2.25</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -205,7 +198,7 @@
                 <dependency>
                     <groupId>org.postgresql</groupId>
                     <artifactId>postgresql</artifactId>
-                    <version>42.2.14</version>
+                    <version>42.2.25</version>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>

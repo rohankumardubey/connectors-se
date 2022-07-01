@@ -32,4 +32,8 @@ public interface I18n {
     String undefinedType(String typeName);
 
     String cannotOverwriteBlob(String blobName);
+
+    String invalidDirectory();
+
+    String errorFileNotExist(String key);
 }

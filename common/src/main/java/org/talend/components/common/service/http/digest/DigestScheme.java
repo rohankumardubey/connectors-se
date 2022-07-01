@@ -12,13 +12,6 @@
  */
 package org.talend.components.common.service.http.digest;
 
-import org.talend.components.common.service.http.common.BasicHeader;
-import org.talend.components.common.service.http.common.BasicHeaderValueFormatter;
-import org.talend.components.common.service.http.common.BasicHeaderValueParser;
-import org.talend.components.common.service.http.common.BasicNameValuePair;
-import org.talend.components.common.service.http.common.ByteArrayBuilder;
-import org.talend.components.common.service.http.common.CharArrayBuffer;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,9 +20,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,12 +30,19 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.talend.components.common.service.http.common.BasicHeader;
+import org.talend.components.common.service.http.common.BasicHeaderValueFormatter;
+import org.talend.components.common.service.http.common.BasicHeaderValueParser;
+import org.talend.components.common.service.http.common.BasicNameValuePair;
+import org.talend.components.common.service.http.common.ByteArrayBuilder;
+import org.talend.components.common.service.http.common.CharArrayBuffer;
+
 /**
  * Digest authentication scheme as defined in RFC 2617.
  * Both MD5 (default) and MD5-sess are supported.
  * Currently only qop=auth or no qop is supported. qop=auth-int
  * is unsupported. If auth and auth-int are provided, auth is
- * used.
+ * used. (qop : Quality of Protection)
  * <p>
  * Since the digest username is included as clear text in the generated
  * Authentication header, the charset of the username must be compatible
@@ -75,17 +73,9 @@ public class DigestScheme {
 
     private final Map<String, String> paramMap;
 
-    private transient ByteArrayBuilder buffer;
+    private ByteArrayBuilder buffer;
 
-    private String lastNonce;
-
-    private long nounceCount;
-
-    private String cnonce;
-
-    private byte[] a1;
-
-    private byte[] a2;
+    private final Nonce nonce = new Nonce();
 
     public DigestScheme() {
         this.paramMap = new HashMap<>();
@@ -116,48 +106,24 @@ public class DigestScheme {
         final String method = context.getMethod();
         final String realm = Optional
                 .ofNullable(pairs.get("realm"))
-                .map(m -> m.getValue())
+                .map(BasicNameValuePair::getValue)
                 .orElseThrow(() -> new AuthenticationException("No realm value in digest authentication challenge."));
 
-        final String nonce = Optional
+        final String newNonce = Optional
                 .ofNullable(pairs.get("nonce"))
-                .map(m -> m.getValue())
+                .map(BasicNameValuePair::getValue)
                 .orElseThrow(() -> new AuthenticationException("No nonce value in digest authentication challenge."));
 
-        final String opaque = Optional.ofNullable(pairs.get("opaque")).map(m -> m.getValue()).orElse(null);
-        String algorithm = Optional.ofNullable(pairs.get("algorithm")).map(m -> m.getValue()).orElse("MD5");
+        final String opaque = Optional.ofNullable(pairs.get("opaque")).map(BasicNameValuePair::getValue).orElse(null);
+        String algorithm = Optional.ofNullable(pairs.get("algorithm")).map(BasicNameValuePair::getValue).orElse("MD5");
 
-        final Set<String> qopset = new HashSet<>(8);
-        int qop = QOP_UNKNOWN;
         final String qoplist = this.paramMap.get("qop");
-        if (qoplist != null) {
-            final StringTokenizer tok = new StringTokenizer(qoplist, ",");
-            while (tok.hasMoreTokens()) {
-                final String variant = tok.nextToken().trim();
-                qopset.add(variant.toLowerCase(Locale.ROOT));
-            }
-            if (context.hasPayload() && qopset.contains("auth-int")) {
-                qop = QOP_AUTH_INT;
-            } else if (qopset.contains("auth")) {
-                qop = QOP_AUTH;
-            } else if (qopset.contains("auth-int")) {
-                qop = QOP_AUTH_INT;
-            }
-        } else {
-            qop = QOP_MISSING;
-        }
-
+        int qop = this.extractQop(qoplist, context.hasPayload());
         if (qop == QOP_UNKNOWN) {
             throw new AuthenticationException("None of the qop methods is supported: " + qoplist);
         }
 
-        final String charsetName = this.paramMap.get("charset");
-        Charset charset;
-        try {
-            charset = charsetName != null ? Charset.forName(charsetName) : StandardCharsets.ISO_8859_1;
-        } catch (final UnsupportedCharsetException ex) {
-            charset = StandardCharsets.ISO_8859_1;
-        }
+        final Charset charset = this.extractCharset();
 
         String digAlg = algorithm;
         if (digAlg.equalsIgnoreCase("MD5-sess")) {
@@ -171,23 +137,7 @@ public class DigestScheme {
             throw new AuthenticationException("Unsuppported digest algorithm: " + digAlg);
         }
 
-        if (nonce.equals(this.lastNonce)) {
-            nounceCount++;
-        } else {
-            nounceCount = 1;
-            cnonce = null;
-            lastNonce = nonce;
-        }
-
-        final StringBuilder sb = new StringBuilder(8);
-        try (final Formatter formatter = new Formatter(sb, Locale.US)) {
-            formatter.format("%08x", nounceCount);
-        }
-        final String nc = sb.toString();
-
-        if (cnonce == null) {
-            cnonce = formatHex(createCnonce());
-        }
+        final String nc = this.nonce.renew(newNonce);
 
         if (buffer == null) {
             buffer = new ByteArrayBuilder(128);
@@ -196,77 +146,46 @@ public class DigestScheme {
         }
         buffer.charset(charset);
 
-        a1 = null;
-        a2 = null;
         // 3.2.2.2: Calculating digest
+
+        buffer.append(username).append(":").append(realm).append(":").append(password);
         if (algorithm.equalsIgnoreCase("MD5-sess")) {
             // H( unq(username-value) ":" unq(realm-value) ":" passwd )
             // ":" unq(nonce-value)
             // ":" unq(cnonce-value)
 
             // calculated one per session
-            buffer.append(username).append(":").append(realm).append(":").append(password);
             final String checksum = formatHex(digester.digest(this.buffer.toByteArray()));
             buffer.reset();
-            buffer.append(checksum).append(":").append(nonce).append(":").append(cnonce);
-            a1 = buffer.toByteArray();
-        } else {
-            // unq(username-value) ":" unq(realm-value) ":" passwd
-            buffer.append(username).append(":").append(realm).append(":").append(password);
-            a1 = buffer.toByteArray();
+            buffer.append(checksum).append(":").append(newNonce).append(":").append(this.nonce.getCnonce());
         }
+        byte[] a1 = buffer.toByteArray();
 
         final String hasha1 = formatHex(digester.digest(a1));
         buffer.reset();
 
-        if (qop == QOP_AUTH) {
-            // Method ":" digest-uri-value
-            a2 = buffer.append(method).append(":").append(uri).toByteArray();
-        } else if (qop == QOP_AUTH_INT) {
-            final HttpEntityDigester entityDigester = new HttpEntityDigester(digester);
-            try {
-                if (context.hasPayload()) {
-                    writeTo(context.getPayload(), entityDigester);
-                }
-                entityDigester.close();
-            } catch (final IOException ex) {
-                throw new AuthenticationException("I/O error reading entity content", ex);
-            }
-            a2 = buffer
-                    .append(method)
-                    .append(":")
-                    .append(uri)
-                    .append(":")
-                    .append(formatHex(entityDigester.getDigest()))
-                    .toByteArray();
-        } else {
-            a2 = buffer.append(method).append(":").append(uri).toByteArray();
+        buffer.append(method).append(":").append(uri);
+        if (qop == QOP_AUTH_INT) {
+            final byte[] digest = this.buildEntityDigester(context, digester);
+            buffer.append(":").append(formatHex(digest));
         }
+        byte[] a2 = buffer.toByteArray();
 
         final String hasha2 = formatHex(digester.digest(a2));
         buffer.reset();
 
         // 3.2.2.1
-
-        final byte[] digestInput;
-        if (qop == QOP_MISSING) {
-            buffer.append(hasha1).append(":").append(nonce).append(":").append(hasha2);
-            digestInput = buffer.toByteArray();
-        } else {
-            buffer
-                    .append(hasha1)
+        buffer.append(hasha1).append(":").append(newNonce).append(":");
+        if (qop != QOP_MISSING) {
+            buffer.append(nc)
                     .append(":")
-                    .append(nonce)
-                    .append(":")
-                    .append(nc)
-                    .append(":")
-                    .append(cnonce)
+                    .append(this.nonce.getCnonce())
                     .append(":")
                     .append(qop == QOP_AUTH_INT ? "auth-int" : "auth")
-                    .append(":")
-                    .append(hasha2);
-            digestInput = buffer.toByteArray();
+                    .append(":");
         }
+        buffer.append(hasha2);
+        final byte[] digestInput = buffer.toByteArray();
         buffer.reset();
 
         final String digest = formatHex(digester.digest(digestInput));
@@ -277,14 +196,14 @@ public class DigestScheme {
         final List<BasicNameValuePair> params = new ArrayList<>(20);
         params.add(new BasicNameValuePair("username", username));
         params.add(new BasicNameValuePair("realm", realm));
-        params.add(new BasicNameValuePair("nonce", nonce));
+        params.add(new BasicNameValuePair("nonce", newNonce));
         params.add(new BasicNameValuePair("uri", uri));
         params.add(new BasicNameValuePair("response", digest));
 
         if (qop != QOP_MISSING) {
             params.add(new BasicNameValuePair("qop", qop == QOP_AUTH_INT ? "auth-int" : "auth"));
             params.add(new BasicNameValuePair("nc", nc));
-            params.add(new BasicNameValuePair("cnonce", cnonce));
+            params.add(new BasicNameValuePair("cnonce", this.nonce.getCnonce()));
         }
         // algorithm cannot be null here
         params.add(new BasicNameValuePair("algorithm", algorithm));
@@ -302,6 +221,29 @@ public class DigestScheme {
             BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(digestBuffer, param, !noQuotes);
         }
         return digestBuffer.toString();
+    }
+
+    private byte[] buildEntityDigester(final DigestAuthContext context,
+            final MessageDigest digester) throws AuthenticationException {
+        final HttpEntityDigester entityDigester = new HttpEntityDigester(digester);
+        try {
+            if (context.hasPayload()) {
+                writeTo(context.getPayload(), entityDigester);
+            }
+            entityDigester.close();
+            return entityDigester.getDigest();
+        } catch (final IOException ex) {
+            throw new AuthenticationException("I/O error reading entity content", ex);
+        }
+    }
+
+    private Charset extractCharset() {
+        final String charsetName = this.paramMap.get("charset");
+        try {
+            return charsetName != null ? Charset.forName(charsetName) : StandardCharsets.ISO_8859_1;
+        } catch (final UnsupportedCharsetException ex) {
+            return StandardCharsets.ISO_8859_1;
+        }
     }
 
     /**
@@ -324,6 +266,36 @@ public class DigestScheme {
         return new String(buffer);
     }
 
+    /**
+     * Extract Quality of Protection from list
+     * 
+     * @param qopList : list of qop, separate by ','
+     * @param contextWithPayload : true if context contains payload.
+     * @return qop
+     */
+    private int extractQop(final String qopList,
+            final boolean contextWithPayload) {
+        if (qopList == null) {
+            return QOP_MISSING;
+        }
+        int qop = QOP_UNKNOWN;
+        final StringTokenizer tok = new StringTokenizer(qopList, ",");
+        final Set<String> qopset = new HashSet<>(8);
+        while (tok.hasMoreTokens()) {
+            final String variant = tok.nextToken().trim();
+            qopset.add(variant.toLowerCase(Locale.ROOT));
+        }
+
+        if (contextWithPayload && qopset.contains("auth-int")) {
+            qop = QOP_AUTH_INT;
+        } else if (qopset.contains("auth")) {
+            qop = QOP_AUTH;
+        } else if (qopset.contains("auth-int")) {
+            qop = QOP_AUTH_INT;
+        }
+        return qop;
+    }
+
     private void writeTo(final byte[] payload, final OutputStream outstream) throws IOException {
         if (outstream == null) {
             throw new IllegalArgumentException("Output stream may not be null");
@@ -338,18 +310,6 @@ public class DigestScheme {
         } finally {
             instream.close();
         }
-    }
-
-    /**
-     * Creates a random cnonce value based on the current time.
-     *
-     * @return The cnonce value as String.
-     */
-    static byte[] createCnonce() {
-        final SecureRandom rnd = new SecureRandom();
-        final byte[] tmp = new byte[8];
-        rnd.nextBytes(tmp);
-        return tmp;
     }
 
     @Override

@@ -12,10 +12,14 @@
  */
 package org.talend.components.common.stream.input.json;
 
+import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 
 import javax.json.*;
 
@@ -30,6 +34,7 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.runtime.beam.spi.AvroRecordBuilderFactoryProvider;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 
 class JsonToRecordTest {
@@ -319,5 +324,42 @@ class JsonToRecordTest {
 
         final Collection<Record> record3e2 = record3.getArray(Record.class, "e2");
         Assertions.assertTrue(record3e2.isEmpty());
+    }
+
+    @Test
+    void testJson() {
+        String json = "{\n \"toto\": null, \"xx\": [\"Hoho\", null ]," +
+                "    \"arrayOfArray\" : [\n" +
+                "        [{\n" +
+                "            \"f1\" : \"value1\"\n" +
+                "        }],\n" +
+                "        [],\n" +
+                "        null,\n" +
+                "        [{\n" +
+                "            \"f1\" : \"value2\"\n" +
+                "        }]" +
+                "    ]\n" +
+                "}";
+        JsonObject jsonObject1 =
+                Json.createReader(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))).readObject();
+
+        final String oldFactoryProp = System.setProperty("talend.component.beam.record.factory.impl", "avro");
+        try {
+            AvroRecordBuilderFactoryProvider provider = new AvroRecordBuilderFactoryProvider();
+            final RecordBuilderFactory factory = provider.apply("test");
+            JsonToRecord toRecord = new JsonToRecord(factory);
+            Record record = toRecord.toRecord(jsonObject1);
+            Assertions.assertNotNull(record);
+            Collection<List> arrayOfArray = record.getArray(List.class, "arrayOfArray");
+            Assertions.assertEquals(4, arrayOfArray.size());
+            Assertions.assertEquals(1, arrayOfArray.stream().filter(Objects::isNull).count());
+            Assertions.assertEquals(1, arrayOfArray.stream().filter(Objects::nonNull).filter(List::isEmpty).count());
+        } finally {
+            if (oldFactoryProp == null) {
+                System.clearProperty("talend.component.beam.record.factory.impl");
+            } else {
+                System.setProperty("talend.component.beam.record.factory.impl", oldFactoryProp);
+            }
+        }
     }
 }

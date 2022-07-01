@@ -93,10 +93,14 @@ public class BasicHeaderElement implements Cloneable {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public BasicHeaderElement clone() {
         // parameters array is considered immutable
         // no need to make a copy of it
-        return super.clone();
+        try {
+            return (BasicHeaderElement) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new RuntimeException("clone unsupported", ex);
+        }
     }
 
 }

@@ -23,6 +23,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.azure.core.http.rest.PagedIterable;
+import com.azure.storage.file.datalake.models.PathItem;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
@@ -67,35 +70,8 @@ public class AdlsGen2Service {
     }
 
     public List<BlobInformations> getBlobs(final AdlsGen2DataSet dataSet) {
-        if (dataSet.getFormat() == FileFormat.DELTA) {
-            // delta format is a "directory" contains parquet files and subdir with json and crc files, so no need to
-            // fetch all child paths.
-            // TODO check if we can obtain it with recursive=true in URL
-            List<BlobInformations> result = new ArrayList<>();
-            BlobInformations info = new BlobInformations();
-            info.setBlobPath(dataSet.getBlobPath());
-            result.add(info);
-            return result;
-        }
-
-        DataLakeServiceClient client = getDataLakeConnectionClient(dataSet.getConnection());
-        DataLakeFileSystemClient fileSystemClient =
-                client.getFileSystemClient(dataSet.getFilesystem());
-        DataLakeDirectoryClient directoryClient = fileSystemClient
-                .getDirectoryClient(dataSet.getBlobPath());
-
-        return directoryClient.listPaths().stream().filter(pathItem -> !pathItem.isDirectory()).map(pathItem -> {
-            BlobInformations info = new BlobInformations();
-            info.setName(pathItem.getName());
-            info.setFileName(extractFileName(pathItem.getName()));
-            info.setBlobPath(pathItem.getName());
-            info.setDirectory(extractFolderPath(pathItem.getName()));
-            info.setExists(true);
-            info.setEtag(pathItem.getETag());
-            info.setContentLength(pathItem.getContentLength());
-            info.setLastModified(pathItem.getLastModified().toString());
-            return info;
-        }).collect(Collectors.toList());
+        return getBlobs(dataSet.getConnection(), dataSet.getFilesystem(), dataSet.getBlobPath(), dataSet.getFormat(),
+                false);
     }
 
     public boolean blobExists(AdlsGen2DataSet dataSet, String blobName) {
@@ -108,8 +84,13 @@ public class AdlsGen2Service {
 
     @SuppressWarnings("unchecked")
     public InputStream getBlobInputstream(AdlsGen2DataSet dataSet, BlobInformations blob) throws IOException {
-        DataLakeFileClient blobFileClient = getDataLakeConnectionClient(dataSet.getConnection())
-                .getFileSystemClient(dataSet.getFilesystem())
+        return getBlobInputstream(dataSet.getConnection(), dataSet.getFilesystem(), blob);
+    }
+
+    public InputStream getBlobInputstream(AdlsGen2Connection adlsGen2Connection, String fileSystem,
+            BlobInformations blob) throws IOException {
+        DataLakeFileClient blobFileClient = getDataLakeConnectionClient(adlsGen2Connection)
+                .getFileSystemClient(fileSystem)
                 .getDirectoryClient(blob.getDirectory())
                 .getFileClient(blob.getFileName());
         // TODO use simple way when update the SDK, not implemented for 12.4.1
@@ -143,10 +124,14 @@ public class AdlsGen2Service {
     @SuppressWarnings("unchecked")
     public boolean pathCreate(AdlsGen2DataSet dataSet) {
         DataLakeServiceClient client = getDataLakeConnectionClient(dataSet.getConnection());
+        return pathCreate(client, dataSet.getFilesystem(), dataSet.getBlobPath(), true);
+    }
+
+    public boolean pathCreate(DataLakeServiceClient client, String fileSystem, String blobPath, boolean overwrite) {
         DataLakeFileSystemClient fsClient =
-                client.getFileSystemClient(dataSet.getFilesystem());
+                client.getFileSystemClient(fileSystem);
         // TODO is it OK to have current file path in dataset in the folder option?
-        DataLakeFileClient fileClient = fsClient.createFile(dataSet.getBlobPath(), true);
+        DataLakeFileClient fileClient = fsClient.createFile(blobPath, overwrite);
         return fileClient.exists();
     }
 
@@ -165,9 +150,8 @@ public class AdlsGen2Service {
 
     /**
      * To flush, the previously uploaded data must be contiguous, the position parameter must be specified and equal to
-     * the
-     * length of the file after all data has been written, and there must not be a request entity body included with the
-     * request.
+     * the length of the file after all data has been written, and there must not be a request entity body included
+     * with the request.
      *
      * @param dataSet
      * @param position
@@ -178,7 +162,7 @@ public class AdlsGen2Service {
         DataLakeFileSystemClient fsClient =
                 client.getFileSystemClient(dataSet.getFilesystem());
         DataLakeFileClient fileClient = fsClient.getFileClient(dataSet.getBlobPath());
-        fileClient.flush(position);
+        fileClient.flush(position, true);
     }
 
     public DataLakeServiceClient getDataLakeConnectionClient(AdlsGen2Connection connection) {
@@ -201,4 +185,63 @@ public class AdlsGen2Service {
         return builder.endpoint(connection.apiUrl())
                 .buildClient();
     }
+
+    public List<BlobInformations> getBlobs(AdlsGen2Connection adlsGen2Connection, String filesystem,
+            String blobPath, FileFormat format, boolean includeSubDirectory) {
+        if (format == FileFormat.DELTA) {
+            // delta format is a "directory" contains parquet files and subdir with json and crc files, so no need to
+            // fetch all child paths.
+            // TODO check if we can obtain it with recursive=true in URL
+            List<BlobInformations> result = new ArrayList<>();
+            BlobInformations info = new BlobInformations();
+            info.setBlobPath(blobPath);
+            result.add(info);
+            return result;
+        }
+
+        DataLakeServiceClient client = getDataLakeConnectionClient(adlsGen2Connection);
+        DataLakeFileSystemClient fileSystemClient =
+                client.getFileSystemClient(filesystem);
+        DataLakeDirectoryClient directoryClient = fileSystemClient
+                .getDirectoryClient(blobPath);
+        PagedIterable<PathItem> pathItems = directoryClient.listPaths();
+        List<BlobInformations> blobs = new ArrayList<>();
+        if (includeSubDirectory) {
+            pathItems
+                    .forEach(pathItem -> {
+                        if (pathItem.isDirectory()) {
+                            blobs.addAll(getBlobs(adlsGen2Connection, filesystem, pathItem.getName(), null, true));
+                        }
+                    });
+        }
+        blobs.addAll(pathItems
+                .stream()
+                .filter(pathItem -> !pathItem.isDirectory())
+                .map(pathItem -> {
+                    BlobInformations info = new BlobInformations();
+                    info.setName(pathItem.getName());
+                    info.setFileName(extractFileName(pathItem.getName()));
+                    info.setBlobPath(pathItem.getName());
+                    info.setDirectory(extractFolderPath(pathItem.getName()));
+                    info.setExists(true);
+                    info.setEtag(pathItem.getETag());
+                    info.setContentLength(pathItem.getContentLength());
+                    info.setLastModified(pathItem.getLastModified().toString());
+                    return info;
+                })
+                .collect(Collectors.toList()));
+        return blobs;
+    }
+
+    public DataLakeFileClient getDataLakeFileClient(AdlsGen2Connection adlsGen2Connection, String filesystem,
+            String blobPath, String targetName) {
+        DataLakeServiceClient client = getDataLakeConnectionClient(adlsGen2Connection);
+        DataLakeFileSystemClient fileSystemClient =
+                client.getFileSystemClient(filesystem);
+        DataLakeDirectoryClient directoryClient = fileSystemClient
+                .getDirectoryClient(blobPath);
+        DataLakeFileClient fileClient = directoryClient.createFile(targetName, true);
+        return fileClient;
+    }
+
 }

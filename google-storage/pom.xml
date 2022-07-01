@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>connectors-se</artifactId>
-        <version>1.34.0-SNAPSHOT</version>
+        <version>1.35.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>google-storage</artifactId>
@@ -23,11 +23,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.talend.components</groupId>
-            <artifactId>google-storage-locales</artifactId>
-            <version>${locales.version}</version>
-        </dependency>
         <!-- Google Cloud Storage Dependencie -->
         <dependency>
             <groupId>com.google.cloud</groupId>

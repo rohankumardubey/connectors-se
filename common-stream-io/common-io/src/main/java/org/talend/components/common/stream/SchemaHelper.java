@@ -20,6 +20,9 @@ import org.talend.sdk.component.api.record.Schema;
 
 public class SchemaHelper {
 
+    private SchemaHelper() {
+    }
+
     public static Class<?> getFrom(Schema.Type recordFieldType) {
         Class<?> value = Object.class;
         switch (recordFieldType) {

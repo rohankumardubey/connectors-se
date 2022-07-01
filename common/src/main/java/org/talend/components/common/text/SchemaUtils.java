@@ -16,6 +16,9 @@ import java.util.Set;
 
 public class SchemaUtils {
 
+    private SchemaUtils() {
+    }
+
     /**
      * correct the field name and make it valid for AVRO schema
      * for example :

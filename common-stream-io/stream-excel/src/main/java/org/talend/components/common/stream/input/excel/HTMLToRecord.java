@@ -16,10 +16,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.talend.components.common.text.SchemaUtils;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -28,8 +30,17 @@ public class HTMLToRecord {
 
     private final RecordBuilderFactory recordBuilderFactory;
 
+    private Supplier<String> notValidHTMLErrorMessageSupplier;
+
+    @Deprecated
     public HTMLToRecord(RecordBuilderFactory recordBuilderFactory) {
         this.recordBuilderFactory = recordBuilderFactory;
+        this.notValidHTMLErrorMessageSupplier = () -> "File is not valid excel HTML"; // default one, shouldn't be used
+    }
+
+    public HTMLToRecord(RecordBuilderFactory recordBuilderFactory, Supplier<String> notValidHTMLErrorMessageSupplier) {
+        this(recordBuilderFactory);
+        this.notValidHTMLErrorMessageSupplier = notValidHTMLErrorMessageSupplier;
     }
 
     public Schema inferSchema(Element record) {
@@ -48,6 +59,9 @@ public class HTMLToRecord {
     public Record toRecord(Schema schema, Element record) {
         final Record.Builder builder = recordBuilderFactory.newRecordBuilder();
         final Elements rowColumns = record.getAllElements();
+        if (rowColumns.size() > schema.getEntries().size() + 1) {
+            throw new ComponentException(notValidHTMLErrorMessageSupplier.get());
+        }
         for (int i = 1; i < rowColumns.size(); i++) {
             builder.withString(schema.getEntries().get(i - 1).getName(), rowColumns.get(i).text());
         }

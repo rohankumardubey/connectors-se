@@ -13,10 +13,8 @@
 package org.talend.components.common.collections;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
 
 /**
  * Iterator that give all records of inner-iterator except n last-one.

@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.34.0-SNAPSHOT</version>
+    <version>1.35.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Connectors SE</name>
@@ -77,21 +77,21 @@
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <locales.version>[1.33,)</locales.version>
+        <component-runtime.version>1.47.0-SNAPSHOT</component-runtime.version>
 
-        <component-runtime.version>1.46.0-SNAPSHOT</component-runtime.version>
         <slf4j.version>1.7.36</slf4j.version>
         <log4j-api.version>2.17.1</log4j-api.version>
         <reload4j.version>1.2.19</reload4j.version>
-        
+
         <beanutils.version>1.9.4</beanutils.version>
 
         <beam.version>2.36.0</beam.version>
         <spark.version>3.2.0</spark.version>
         <shrinkwrap.version>3.1.4</shrinkwrap.version>
         <avro.version>1.8.2</avro.version>
-        <jackson.version>2.13.2</jackson.version>
-        <jackson-databind.version>2.13.2.2</jackson-databind.version>
+        <jackson-bom.version>2.13.2.20220328</jackson-bom.version>
+        <jackson.version>2.13.2</jackson.version> <!--in most cases should be equal to jackson-bom-->
+        <jackson-databind.version>2.13.2.2</jackson-databind.version> <!--in most cases should be equal to jackson-bom-->
         <jackson-codehaus.version>1.9.16-TALEND</jackson-codehaus.version>
 
         <jsoup.version>1.14.3</jsoup.version>
@@ -136,12 +136,13 @@
         <netty-tcnative-boringssl-static.version>2.0.51.Final</netty-tcnative-boringssl-static.version>
 
         <jetty.version>9.4.38.v20210224</jetty.version>
-        <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
+        <nimbus-jose-jwt.version>9.22</nimbus-jose-jwt.version>
         <zookeeper.version>3.4.14</zookeeper.version>
         <guava.version>30.0-jre</guava.version>
         <hadoop.version>3.2.3</hadoop.version>
         <axis2.version>1.8.0</axis2.version>
         <lombok.version>1.18.24</lombok.version>
+        <woodstox.version>6.2.8</woodstox.version>
 
         <!-- code quality enforcer default values.
              run build w/ -Pcode-quality to have a full validation -->
@@ -239,6 +240,13 @@
                 <version>${beanutils.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
@@ -255,21 +263,6 @@
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson-databind.version}</version>
                 <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-jaxb-annotations</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.jaxrs</groupId>
-                <artifactId>jackson-jaxrs-json-provider</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.jaxrs</groupId>
-                <artifactId>jackson-jaxrs-base</artifactId>
-                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
@@ -293,6 +286,12 @@
                 <artifactId>xz</artifactId>
                 <version>1.5</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.daikon</groupId>
+                <artifactId>daikon-url-validation</artifactId>
+                <version>6.4.2</version>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>org.talend.daikon</groupId>
@@ -568,11 +567,6 @@
                 <version>${spark.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.fasterxml.jackson.module</groupId>
-                <artifactId>jackson-module-scala_2.12</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>net.minidev</groupId>
                 <artifactId>json-smart</artifactId>
                 <version>${json-smart.version}</version>
@@ -603,7 +597,11 @@
                <artifactId>protobuf-java</artifactId>
                <version>${protobuf-java.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>com.fasterxml.woodstox</groupId>
+                <artifactId>woodstox-core</artifactId>
+                <version>${woodstox.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
@@ -921,6 +919,11 @@
                         <goals>
                             <goal>car</goal>
                         </goals>
+                        <configuration>
+                          <excludeArtifactsFilter>
+                            com.fasterxml.jackson.core:jackson-databind,com.fasterxml.jackson.core:jackson-core,com.fasterxml.jackson.core:jackson-annotations
+                          </excludeArtifactsFilter>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>talend-scan-descriptor</id>

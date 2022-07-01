@@ -15,7 +15,6 @@ package org.talend.components.common.stream.input.excel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -31,7 +30,7 @@ public class HTMLReader implements FormatReader {
     private final HTMLToRecord toRecord;
 
     public HTMLReader(RecordBuilderFactory recordBuilderFactory) {
-        this.toRecord = new HTMLToRecord(recordBuilderFactory);
+        this.toRecord = new HTMLToRecord(recordBuilderFactory, () -> "File is not valid excel HTML");
     }
 
     @Override

@@ -46,20 +46,20 @@ public class ExcelToRecord {
             this.index = index;
         }
 
-        CellType getRealCellType(Row record) {
+        CellType getRealCellType(final Row row) {
             // update type if null (init with header)
             if (this.type == null) {
-                final Cell currentCell = record.getCell(this.index);
+                final Cell currentCell = row.getCell(this.index);
                 if (currentCell != null) {
-                    this.type = currentCell.getCellTypeEnum();// getCellType();
+                    this.type = currentCell.getCellType();
                 }
             }
 
-            // return real cell type (in case of formula);
+            // this return real cell type (in case of formula);
             CellType cellType = this.type;
             if (this.type == CellType.FORMULA) {
-                Cell cell = record.getCell(this.index);
-                cellType = cell.getCachedFormulaResultTypeEnum(); // getCachedFormulaResultType();
+                Cell cell = row.getCell(this.index);
+                cellType = cell.getCachedFormulaResultType();
             }
             return cellType;
         }
@@ -71,15 +71,15 @@ public class ExcelToRecord {
         this.recordBuilderFactory = recordBuilderFactory;
     }
 
-    public Record toRecord(Row record) {
+    public Record toRecord(Row row) {
         if (schema == null) {
-            inferSchema(record, false);
+            inferSchema(row, false);
         }
 
         final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder();
 
         for (int i = 0; i < schema.getEntries().size(); i++) {
-            final Cell recordCell = record.getCell(i);
+            final Cell recordCell = row.getCell(i);
             final String colName = this.columns.get(i).name;
             final Entry entry = schema.getEntries().get(i);
 
@@ -106,10 +106,10 @@ public class ExcelToRecord {
         return recordBuilder.build();
     }
 
-    public Schema inferSchema(Row record, boolean isHeader) {
+    public Schema inferSchema(final Row rowRecord, boolean isHeader) {
         if (schema == null) {
             if (this.columns == null) {
-                this.columns = inferSchemaColumns(record, isHeader);
+                this.columns = inferSchemaColumns(rowRecord, isHeader);
             }
             if (isHeader) {
                 return null;
@@ -119,7 +119,7 @@ public class ExcelToRecord {
             for (Column column : this.columns) {
                 final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
                 entryBuilder.withName(column.name);
-                final CellType cellType = column.getRealCellType(record);
+                final CellType cellType = column.getRealCellType(rowRecord);
 
                 final Schema.Type st = toRecordType(cellType, column.index + 1);
                 entryBuilder.withType(st);
@@ -163,7 +163,7 @@ public class ExcelToRecord {
         } else {
             columnName = "field" + cell.getColumnIndex();
         }
-        final CellType cellType = cell.getCellTypeEnum();
+        final CellType cellType = cell.getCellType();
         return new Column(columnName, isHeader ? null : cellType, cell.getColumnIndex());
     }
 }

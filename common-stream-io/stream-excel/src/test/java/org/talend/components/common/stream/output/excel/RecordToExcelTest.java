@@ -12,6 +12,10 @@
  */
 package org.talend.components.common.stream.output.excel;
 
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
+
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -21,11 +25,6 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
-
-import java.nio.charset.Charset;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
 
 class RecordToExcelTest {
 

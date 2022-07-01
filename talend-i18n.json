@@ -11,13 +11,13 @@
     "fixQuote": true
   },
   "github": {
-    "url": "https://github.com/Talend/i18n-product.git"
+    "url": "https://github.com/Talend/connectors-se",
+    "noCleanRepo": true,
+    "localesBranchPrefix": "locales",
+    "cloneFromBranch": true
   },
   "module": {
     "type": "mvn",
-    "repository": {
-      "id": "talend_nexus_deployment",
-      "url": "https://artifacts-zl.talend.com/nexus/content/repositories/TalendOpenSourceRelease/"
-    }
+		"noDeploy": true
   }
 }
