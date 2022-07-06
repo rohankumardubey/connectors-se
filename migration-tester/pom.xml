@@ -14,13 +14,12 @@
 
   <dependencies>
     <!-- Testing -->
-      <dependency>
-          <groupId>org.talend.components</groupId>
-          <artifactId>connectors-test-bom</artifactId>
-          <version>${project.version}</version>
-          <type>pom</type>
-          <scope>test</scope>
-      </dependency>
+    <dependency>
+       <groupId>org.talend.components</groupId>
+       <artifactId>connectors-test-bom</artifactId>
+       <type>pom</type>
+       <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

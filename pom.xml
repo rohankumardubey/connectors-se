@@ -303,7 +303,7 @@
             <dependency>
                 <groupId>org.talend.components</groupId>
                 <artifactId>connectors-test-bom</artifactId>
-                <version>${connectors-test-bom.version}</version>
+                <version>${project.version}</version>
                 <type>pom</type>
                 <scope>test</scope>
             </dependency>
