@@ -14,6 +14,7 @@ package org.talend.components.jdbc.input;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.common.PreparedStatementParameter;
+import org.talend.components.jdbc.common.Type;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -27,66 +28,63 @@ public class JDBCRuntimeUtils {
             final List<PreparedStatementParameter> preparedStatementParameters) throws SQLException {
         for (int i = 0; i < preparedStatementParameters.size(); i++) {
             PreparedStatementParameter parameter = preparedStatementParameters.get(i);
-            String index = parameter.getIndex();
-            String type = parameter.getType();
+            int index = parameter.getIndex();
+            Type type = parameter.getType();
             Object value = parameter.getDataValue();
 
-            // TODO
-            /*
-             * switch (type) {
-             * case BigDecimal:
-             * pstmt.setBigDecimal(index, (BigDecimal) value);
-             * break;
-             * case Blob:
-             * pstmt.setBlob(index, (Blob) value);
-             * break;
-             * case Boolean:
-             * pstmt.setBoolean(index, (boolean) value);
-             * break;
-             * case Byte:
-             * pstmt.setByte(index, (byte) value);
-             * break;
-             * case Bytes:
-             * pstmt.setBytes(index, (byte[]) value);
-             * break;
-             * case Clob:
-             * pstmt.setClob(index, (Clob) value);
-             * break;
-             * case Date:
-             * pstmt.setTimestamp(index, new Timestamp(((Date) value).getTime()));
-             * break;
-             * case Double:
-             * pstmt.setDouble(index, (double) value);
-             * break;
-             * case Float:
-             * pstmt.setFloat(index, (float) value);
-             * break;
-             * case Int:
-             * pstmt.setInt(index, (int) value);
-             * break;
-             * case Long:
-             * pstmt.setLong(index, (long) value);
-             * break;
-             * case Object:
-             * pstmt.setObject(index, value);
-             * break;
-             * case Short:
-             * pstmt.setShort(index, (short) value);
-             * break;
-             * case String:
-             * pstmt.setString(index, (String) value);
-             * break;
-             * case Time:
-             * pstmt.setTime(index, (Time) value);
-             * break;
-             * case Null:
-             * pstmt.setNull(index, (int) value);
-             * break;
-             * default:
-             * pstmt.setString(index, (String) value);
-             * break;
-             * }
-             */
+            switch (type) {
+            case BigDecimal:
+                pstmt.setBigDecimal(index, (BigDecimal) value);
+                break;
+            case Blob:
+                pstmt.setBlob(index, (Blob) value);
+                break;
+            case Boolean:
+                pstmt.setBoolean(index, (boolean) value);
+                break;
+            case Byte:
+                pstmt.setByte(index, (byte) value);
+                break;
+            case Bytes:
+                pstmt.setBytes(index, (byte[]) value);
+                break;
+            case Clob:
+                pstmt.setClob(index, (Clob) value);
+                break;
+            case Date:
+                pstmt.setTimestamp(index, new Timestamp(((Date) value).getTime()));
+                break;
+            case Double:
+                pstmt.setDouble(index, (double) value);
+                break;
+            case Float:
+                pstmt.setFloat(index, (float) value);
+                break;
+            case Int:
+                pstmt.setInt(index, (int) value);
+                break;
+            case Long:
+                pstmt.setLong(index, (long) value);
+                break;
+            case Object:
+                pstmt.setObject(index, value);
+                break;
+            case Short:
+                pstmt.setShort(index, (short) value);
+                break;
+            case String:
+                pstmt.setString(index, (String) value);
+                break;
+            case Time:
+                pstmt.setTime(index, (Time) value);
+                break;
+            case Null:
+                pstmt.setNull(index, (int) value);
+                break;
+            default:
+                pstmt.setString(index, (String) value);
+                break;
+            }
         }
     }
 

@@ -29,22 +29,17 @@ import java.io.Serializable;
 @Documentation("")
 public class PreparedStatementParameter implements Serializable {
 
-    // TODO support index and column name both
     @Option
     @Documentation("")
-    private String index;
+    private int index;
 
-    // TODO to enum type
     @Option
     @Documentation("")
-    private String type;
+    private Type type;
 
-    // TODO it works? how to pass to main part, in loop logic for flow line
-    // TODO to string type?
     @JsonbTransient
     @Option
     @Documentation("")
     private transient Object dataValue;
-    // TODO can't use Object type here, if that, ui will not show this column
 
 }
