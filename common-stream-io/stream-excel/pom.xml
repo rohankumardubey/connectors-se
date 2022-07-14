@@ -13,8 +13,8 @@
     <name>Connectors SE :: Common Stream IO :: stream-excel</name>
 
     <properties>
-        <apache.poi.version>4.1.2</apache.poi.version>
-        <excel.streamer.version>2.1.0-20201125</excel.streamer.version>
+        <apache.poi.version>5.2.2</apache.poi.version>
+        <excel.streamer.version>3.0.0-20220801</excel.streamer.version>
     </properties>
 
     <dependencies>
