@@ -255,4 +255,18 @@ public class FakeStorage implements StorageRpc {
         return storageRpc.getServiceAccount(projectId);
     }
 
+    @Override
+    public long getCurrentUploadOffset(final String uploadId) {
+        return storageRpc.getCurrentUploadOffset(uploadId);
+    }
+
+    @Override
+    public StorageObject queryCompletedResumableUpload(final String uploadId, final long totalBytes) {
+        return storageRpc.queryCompletedResumableUpload(uploadId, totalBytes);
+    }
+
+    @Override
+    public Notification getNotification(final String bucket, final String id) {
+        return storageRpc.getNotification(bucket, id);
+    }
 }

@@ -29,6 +29,16 @@
     <spark-scala.version>2.12</spark-scala.version>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <!--it's test transitive dependency for beam-runners-spark-3, and it was CVE issue -->
+      <dependency>
+        <groupId>com.google.oauth-client</groupId>
+        <artifactId>google-oauth-client</artifactId>
+        <version>1.33.3</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <dependencies>
     <!-- file line formats -->
     <dependency>
