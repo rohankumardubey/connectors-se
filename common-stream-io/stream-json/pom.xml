@@ -27,6 +27,12 @@
 
   <dependencyManagement>
     <dependencies>
+      <!--it's test transitive dependency for beam-runners-spark-3, and it was CVE issue -->
+      <dependency>
+        <groupId>com.google.oauth-client</groupId>
+        <artifactId>google-oauth-client</artifactId>
+        <version>1.33.3</version>
+      </dependency>
       <dependency>
         <groupId>com.google.protobuf</groupId>
         <artifactId>protobuf-java</artifactId>
