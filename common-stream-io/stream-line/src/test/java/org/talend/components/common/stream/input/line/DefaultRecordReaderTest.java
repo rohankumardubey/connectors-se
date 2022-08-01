@@ -19,7 +19,6 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.talend.components.common.stream.format.LineConfiguration;
@@ -33,7 +32,9 @@ class DefaultRecordReaderTest {
     void readLineFile() throws IOException {
         final URL sourceURL = Thread.currentThread().getContextClassLoader().getResource("./data.txt");
 
+        final LineConfiguration.LineSeparatorType realLineSeparator = getCRorCRLFLineSeparator(sourceURL.getPath());
         final LineConfiguration config = new LineConfiguration();
+        config.setLineSeparatorType(realLineSeparator);
 
         final LineSplitter splitter = (String line) -> Stream
                 .of(line.substring(0, 3), //
@@ -42,6 +43,26 @@ class DefaultRecordReaderTest {
                 .collect(Collectors.toList());
 
         testContent(sourceURL.getPath(), splitter, config.getLineSeparator());
+    }
+
+    /*
+     * Git might change the line ending from \n to the \r\n during the repo clone, and it would break the test.
+     * Reading the first line till we meet the \n and if previous is \r then CRLF should be used as line separator
+     */
+    private LineConfiguration.LineSeparatorType getCRorCRLFLineSeparator(String path) throws IOException {
+        try (FileInputStream fileInputStream = new FileInputStream(path)) {
+            int nextCharInt = 0;
+            char prevChar = 0;
+            while ((nextCharInt = fileInputStream.read()) != -1) {
+                if ((char) nextCharInt == '\n') {
+                    if (prevChar == '\r')
+                        return LineConfiguration.LineSeparatorType.CRLF;
+                    return LineConfiguration.LineSeparatorType.LF;
+                }
+                prevChar = (char) nextCharInt;
+            }
+            return LineConfiguration.LineSeparatorType.LF;
+        }
     }
 
     /**
