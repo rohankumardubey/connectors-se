@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.36.0</version>
+    <version>1.36.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Connectors SE</name>
