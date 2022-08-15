@@ -15,22 +15,17 @@ package org.talend.components.adlsgen2.service;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.azure.core.http.rest.PagedIterable;
-import com.azure.storage.file.datalake.models.PathItem;
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.sdk.component.api.service.Service;
 import com.azure.core.credential.AzureSasCredential;
+import com.azure.core.http.rest.PagedIterable;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.storage.common.StorageSharedKeyCredential;
 import com.azure.storage.file.datalake.DataLakeDirectoryClient;
@@ -39,6 +34,7 @@ import com.azure.storage.file.datalake.DataLakeFileSystemClient;
 import com.azure.storage.file.datalake.DataLakeServiceClient;
 import com.azure.storage.file.datalake.DataLakeServiceClientBuilder;
 import com.azure.storage.file.datalake.models.FileSystemItem;
+import com.azure.storage.file.datalake.models.PathItem;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -55,18 +51,25 @@ public class AdlsGen2Service {
     }
 
     public String extractFolderPath(String blobPath) {
-        Path path = Paths.get(blobPath);
-        log.debug("[extractFolderPath] blobPath: {}. Path: {}. {}", blobPath, path.toString(), path.getNameCount());
-        if (path.getNameCount() == 1) {
-            return "/";
+        String folderPath;
+        if (blobPath.contains("/")) {
+            folderPath = blobPath.substring(0, blobPath.lastIndexOf("/"));
+        } else {
+            folderPath = "/";
         }
-        return Paths.get(blobPath).getParent().toString();
+
+        log.debug("[extractFolderPath] blobPath: {}. Path: {}.", blobPath, folderPath);
+
+        return folderPath;
     }
 
     public String extractFileName(String blobPath) {
-        Path path = Paths.get(blobPath);
-        log.debug("[extractFileName] blobPath: {}. Path: {}. {}", blobPath, path.toString(), path.getNameCount());
-        return Paths.get(blobPath).getFileName().toString();
+        if (!blobPath.contains("/")) {
+            return blobPath;
+        }
+        String fileName = blobPath.substring(blobPath.lastIndexOf("/"));
+        log.debug("[extractFileName] blobPath: {}. Path: {}.", blobPath, fileName);
+        return fileName;
     }
 
     public List<BlobInformations> getBlobs(final AdlsGen2DataSet dataSet) {
@@ -93,32 +96,7 @@ public class AdlsGen2Service {
                 .getFileSystemClient(fileSystem)
                 .getDirectoryClient(blob.getDirectory())
                 .getFileClient(blob.getFileName());
-        // TODO use simple way when update the SDK, not implemented for 12.4.1
-        /* return blobFileClient.openInputStream().getInputStream(); */
-        PipedOutputStream pipedOutputStream = new PipedOutputStream();
-        PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
-
-        Thread writer = new Thread(() -> {
-            try {
-                log.debug(
-                        "Starting the separate thread to read the pipe finished: " + Thread.currentThread().getName());
-                blobFileClient.read(pipedOutputStream);
-                pipedOutputStream.flush();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            } finally {
-                log.debug("Separate thread to read the pipe finished, closing the stream");
-                try {
-                    pipedOutputStream.close();
-                } catch (IOException ioException) {
-                    log.error("Can't close pipedStream " + ioException.getMessage(), ioException);
-                }
-            }
-        });
-
-        writer.start(); // populating a pipe in the separate thread, will be read with blobFileReader
-
-        return pipedInputStream;
+        return blobFileClient.openInputStream().getInputStream();
     }
 
     @SuppressWarnings("unchecked")
