@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +35,9 @@ import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DatumReader;
+import org.apache.avro.io.DecoderFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,6 +47,7 @@ import org.talend.components.common.stream.AvroHelper;
 import org.talend.components.common.stream.api.output.RecordWriter;
 import org.talend.components.common.stream.api.output.RecordWriterSupplier;
 import org.talend.components.common.stream.format.avro.AvroConfiguration;
+import org.talend.components.common.stream.output.avro.AvroOutput;
 import org.talend.components.common.stream.output.avro.AvroWriterSupplier;
 import org.talend.components.common.stream.output.avro.RecordToAvro;
 import org.talend.sdk.component.api.record.Record;
@@ -317,6 +321,7 @@ class AvroToRecordTest {
 
         RecordToAvro toAvro = new RecordToAvro("test");
         GenericRecord genericRecord = toAvro.fromRecord(tckRecord);
+        final String recordSchema = record.getSchema().toString(true);
         Assertions.assertNotNull(genericRecord);
         Object arrayOfRecord1 = genericRecord.get("arrayOfRecord");
         Assertions.assertTrue(arrayOfRecord1 instanceof Collection);
@@ -326,12 +331,49 @@ class AvroToRecordTest {
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final AvroConfiguration cfg = new AvroConfiguration();
+        final String schema = "{\n" +
+                "  \"type\" : \"record\",\n" +
+                "  \"name\" : \"sample\",\n" +
+                "  \"fields\" : [ {\n" +
+                "    \"name\" : \"arrayOfRecord\",\n" +
+                "    \"type\" : {\n" +
+                "      \"type\" : \"array\",\n" +
+                "      \"items\" : [ {\n" +
+                "        \"type\" : \"record\",\n" +
+                "        \"name\" : \"inner\",\n" +
+                "        \"fields\" : [ {\n" +
+                "          \"name\" : \"f1\",\n" +
+                "          \"type\" : \"string\"\n" +
+                "        } ]\n" +
+                "      }, \"null\" ]\n" +
+                "    }\n" +
+                "  } ]\n" +
+                "}";
+
+        org.apache.avro.Schema parse = new org.apache.avro.Schema.Parser().parse(schema);
+        cfg.setAvroSchema(recordSchema);
+        cfg.setAttachSchema(false);
         final RecordWriterSupplier writerSupplier = new AvroWriterSupplier();
 
         final RecordWriter writer = writerSupplier.getWriter(() -> out, cfg);
         writer.add(tckRecord);
         writer.flush();
         writer.close();
+
+        final GenericDatumReader<GenericRecord> userDatumReader = new GenericDatumReader<>(parse);
+        BinaryDecoder binaryDecoder =
+                DecoderFactory.get().binaryDecoder(new ByteArrayInputStream(out.toByteArray()), null);
+        GenericRecord genericRecord1 = userDatumReader.read(null, binaryDecoder);
+
+        Assertions.assertNotNull(genericRecord1);
+        final Record tckRecord1 = toRecord.toRecord(genericRecord1);
+        Assertions.assertNotNull(tckRecord1);
+
+        final ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+        AvroOutput output = AvroOutput.buildOutput(cfg, () -> out2);
+        output.write(genericRecord);
+        output.flush();
+        output.close();
     }
 
     @ParameterizedTest

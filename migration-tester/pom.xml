@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.35.0-SNAPSHOT</version>
+    <version>1.37.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>migration-tester</artifactId>
@@ -14,13 +14,12 @@
 
   <dependencies>
     <!-- Testing -->
-      <dependency>
-          <groupId>org.talend.components</groupId>
-          <artifactId>connectors-test-bom</artifactId>
-          <version>${project.version}</version>
-          <type>pom</type>
-          <scope>test</scope>
-      </dependency>
+    <dependency>
+       <groupId>org.talend.components</groupId>
+       <artifactId>connectors-test-bom</artifactId>
+       <type>pom</type>
+       <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

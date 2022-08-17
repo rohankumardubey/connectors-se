@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.talend.components</groupId>
         <artifactId>connectors-se</artifactId>
-        <version>1.35.0-SNAPSHOT</version>
+        <version>1.37.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>jdbc</artifactId>
@@ -16,7 +16,7 @@
     <properties>
         <xbean-finder-shaded.version>4.8</xbean-finder-shaded.version>
         <HikariCP.version>3.4.2-talend20200325</HikariCP.version>
-        <bouncycastle.version>1.69</bouncycastle.version>
+        <bouncycastle.version>1.70</bouncycastle.version>
         <jooq.version>3.12.0</jooq.version>
         <!-- test version -->
         <derby.version>10.12.1.1</derby.version>

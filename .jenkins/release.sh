@@ -13,7 +13,6 @@ main() (
 
   setMavenVersion "${releaseVersion}"
   setMavenProperty 'common.version' "${releaseVersion}"
-  setMavenProperty 'connectors-test-bom.version' "${releaseVersion}"
 
   mvn deploy \
     --errors \
@@ -35,7 +34,6 @@ main() (
 
   setMavenVersion "${postReleaseVersion}"
   setMavenProperty 'common.version' "${postReleaseVersion}"
-  setMavenProperty 'connectors-test-bom.version' "${postReleaseVersion}"
 
   git add --update
   git commit --message "[jenkins-release] Prepare for next development iteration ${postReleaseVersion}"

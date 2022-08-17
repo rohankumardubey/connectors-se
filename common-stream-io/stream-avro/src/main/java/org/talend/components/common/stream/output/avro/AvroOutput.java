@@ -104,13 +104,15 @@ public abstract class AvroOutput implements AutoCloseable {
 
     private static class Headless extends AvroOutput {
 
-        private final GenericDatumWriter<GenericRecord> datumWriter;
+        private GenericDatumWriter<GenericRecord> datumWriter;
+
+        private final Schema initialSchema;
 
         private BinaryEncoder out;
 
-        public Headless(final TargetFinder destination, Schema schema) {
+        public Headless(final TargetFinder destination, final Schema schema) {
             super(destination);
-            datumWriter = new GenericDatumWriter<>(schema);
+            this.initialSchema = schema;
         }
 
         @Override
@@ -121,6 +123,11 @@ public abstract class AvroOutput implements AutoCloseable {
         @Override
         protected void first(GenericRecord firstRecord) throws IOException {
             this.out = EncoderFactory.get().binaryEncoder(destination(), null);
+            final Schema recordSchema = firstRecord.getSchema();
+            if (!this.compatibleSchema(recordSchema)) {
+                throw new IllegalArgumentException("Record schema not compatible with init schema");
+            }
+            this.datumWriter = new GenericDatumWriter<>(recordSchema);
         }
 
         @Override
@@ -131,6 +138,10 @@ public abstract class AvroOutput implements AutoCloseable {
         @Override
         public void close() throws IOException {
             out.flush();
+        }
+
+        private boolean compatibleSchema(final Schema recordSchema) {
+            return new AvroSchemaComparator(this.initialSchema, recordSchema).areSchemaCompatible();
         }
     }
 }

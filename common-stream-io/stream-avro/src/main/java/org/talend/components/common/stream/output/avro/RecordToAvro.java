@@ -37,18 +37,28 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
 
     private org.apache.avro.Schema avroSchema;
 
+    private boolean isSchemaFixed = false;
+
     private final String currentRecordNamespace;
 
     private Schema cachedSchema;
 
-    public RecordToAvro(String currentRecordNamespace) {
-        assert currentRecordNamespace != null : "currentRecordNamespace can't be null";
+    public RecordToAvro(final String currentRecordNamespace) {
+        if (currentRecordNamespace == null) {
+            throw new IllegalArgumentException("currentRecordNamespace can't be null");
+        }
         this.currentRecordNamespace = currentRecordNamespace;
+    }
+
+    public RecordToAvro(final org.apache.avro.Schema givenSchema) {
+        this.currentRecordNamespace = "";
+        this.avroSchema = givenSchema;
+        this.isSchemaFixed = true;
     }
 
     @Override
     public GenericRecord fromRecord(final Record record) {
-        if (avroSchema == null || !(Objects.equals(this.cachedSchema, record.getSchema()))) {
+        if (!this.isSchemaFixed && (avroSchema == null || !(Objects.equals(this.cachedSchema, record.getSchema())))) {
             this.cachedSchema = record.getSchema();
             avroSchema = fromRecordSchema(record.getSchema());
         }
@@ -153,7 +163,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
         case FLOAT:
             OptionalDouble optionalFloat = fromRecord.getOptionalFloat(name);
             if (optionalFloat.isPresent()) {
-                toRecord.put(name, Double.valueOf(optionalFloat.getAsDouble()).floatValue());
+                toRecord.put(name, (float) optionalFloat.getAsDouble());
             } else {
                 toRecord.put(name, null);
             }
