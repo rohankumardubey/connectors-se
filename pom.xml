@@ -94,7 +94,7 @@
         <jackson-databind.version>2.13.2.2</jackson-databind.version> <!--in most cases should be equal to jackson-bom-->
         <jackson-codehaus.version>1.9.16-TALEND</jackson-codehaus.version>
 
-        <jsoup.version>1.14.3</jsoup.version>
+        <jsoup.version>1.15.3</jsoup.version>
         <protobuf-java.version>3.19.2</protobuf-java.version>
 
         <tcomp0.version>0.23.2</tcomp0.version> <!-- until they are rewritten -->
