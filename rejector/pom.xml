@@ -9,11 +9,9 @@
     </parent>
 
     <artifactId>rejector</artifactId>
-    <version>1.35.0-SNAPSHOT</version>
+    <version>1.35.1</version>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
         <validation.placeholder>true</validation.placeholder>
         <validation.documentation>true</validation.documentation>
         <validation.wording>true</validation.wording>
@@ -21,29 +19,29 @@
 
     <build>
         <plugins>
-        <plugin>
-        <groupId>org.talend.sdk.component</groupId>
-        <artifactId>talend-component-maven-plugin</artifactId>
-        <version>${component-runtime.version}</version>
-        <executions>
-        <execution>
-            <id>talend-component-validate</id>
-            <phase>process-classes</phase>
-            <goals>
-                <goal>validate</goal>
-            </goals>
-            <configuration>
-                <validateModel>true</validateModel>
-                <validatePlaceholder>true</validatePlaceholder>
-                <validateDocumentation>true</validateDocumentation>
-                <validateWording>true</validateWording>
-                <validateMetadata>true</validateMetadata>
-                <validateExceptions>true</validateExceptions>
-                <failOnValidateExceptions>true</failOnValidateExceptions>
-            </configuration>
-        </execution>
-        </executions>
-        </plugin>
+            <plugin>
+                <groupId>org.talend.sdk.component</groupId>
+                <artifactId>talend-component-maven-plugin</artifactId>
+                <version>${component-runtime.version}</version>
+                <executions>
+                    <execution>
+                        <id>talend-component-validate</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>validate</goal>
+                        </goals>
+                        <configuration>
+                            <validateModel>true</validateModel>
+                            <validatePlaceholder>true</validatePlaceholder>
+                            <validateDocumentation>true</validateDocumentation>
+                            <validateWording>true</validateWording>
+                            <validateMetadata>true</validateMetadata>
+                            <validateExceptions>true</validateExceptions>
+                            <failOnValidateExceptions>true</failOnValidateExceptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

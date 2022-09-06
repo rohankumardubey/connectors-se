@@ -27,7 +27,8 @@ import lombok.Data;
 @Documentation("Configuration for Input Rejector.")
 @GridLayouts({ @GridLayout({ //
         @GridLayout.Row({ "dataSet" }), //
-        @GridLayout.Row({ "recordsNumber" }) //
+        @GridLayout.Row({ "recordsNumber" }), //
+        @GridLayout.Row({ "recordLatency" }), //
 }) })
 public class RejectorInputConfiguration implements Serializable {
 
@@ -39,5 +40,10 @@ public class RejectorInputConfiguration implements Serializable {
     @Documentation("Number of records.")
     @DefaultValue("50")
     private int recordsNumber = 50;
+
+    @Option
+    @Documentation("Record emitter latency.")
+    @DefaultValue("-1")
+    private int recordLatency = -1;
 
 }

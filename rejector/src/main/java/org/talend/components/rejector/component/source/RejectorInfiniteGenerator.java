@@ -44,11 +44,14 @@ public class RejectorInfiniteGenerator implements Serializable {
 
     private Schema schema;
 
+    private final long latency;
+
     public RejectorInfiniteGenerator(@Option("configuration") final RejectorInputConfiguration configuration,
             RecordBuilderFactory recordBuilder, final UiServices uiServices) {
         this.configuration = configuration;
         this.recordBuilder = recordBuilder;
         this.uiServices = uiServices;
+        latency = configuration.getRecordLatency();
     }
 
     public Record generateRecord() {
@@ -56,7 +59,7 @@ public class RejectorInfiniteGenerator implements Serializable {
         final String infos = configuration.getDataSet().getInformations();
         final String url = configuration.getDataSet().getDataStore().getUrl();
         final int i = new Random(ZonedDateTime.now().toEpochSecond()).nextInt();
-        return recordBuilder.newRecordBuilder(schema)
+        return recordBuilder.newRecordBuilder()
                 .withString("nullStr", String.format("null-%03d - %s _%s", i, infos, url))
                 .withInt("inty", 12020 * (i + inty))
                 .withDouble("doubly", 20.4 * i)
@@ -74,11 +77,16 @@ public class RejectorInfiniteGenerator implements Serializable {
 
     @Producer
     public Record generate() {
-        try {
+        if (latency > -1) {
+            try {
+                Thread.sleep(latency);
+                return generateRecord();
+            } catch (InterruptedException e) {
+                log.info("[generate] interrupted");
+            }
+        } else {
             return generateRecord();
-        } catch (Exception e) {
-            log.error("[generate] {}", e.getMessage());
-            return null;
         }
+        return null;
     }
 }
