@@ -130,7 +130,7 @@ public class CouchbaseService implements Serializable {
             Cluster cluster = Cluster.connect(urls,
                     ClusterOptions.clusterOptions(username, password).environment(environment));
             try {
-                cluster.waitUntilReady(Duration.ofSeconds(3),
+                cluster.waitUntilReady(environment.timeoutConfig().connectTimeout(),
                         WaitUntilReadyOptions.waitUntilReadyOptions().desiredState(ClusterState.ONLINE));
             } catch (UnambiguousTimeoutException e) {
                 LOG.error(i18n.connectionKO());
