@@ -109,7 +109,7 @@ public class ADLSGen2SharedKeyCommonService implements Serializable {
             }
             return itemsStream.map(PathItem::getName).collect(Collectors.toList());
         } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
+            log.error(e.getLocalizedMessage(), e);
             return Collections.emptyList();
         }
     }
@@ -134,10 +134,15 @@ public class ADLSGen2SharedKeyCommonService implements Serializable {
     public void pathDelete(@Configuration("connection") final AdlsGen2Connection connection, String filesystem,
             String path) {
         try {
-            getDataLakeSharedKeyConnectionClient(connection).getFileSystemClient(filesystem).deleteFile(path);
+            DataLakeFileClient fileClient =
+                    getDataLakeSharedKeyConnectionClient(connection).getFileSystemClient(filesystem)
+                            .getFileClient(path);
+            if (fileClient.exists()) {
+                fileClient.delete();
+            }
             log.info("Delete path " + path + " success.");
         } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
+            log.error(e.getLocalizedMessage(), e);
         }
     }
 
@@ -147,10 +152,14 @@ public class ADLSGen2SharedKeyCommonService implements Serializable {
             getDataLakeSharedKeyConnectionClient(connection).getFileSystemClient(filesystem).createFile(filePath);
             log.info("Create path " + filePath + "success.");
         } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
+            log.error(e.getLocalizedMessage(), e);
         }
     }
 
+    @Deprecated
+    /**
+     * @deprecated use loadPathFromTempFile instead
+     */
     public void appendPath(@Configuration("connection") final AdlsGen2Connection connection, String filesystem,
             String fullPath, Path tempFilePath) {
         try (InputStream inputStream = new FileInputStream(tempFilePath.toFile())) {
@@ -160,10 +169,11 @@ public class ADLSGen2SharedKeyCommonService implements Serializable {
 
             fileClient.append(inputStream, 0, Files.size(tempFilePath));
         } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
+            log.error(e.getLocalizedMessage(), e);
         }
     }
 
+    @Deprecated
     public void flushPath(@Configuration("connection") final AdlsGen2Connection connection, String filesystem,
             String fullPath, long fileLength) {
         try {
@@ -173,7 +183,20 @@ public class ADLSGen2SharedKeyCommonService implements Serializable {
             fileClient.flush(fileLength);
             log.info("Flush path " + fullPath + " success.");
         } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
+            log.error(e.getLocalizedMessage(), e);
+        }
+    }
+
+    public void loadPathFromTempFile(@Configuration("connection") final AdlsGen2Connection connection,
+            String filesystem,
+            String fullPath, Path tempFilePath) {
+        try {
+            DataLakeFileClient fileClient =
+                    getDataLakeSharedKeyConnectionClient(connection).getFileSystemClient(filesystem)
+                            .getFileClient(fullPath);
+            fileClient.uploadFromFile(tempFilePath.toString(), true);
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage(), e);
         }
     }
 }

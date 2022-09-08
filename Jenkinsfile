@@ -56,7 +56,7 @@ final String branchName = BRANCH_NAME.startsWith("PR-")
 final String escapedBranch = branchName.toLowerCase().replaceAll("/", "_")
 final boolean isOnMasterOrMaintenanceBranch = env.BRANCH_NAME == "master" || env.BRANCH_NAME.startsWith("maintenance/")
 
-final String devNexusRepository = isOnMasterOrMaintenanceBranch
+final GString devNexusRepository = isOnMasterOrMaintenanceBranch
         ? "${PRODUCTION_DEPLOYMENT_REPOSITORY}"
         : "dev_branch_snapshots/branch_${escapedBranch}"
 
@@ -148,7 +148,7 @@ pipeline {
                 ''')
         booleanParam(
                 name: 'SONAR_ANALYSIS',
-                defaultValue: false,
+                defaultValue: true,
                 description: 'Execute Sonar analysis (only for STANDARD action).')
         string(
                 name: 'EXTRA_BUILD_PARAMS',
@@ -180,7 +180,7 @@ pipeline {
                     }
 
                     echo 'Processing parameters'
-                    final List<String> buildParamsAsArray = ['--settings', env.MAVEN_SETTINGS, env.DECRYPTER_ARG]
+                    final ArrayList buildParamsAsArray = ['--settings', env.MAVEN_SETTINGS, env.DECRYPTER_ARG]
                     if (!isOnMasterOrMaintenanceBranch) {
                         // Properties documented in the pom.
                         buildParamsAsArray.addAll([
@@ -281,7 +281,16 @@ pipeline {
 
             post {
                 always {
-                    junit testResults: '*/target/surefire-reports/*.xml', allowEmptyResults: false
+                    recordIssues(
+                        enabledForFailure: true,
+                        tools: [
+                            junitParser(
+                                id: 'unit-test',
+                                name: 'Unit Test',
+                                pattern: '**/target/surefire-reports/*.xml'
+                            )
+                        ]
+                    )
                 }
             }
         }
@@ -338,7 +347,10 @@ pipeline {
             script {
                 //Only post results to Slack for Master and Maintenance branches
                 if (isOnMasterOrMaintenanceBranch) {
-                    slackSend(color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+                    slackSend(
+                        color: '#00FF00',
+                        message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})",
+                        channel: "${slackChannel}")
                 }
             }
         }
@@ -348,12 +360,42 @@ pipeline {
                 if (isOnMasterOrMaintenanceBranch) {
                     //if previous build was a success, ping channel in the Slack message
                     if ("SUCCESS".equals(currentBuild.previousBuild.result)) {
-                        slackSend(color: '#FF0000', message: "@here : NEW FAILURE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+                        slackSend(
+                            color: '#FF0000',
+                            message: "@here : NEW FAILURE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})",
+                            channel: "${slackChannel}")
                     } else {
                         //else send notification without pinging channel
-                        slackSend(color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})", channel: "${slackChannel}")
+                        slackSend(
+                            color: '#FF0000',
+                            message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})",
+                            channel: "${slackChannel}")
                     }
                 }
+            }
+        }
+        always {
+            container(tsbiImage) {
+                recordIssues(
+                    enabledForFailure: true,
+                    tools: [
+                        taskScanner(
+                            id: 'disabled',
+                            name: '@Disabled',
+                            includePattern: '**/src/**/*.java',
+                            ignoreCase: true,
+                            normalTags: '@Disabled'
+                        ),
+                        taskScanner(
+                            id: 'todo',
+                            name: 'Todo(low)/Fixme(high)',
+                            includePattern: '**/src/**/*.java',
+                            ignoreCase: true,
+                            highTags: 'FIX_ME, FIXME',
+                            lowTags: 'TO_DO, TODO'
+                        )
+                    ]
+                )
             }
         }
     }

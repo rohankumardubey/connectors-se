@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.35.0-SNAPSHOT</version>
+    <version>1.37.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Connectors SE</name>
@@ -77,10 +77,10 @@
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <component-runtime.version>1.46.0</component-runtime.version>
+        <component-runtime.version>1.48.1</component-runtime.version>
 
         <slf4j.version>1.7.36</slf4j.version>
-        <log4j-api.version>2.17.1</log4j-api.version>
+        <log4j-api.version>2.17.2</log4j-api.version>
         <reload4j.version>1.2.19</reload4j.version>
 
         <beanutils.version>1.9.4</beanutils.version>
@@ -134,7 +134,7 @@
         <!-- CVE fix -->
         <netty4.version>4.1.75.Final</netty4.version>
         <netty-tcnative-boringssl-static.version>2.0.51.Final</netty-tcnative-boringssl-static.version>
-
+        <gson.version>2.8.9</gson.version>
         <jetty.version>9.4.38.v20210224</jetty.version>
         <nimbus-jose-jwt.version>9.22</nimbus-jose-jwt.version>
         <zookeeper.version>3.4.14</zookeeper.version>
@@ -142,6 +142,9 @@
         <hadoop.version>3.2.3</hadoop.version>
         <axis2.version>1.8.0</axis2.version>
         <lombok.version>1.18.24</lombok.version>
+        <woodstox.version>6.2.8</woodstox.version>
+        <commons-configuration2.version>2.8.0</commons-configuration2.version>
+        <commons-text.version>1.9</commons-text.version>
 
         <!-- code quality enforcer default values.
              run build w/ -Pcode-quality to have a full validation -->
@@ -302,7 +305,7 @@
             <dependency>
                 <groupId>org.talend.components</groupId>
                 <artifactId>connectors-test-bom</artifactId>
-                <version>${connectors-test-bom.version}</version>
+                <version>${project.version}</version>
                 <type>pom</type>
                 <scope>test</scope>
             </dependency>
@@ -596,7 +599,11 @@
                <artifactId>protobuf-java</artifactId>
                <version>${protobuf-java.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>com.fasterxml.woodstox</groupId>
+                <artifactId>woodstox-core</artifactId>
+                <version>${woodstox.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
@@ -620,6 +627,22 @@
                 <artifactId>hamcrest-all</artifactId>
                 <version>${hamcrest.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-configuration2 -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-configuration2</artifactId>
+                <version>${commons-configuration2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${commons-text.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
