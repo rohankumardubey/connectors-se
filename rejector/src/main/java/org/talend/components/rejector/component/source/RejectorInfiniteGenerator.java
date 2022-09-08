@@ -82,11 +82,11 @@ public class RejectorInfiniteGenerator implements Serializable {
                 Thread.sleep(latency);
                 return generateRecord();
             } catch (InterruptedException e) {
-                log.info("[generate] interrupted");
+                log.info("[generate] interrupted by external process.");
+                return null;
             }
         } else {
             return generateRecord();
         }
-        return null;
     }
 }
