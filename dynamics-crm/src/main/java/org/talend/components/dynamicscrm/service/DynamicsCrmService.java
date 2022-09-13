@@ -26,8 +26,10 @@ import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.edm.Edm;
 import org.talend.components.dynamicscrm.datastore.AppType;
 import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection;
+import org.talend.components.dynamicscrm.datastore.OAuthFlow;
 import org.talend.components.dynamicscrm.source.DynamicsCrmQueryResultsIterator;
 import org.talend.ms.crm.odata.ClientConfiguration;
+import org.talend.ms.crm.odata.ClientConfiguration.WebAppPermission;
 import org.talend.ms.crm.odata.ClientConfigurationFactory;
 import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.ms.crm.odata.QueryOptionConfig;
@@ -51,11 +53,16 @@ public class DynamicsCrmService {
             clientConfig = ClientConfigurationFactory
                     .buildOAuthNativeClientConfiguration(connection.getClientId(),
                             connection.getUsername(), connection.getPassword(), connection.getAuthorizationEndpoint());
-        } else {
+        } else if (connection.getFlow() == OAuthFlow.ROPC) {
             clientConfig = ClientConfigurationFactory
                     .buildOAuthWebClientConfiguration(connection.getClientId(),
                             connection.getClientSecret(), connection.getUsername(), connection.getPassword(),
                             connection.getAuthorizationEndpoint(), ClientConfiguration.WebAppPermission.DELEGATED);
+        } else {
+            clientConfig = ClientConfigurationFactory.buildOAuthWebClientConfiguration(connection.getClientId(),
+                    connection.getClientSecret(),
+                    connection.getAuthorizationEndpoint(),
+                    WebAppPermission.APPLICATION);
         }
         clientConfig.setTimeout(connection.getTimeout());
         clientConfig.setMaxRetry(connection.getMaxRetries(), INTERVAL_TIME);
