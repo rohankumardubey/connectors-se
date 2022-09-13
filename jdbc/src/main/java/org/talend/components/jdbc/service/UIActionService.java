@@ -325,7 +325,7 @@ public class UIActionService {
                         })
                                 .filter(Objects::nonNull)
                                 .map(columnName -> new SuggestionValues.Item(columnName, columnName))
-                                .collect(toSet()));
+                                .collect(toList()));
             }
         } catch (final Exception unexpected) {
             // catch all exceptions for this ui label to return empty list
