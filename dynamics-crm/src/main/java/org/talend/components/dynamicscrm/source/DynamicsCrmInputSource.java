@@ -50,7 +50,6 @@ public class DynamicsCrmInputSource implements Serializable {
 
     private DynamicsCrmQueryResultsIterator iterator;
 
-    @Service
     private I18n i18n;
 
     private Schema schema;
@@ -60,10 +59,11 @@ public class DynamicsCrmInputSource implements Serializable {
     private final InputHelper helper;
 
     public DynamicsCrmInputSource(@Option("configuration") final DynamicsCrmInputMapperConfiguration configuration,
-            final DynamicsCrmService service, final RecordBuilderFactory builderFactory) {
+            final DynamicsCrmService service, final RecordBuilderFactory builderFactory, final I18n i18n) {
         this.configuration = configuration;
         this.service = service;
         this.builderFactory = builderFactory;
+        this.i18n = i18n;
         this.helper = new InputHelper(i18n);
     }
 
