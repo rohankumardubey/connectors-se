@@ -51,6 +51,7 @@ public class JDBCSPProcessor implements Serializable {
 
     private transient boolean init;
 
+    private transient JDBCService.JDBCDataSource dataSource;
     @Connection
     private transient java.sql.Connection connection;
 
@@ -76,7 +77,8 @@ public class JDBCSPProcessor implements Serializable {
 
             if (connection == null) {
                 try {
-                    connection = service.createJDBCConnection(configuration.getDataStore()).getConnection();
+                    dataSource = service.createJDBCConnection(configuration.getDataStore());
+                    connection = dataSource.getConnection();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -104,7 +106,15 @@ public class JDBCSPProcessor implements Serializable {
 
     @PreDestroy
     public void release() throws SQLException {
-        writer.close();
+        try {
+            if (writer != null) {
+                writer.close();
+            }
+        } finally {
+            if(dataSource!=null) {
+                dataSource.close();
+            }
+        }
     }
 
 }

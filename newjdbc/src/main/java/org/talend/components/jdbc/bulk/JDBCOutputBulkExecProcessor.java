@@ -52,6 +52,8 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
 
     private transient JDBCBulkExecRuntime runtime;
 
+    private transient JDBCService.JDBCDataSource dataSource;
+
     @Connection
     private transient java.sql.Connection connection;
 
@@ -88,8 +90,8 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
 
         if (connection == null) {
             try {
-                connection =
-                        jdbcService.createJDBCConnection(configuration.getDataSet().getDataStore()).getConnection();
+                dataSource = jdbcService.createJDBCConnection(configuration.getDataSet().getDataStore());
+                connection = dataSource.getConnection();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -109,9 +111,19 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
     @PreDestroy
     public void close() throws IOException, SQLException {
         // we import bulk file here to database by sql commmand/or database cmd
-        writer.close();
+        if(writer!=null) {
+            writer.close();
+        }
 
-        runtime.runDriver();
+        try {
+            if(runtime!=null) {
+                runtime.runDriver();
+            }
+        } finally {
+            if(dataSource!=null) {
+                dataSource.close();
+            }
+        }
     }
 
 }

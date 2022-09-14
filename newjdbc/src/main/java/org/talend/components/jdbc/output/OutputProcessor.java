@@ -55,6 +55,8 @@ public class OutputProcessor implements Serializable {
     @RuntimeContext
     private transient Map<String, Object> context;
 
+    private transient JDBCService.JDBCDataSource dataSource;
+
     @Connection
     private transient java.sql.Connection connection;
 
@@ -87,8 +89,8 @@ public class OutputProcessor implements Serializable {
 
             if (connection == null) {
                 try {
-                    connection =
-                            jdbcService.createJDBCConnection(configuration.getDataSet().getDataStore()).getConnection();
+                    dataSource = jdbcService.createJDBCConnection(configuration.getDataSet().getDataStore());
+                    connection = dataSource.getConnection();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -161,8 +163,14 @@ public class OutputProcessor implements Serializable {
 
     @PreDestroy
     public void release() throws SQLException {
-        if (writer != null) {
-            writer.close();
+        try {
+            if (writer != null) {
+                writer.close();
+            }
+        } finally {
+            if(dataSource!=null) {
+                dataSource.close();
+            }
         }
     }
 

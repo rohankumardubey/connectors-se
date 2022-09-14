@@ -45,6 +45,8 @@ public class JDBCBulkExecStandalone implements Serializable {
 
     private transient JDBCBulkExecRuntime runtime;
 
+    private transient JDBCService.JDBCDataSource dataSource;
+
     @Connection
     private transient java.sql.Connection connection;
 
@@ -61,7 +63,8 @@ public class JDBCBulkExecStandalone implements Serializable {
 
         if (connection == null) {
             try {
-                connection = service.createJDBCConnection(configuration.getDataSet().getDataStore()).getConnection();
+                dataSource = service.createJDBCConnection(configuration.getDataSet().getDataStore());
+                connection = dataSource.getConnection();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -80,6 +83,9 @@ public class JDBCBulkExecStandalone implements Serializable {
 
     @PreDestroy
     public void release() {
+        if(dataSource!=null) {
+            dataSource.close();
+        }
     }
 
 }

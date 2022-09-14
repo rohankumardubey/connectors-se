@@ -45,6 +45,7 @@ public class JDBCRowProcessor implements Serializable {
 
     private final RecordBuilderFactory recordBuilderFactory;
 
+    private transient JDBCService.JDBCDataSource dataSource;
     @Connection
     private transient java.sql.Connection connection;
 
@@ -72,8 +73,8 @@ public class JDBCRowProcessor implements Serializable {
 
             if (connection == null) {
                 try {
-                    connection =
-                            service.createJDBCConnection(configuration.getDataSet().getDataStore()).getConnection();
+                    dataSource = service.createJDBCConnection(configuration.getDataSet().getDataStore());
+                    connection = dataSource.getConnection();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -114,7 +115,15 @@ public class JDBCRowProcessor implements Serializable {
 
     @PreDestroy
     public void release() throws SQLException {
-        writer.close();
+        try {
+            if(writer!=null) {
+                writer.close();
+            }
+        } finally {
+            if(dataSource!=null) {
+                dataSource.close();
+            }
+        }
     }
 
 }
