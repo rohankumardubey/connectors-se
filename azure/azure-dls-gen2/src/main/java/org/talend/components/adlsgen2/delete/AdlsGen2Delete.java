@@ -12,11 +12,12 @@
  */
 package org.talend.components.adlsgen2.delete;
 
+import java.io.*;
+
 import com.azure.core.util.Context;
 import com.azure.storage.file.datalake.DataLakeDirectoryClient;
 import com.azure.storage.file.datalake.DataLakeFileSystemClient;
 import com.azure.storage.file.datalake.DataLakeServiceClient;
-import lombok.extern.slf4j.Slf4j;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
 import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 import org.talend.components.adlsgen2.service.AdlsGen2Service;
@@ -30,10 +31,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.api.standalone.DriverRunner;
 import org.talend.sdk.component.api.standalone.RunAtDriver;
 
-import java.io.Serializable;
-import java.time.Duration;
-
-import static java.time.temporal.ChronoUnit.SECONDS;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Version(1)
@@ -72,7 +70,7 @@ public class AdlsGen2Delete implements Serializable {
             DataLakeDirectoryClient directoryClient =
                     fileSystemClient.getDirectoryClient(configuration.getBlobPath());
             directoryClient.deleteWithResponse(configuration.isRecursive(), null,
-                    Duration.of(injectedConnection.getTimeout().longValue(), SECONDS), Context.NONE);
+                    null, Context.NONE);
         } catch (RuntimeException e) {
             if (configuration.isDieOnError()) {
                 throw new AdlsGen2RuntimeException(e.getMessage());

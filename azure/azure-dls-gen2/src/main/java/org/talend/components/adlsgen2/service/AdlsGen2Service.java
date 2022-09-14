@@ -12,38 +12,30 @@
  */
 package org.talend.components.adlsgen2.service;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.talend.components.adlsgen2.common.format.FileFormat;
+import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
+import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
+import org.talend.sdk.component.api.service.Service;
 import com.azure.core.credential.AzureSasCredential;
 import com.azure.core.http.rest.PagedIterable;
-import com.azure.core.util.Configuration;
-import com.azure.core.util.ConfigurationBuilder;
-import com.azure.core.util.Context;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.storage.common.StorageSharedKeyCredential;
-import com.azure.storage.common.implementation.Constants;
 import com.azure.storage.file.datalake.DataLakeDirectoryClient;
 import com.azure.storage.file.datalake.DataLakeFileClient;
 import com.azure.storage.file.datalake.DataLakeFileSystemClient;
 import com.azure.storage.file.datalake.DataLakeServiceClient;
 import com.azure.storage.file.datalake.DataLakeServiceClientBuilder;
-import com.azure.storage.file.datalake.models.DataLakeRequestConditions;
 import com.azure.storage.file.datalake.models.FileSystemItem;
-import com.azure.storage.file.datalake.models.ListFileSystemsOptions;
 import com.azure.storage.file.datalake.models.PathItem;
 import lombok.extern.slf4j.Slf4j;
-import org.talend.components.adlsgen2.common.format.FileFormat;
-import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
-import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
-import org.talend.sdk.component.api.service.Service;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.time.temporal.ChronoUnit.SECONDS;
 
 @Slf4j
 @Service
@@ -52,9 +44,7 @@ public class AdlsGen2Service {
     @SuppressWarnings("unchecked")
     public List<String> filesystemList(final AdlsGen2Connection connection) {
         DataLakeServiceClient client = getDataLakeConnectionClient(connection);
-        return client
-                .listFileSystems(new ListFileSystemsOptions(),
-                        Duration.of(connection.getTimeout().longValue(), SECONDS))
+        return client.listFileSystems()
                 .stream()
                 .map(FileSystemItem::getName)
                 .collect(Collectors.toList());
@@ -92,9 +82,7 @@ public class AdlsGen2Service {
                 .getFileSystemClient(dataSet.getFilesystem())
                 .getDirectoryClient(extractFolderPath(blobName))
                 .getFileClient(extractFileName(blobName))
-                .existsWithResponse(Duration.of(dataSet.getConnection().getTimeout().longValue(), SECONDS),
-                        Context.NONE)
-                .getValue();
+                .exists();
     }
 
     @SuppressWarnings("unchecked")
@@ -109,30 +97,20 @@ public class AdlsGen2Service {
                 .getDirectoryClient(blob.getDirectory())
                 .getFileClient(blob.getFileName());
         return blobFileClient.openInputStream().getInputStream();
-
     }
 
     @SuppressWarnings("unchecked")
     public boolean pathCreate(AdlsGen2DataSet dataSet) {
         DataLakeServiceClient client = getDataLakeConnectionClient(dataSet.getConnection());
-        return pathCreate(client, dataSet.getFilesystem(), dataSet.getBlobPath(), true,
-                dataSet.getConnection().getTimeout());
+        return pathCreate(client, dataSet.getFilesystem(), dataSet.getBlobPath(), true);
     }
 
-    public boolean pathCreate(DataLakeServiceClient client, String fileSystem, String blobPath, boolean overwrite,
-            Integer timeout) {
+    public boolean pathCreate(DataLakeServiceClient client, String fileSystem, String blobPath, boolean overwrite) {
         DataLakeFileSystemClient fsClient =
                 client.getFileSystemClient(fileSystem);
         // TODO is it OK to have current file path in dataset in the folder option?
-        DataLakeRequestConditions requestConditions = new DataLakeRequestConditions();
-        if (!overwrite) {
-            requestConditions.setIfNoneMatch(Constants.HeaderConstants.ETAG_WILDCARD);
-        }
-        final DataLakeFileClient fileClient = fsClient
-                .createFileWithResponse(blobPath, null, null, null, null, requestConditions,
-                        Duration.of(timeout, SECONDS), Context.NONE)
-                .getValue();
-        return fileClient.existsWithResponse(Duration.of(timeout, SECONDS), Context.NONE).getValue();
+        DataLakeFileClient fileClient = fsClient.createFile(blobPath, overwrite);
+        return fileClient.exists();
     }
 
     @SuppressWarnings("unchecked")
@@ -142,8 +120,7 @@ public class AdlsGen2Service {
                 client.getFileSystemClient(dataSet.getFilesystem());
         DataLakeFileClient fileClient = fsClient.getFileClient(dataSet.getBlobPath());
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(content)) {
-            fileClient.appendWithResponse(inputStream, position, content.length, null, null,
-                    Duration.of(dataSet.getConnection().getTimeout().longValue(), SECONDS), Context.NONE);
+            fileClient.append(inputStream, position, content.length);
         } catch (IOException e) {
             log.warn("[Problem here]", e); // FIXME
         }
@@ -162,14 +139,8 @@ public class AdlsGen2Service {
         DataLakeServiceClient client = getDataLakeConnectionClient(dataSet.getConnection());
         DataLakeFileSystemClient fsClient =
                 client.getFileSystemClient(dataSet.getFilesystem());
-
         DataLakeFileClient fileClient = fsClient.getFileClient(dataSet.getBlobPath());
-        DataLakeRequestConditions requestConditions = new DataLakeRequestConditions();
-        fileClient
-                .flushWithResponse(position, false, false, null, requestConditions,
-                        Duration.of(dataSet.getConnection().getTimeout().longValue(), SECONDS), Context.NONE)
-                .getValue();
-
+        fileClient.flush(position, true);
     }
 
     public DataLakeServiceClient getDataLakeConnectionClient(AdlsGen2Connection connection) {
@@ -189,11 +160,7 @@ public class AdlsGen2Service {
                     .clientSecret(connection.getClientSecret())
                     .build());
         }
-        final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
-                .putProperty(Configuration.PROPERTY_AZURE_REQUEST_CONNECT_TIMEOUT,
-                        String.valueOf(connection.getTimeout() * 1000));
         return builder.endpoint(connection.apiUrl())
-                .configuration(configurationBuilder.build())
                 .buildClient();
     }
 
@@ -215,8 +182,7 @@ public class AdlsGen2Service {
                 client.getFileSystemClient(filesystem);
         DataLakeDirectoryClient directoryClient = fileSystemClient
                 .getDirectoryClient(blobPath);
-        PagedIterable<PathItem> pathItems = directoryClient.listPaths(false, false, null,
-                Duration.of(adlsGen2Connection.getTimeout().longValue(), SECONDS));
+        PagedIterable<PathItem> pathItems = directoryClient.listPaths();
         List<BlobInformations> blobs = new ArrayList<>();
         if (includeSubDirectory) {
             pathItems
