@@ -94,11 +94,10 @@ public class AdlsGen2Put implements Serializable {
                 DataLakeFileClient fileClient = fileSystemClient.getFileClient(entry.getValue());
                 File source = new File(entry.getKey());
                 if (source.length() > 0) {
-                    // TODO TDI-48359 we cannot use Overwrite and Timeout together here
                     fileClient.uploadFromFile(entry.getKey(), configuration.isOverwrite());
                 } else {
                     service.pathCreate(serviceClient, configuration.getFilesystem(), entry.getValue(),
-                            configuration.isOverwrite(), injectedConnection.getTimeout());
+                            configuration.isOverwrite());
                 }
             } catch (RuntimeException e) {
                 if (configuration.isDieOnError()) {

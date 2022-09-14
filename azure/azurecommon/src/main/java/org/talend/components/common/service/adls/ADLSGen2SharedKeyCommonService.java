@@ -134,9 +134,7 @@ public class ADLSGen2SharedKeyCommonService implements Serializable {
     public void pathDelete(@Configuration("connection") final AdlsGen2Connection connection, String filesystem,
             String path) {
         try {
-            DataLakeFileClient fileClient =
-                    getDataLakeSharedKeyConnectionClient(connection).getFileSystemClient(filesystem)
-                            .getFileClient(path);
+            DataLakeFileClient fileClient = getDataLakeSharedKeyConnectionClient(connection).getFileSystemClient(filesystem).getFileClient(path);
             if (fileClient.exists()) {
                 fileClient.delete();
             }
