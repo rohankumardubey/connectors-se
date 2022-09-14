@@ -98,7 +98,7 @@ public class AdlsGen2Put implements Serializable {
                     fileClient.uploadFromFile(entry.getKey(), configuration.isOverwrite());
                 } else {
                     service.pathCreate(serviceClient, configuration.getFilesystem(), entry.getValue(),
-                            configuration.isOverwrite(), injectedConnection.getTimeout());
+                            configuration.isOverwrite(), configuration.getConnection().getTimeout());
                 }
             } catch (RuntimeException e) {
                 if (configuration.isDieOnError()) {
