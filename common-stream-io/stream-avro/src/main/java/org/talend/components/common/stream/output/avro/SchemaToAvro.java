@@ -115,6 +115,7 @@ public class SchemaToAvro {
             extractedSchema = org.apache.avro.Schema.createArray(nullableArrayType);
             break;
         case STRING:
+        case DECIMAL:
         case BYTES:
         case INT:
         case LONG:
@@ -162,6 +163,7 @@ public class SchemaToAvro {
         case ARRAY:
             return org.apache.avro.Schema.Type.ARRAY;
         case STRING:
+        case DECIMAL:
             return org.apache.avro.Schema.Type.STRING;
         case BYTES:
             return org.apache.avro.Schema.Type.BYTES;

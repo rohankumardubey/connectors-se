@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream.output.json;
 
+import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Iterator;
@@ -39,6 +40,7 @@ class RecordToJsonTest {
         final Record record1 = factory
                 .newRecordBuilder()
                 .withDateTime("fieldDateTime", ZonedDateTime.of(2020, 10, 10, 23, 25, 10, 0, ZoneId.systemDefault()))
+                .withDecimal("fieldDecimal", new BigDecimal("123.123"))
                 .build();
 
         final JsonObject jsonObject1 = toJson.fromRecord(record1);
@@ -46,12 +48,19 @@ class RecordToJsonTest {
         final String fieldDateTime = jsonObject1.getString("fieldDateTime");
         Assertions.assertNotNull(fieldDateTime);
         Assertions.assertTrue(fieldDateTime.startsWith("2020-10-10"));
+        final String fieldDecimal = jsonObject1.getString("fieldDecimal");
+        Assertions.assertNotNull(fieldDecimal);
+        Assertions.assertTrue(new BigDecimal(fieldDecimal).equals(new BigDecimal("123.123")));
 
-        final Record record2 = factory.newRecordBuilder().withDateTime("fieldDateTime", (ZonedDateTime) null).build();
+        final Record record2 = factory.newRecordBuilder()
+                .withDateTime("fieldDateTime", (ZonedDateTime) null)
+                .withDecimal("fieldDecimal", null)
+                .build();
 
         final JsonObject jsonObject2 = toJson.fromRecord(record2);
         Assertions.assertNotNull(jsonObject2);
         Assertions.assertTrue(jsonObject2.isNull("fieldDateTime"));
+        Assertions.assertTrue(jsonObject2.isNull("fieldDecimal"));
     }
 
     final RecordToJson toJson = new RecordToJson();

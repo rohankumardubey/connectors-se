@@ -15,11 +15,9 @@ package org.talend.components.common.stream.input.json;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import javax.json.*;
 
@@ -262,6 +260,39 @@ class JsonToRecordTest {
         Assertions.assertEquals(Schema.Type.ARRAY, subField.getType());
         final Schema subElementSchema = subField.getElementSchema();
         Assertions.assertEquals(Schema.Type.RECORD, subElementSchema.getType());
+    }
+
+    @Test
+    void toRecordWithDecimalSchema() {
+        final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
+        final Entry e1 = factory.newEntryBuilder()
+                .withType(Schema.Type.DECIMAL)
+                .withName("e1")
+                .withNullable(true)
+                .build();
+
+        final Entry e2 = factory.newEntryBuilder()
+                .withType(Schema.Type.ARRAY)
+                .withName("e2")
+                .withNullable(true)
+                .withElementSchema(factory.newSchemaBuilder(Schema.Type.DECIMAL).build())
+                .build();
+
+        final Schema schema = factory.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(e1)
+                .withEntry(e2)
+                .build();
+
+        final JsonToRecord jsonToRecord = new JsonToRecord(factory, true, schema, true);
+        final JsonObject jsonObject = Json.createObjectBuilder()
+                .add("e1", Json.createValue("123.123"))
+                .add("e2", Json.createArrayBuilder().add("123.123").add("123.124").add("123.125"))
+                .build();
+        Record record = jsonToRecord.toRecord(jsonObject);
+        Assertions.assertEquals(new BigDecimal("123.123"), record.getDecimal("e1"));
+        Collection<BigDecimal> array = record.getArray(BigDecimal.class, "e2");
+        Assertions.assertEquals(3, array.size());
+        Assertions.assertTrue(array.contains(new BigDecimal("123.124")));
     }
 
     @Test
