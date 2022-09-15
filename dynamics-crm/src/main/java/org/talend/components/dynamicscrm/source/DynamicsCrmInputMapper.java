@@ -46,8 +46,8 @@ public class DynamicsCrmInputMapper implements Serializable {
     private final I18n i18n;
 
     public DynamicsCrmInputMapper(@Option("configuration") final DynamicsCrmInputMapperConfiguration configuration,
-                                  final DynamicsCrmService service, final RecordBuilderFactory recordBuilderFactory,
-                                  final I18n i18n) {
+            final DynamicsCrmService service, final RecordBuilderFactory recordBuilderFactory,
+            final I18n i18n) {
         this.configuration = configuration;
         this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
