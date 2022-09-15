@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream.input.json;
 
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 
@@ -168,6 +169,26 @@ public class JsonToRecord {
             }
         }
             break;
+        case DECIMAL: {
+            // we store decimal as string for precision, as worry json number type is not good for that
+            final JsonValue jsonValue = json.get(jsonName);
+            if (jsonValue != null) {
+                if (jsonValue.getValueType() == JsonValue.ValueType.STRING) {
+                    String content = ((JsonString) jsonValue).getString();
+                    if (content != null && !content.isEmpty()) {
+                        builder.withDecimal(entry, new BigDecimal(content));
+                    }
+                } else if (jsonValue.getValueType() == JsonValue.ValueType.NUMBER) {
+                    if (jsonValue instanceof JsonNumber) {
+                        BigDecimal decimal = ((JsonNumber) jsonValue).bigDecimalValue();
+                        if (decimal != null) {
+                            builder.withDecimal(entry, decimal);
+                        }
+                    }
+                }
+            }
+        }
+            break;
         case INT: {
             int value = json.getInt(jsonName);
             builder.withInt(entry, value);
@@ -232,6 +253,9 @@ public class JsonToRecord {
         case STRING:
             result = json.stream().map(this::forceToString).collect(Collectors.toList());
             break;
+        case DECIMAL:
+            result = json.stream().map(this::toDecimal).collect(Collectors.toList());
+            break;
         case LONG:
             result = json.stream().map(JsonNumber.class::cast).map(JsonNumber::longValue).collect(Collectors.toList());
             break;
@@ -253,6 +277,15 @@ public class JsonToRecord {
         }
 
         return result;
+    }
+
+    private BigDecimal toDecimal(final JsonValue jsonValue) {
+        String content = forceToString(jsonValue);
+        if (content != null && !content.isEmpty()) {
+            return new BigDecimal(content);
+        } else {
+            return null;
+        }
     }
 
     private String forceToString(final JsonValue value) {

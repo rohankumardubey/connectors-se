@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream.output.json;
 
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -115,6 +116,15 @@ public class RecordToJson implements RecordConverter<JsonObject, Void> {
             break;
         case LONG:
             json.add(fieldName, record.getLong(fieldName));
+            break;
+        case DECIMAL:
+            // worry json ser/desr lose precision for decimal, also here keep like before for safe
+            BigDecimal decimal = record.getDecimal(fieldName);
+            if (decimal != null) {
+                json.add(fieldName, decimal.toString());
+            } else {
+                json.addNull(fieldName);
+            }
             break;
         case FLOAT:
             json.add(fieldName, record.getFloat(fieldName));
