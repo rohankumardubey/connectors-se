@@ -92,7 +92,7 @@
     <beanutils.version>1.9.4</beanutils.version>
 
     <beam.version>2.32.0</beam.version>
-    <spark.version>3.0.1</spark.version>
+    <spark.version>3.2.2</spark.version>
     <shrinkwrap.version>3.1.4</shrinkwrap.version>
     <avro.version>1.8.2</avro.version>
     <jackson.version>2.13.2</jackson.version>
