@@ -35,4 +35,8 @@ public class JsonConfiguration implements ContentFormat {
     @Documentation("Force json number to double.")
     private boolean forceDouble = true;
 
+    @Option
+    @Documentation("New field to test TDI-47728, don't merge.")
+    private String newField;
+
 }
