@@ -14,6 +14,7 @@ package org.talend.components.dynamicscrm.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import javax.naming.AuthenticationException;
@@ -33,6 +34,7 @@ import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.ms.crm.odata.QueryOptionConfig;
 import org.talend.sdk.component.api.service.Service;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -60,7 +62,21 @@ public class DynamicsCrmService {
         clientConfig.setTimeout(connection.getTimeout());
         clientConfig.setMaxRetry(connection.getMaxRetries(), INTERVAL_TIME);
         clientConfig.setReuseHttpClient(false);
-        return new DynamicsCRMClient(clientConfig, connection.getServiceRootUrl(), entitySet);
+        return DynamicsCrmService
+                .invokeInLoader(() -> new DynamicsCRMClient(clientConfig, connection.getServiceRootUrl(), entitySet),
+                        getClass().getClassLoader());
+
+    }
+
+    @SneakyThrows
+    public static <T> T invokeInLoader(final Callable<T> callable, final ClassLoader loader) {
+        final ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(loader);
+        try {
+            return callable.call();
+        } finally {
+            Thread.currentThread().setContextClassLoader(oldLoader);
+        }
     }
 
     public List<String> getEntitySetNames(DynamicsCrmConnection connection) {
