@@ -171,7 +171,7 @@ public class JDBCService implements Serializable {
     @HealthCheck("CheckConnection")
     public HealthCheckStatus validateBasicDataStore(@Option final JDBCDataStore dataStore) {
         try (final JDBCDataSource dataSource = this.createJDBCConnection(dataStore);
-             final Connection ignored = dataSource.getConnection()) {
+                final Connection ignored = dataSource.getConnection()) {
 
         } catch (Exception e) {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, e.getMessage());
@@ -219,7 +219,8 @@ public class JDBCService implements Serializable {
 
     private List<String> getSchemaNames(final JDBCDataStore dataStore) throws SQLException {
         List<String> result = new ArrayList<>();
-        try (final JDBCDataSource dataSource = createJDBCConnection(dataStore);final Connection conn = dataSource.getConnection()) {
+        try (final JDBCDataSource dataSource = createJDBCConnection(dataStore);
+                final Connection conn = dataSource.getConnection()) {
             DatabaseMetaData dbMetaData = conn.getMetaData();
 
             Set<String> tableTypes = getAvailableTableTypes(dbMetaData);
@@ -285,19 +286,21 @@ public class JDBCService implements Serializable {
     }
 
     private static final String GLOBAL_CONNECTION_POOL_KEY = "GLOBAL_CONNECTION_POOL";
+
     private static final String KEY_DB_DATASOURCES_RAW = "KEY_DB_DATASOURCES_RAW";
 
     private Connection createConnectionOrGetFromSharedConnectionPoolOrDataSource(final JDBCDataStore dataStore,
-                                                                                       final Map<String, Object> context, final boolean readonly) throws SQLException, ClassNotFoundException {
+            final Map<String, Object> context, final boolean readonly) throws SQLException, ClassNotFoundException {
         Connection conn = null;
-        log.debug("Connection attempt to '{}' with the username '{}'",dataStore.getJdbcUrl(),dataStore.getUserId());
+        log.debug("Connection attempt to '{}' with the username '{}'", dataStore.getJdbcUrl(), dataStore.getUserId());
 
         if (dataStore.isUseSharedDBConnection()) {
             SharedConnectionsPool sharedConnectionPool = (SharedConnectionsPool) context
                     .get(GLOBAL_CONNECTION_POOL_KEY);
-            log.debug("Uses shared connection with name: '{}'",dataStore.getSharedDBConnectionName());
-            log.debug("Connection URL: '{}', User name: '{}'",dataStore.getJdbcUrl(),dataStore.getUserId());
-            conn = sharedConnectionPool.getDBConnection(dataStore.getJdbcClass(), dataStore.getJdbcUrl(), dataStore.getUserId(),
+            log.debug("Uses shared connection with name: '{}'", dataStore.getSharedDBConnectionName());
+            log.debug("Connection URL: '{}', User name: '{}'", dataStore.getJdbcUrl(), dataStore.getUserId());
+            conn = sharedConnectionPool.getDBConnection(dataStore.getJdbcClass(), dataStore.getJdbcUrl(),
+                    dataStore.getUserId(),
                     dataStore.getPassword(), dataStore.getSharedDBConnectionName());
         } else if (dataStore.isUseDataSource()) {
             java.util.Map<String, DataSource> dataSources = (java.util.Map<String, javax.sql.DataSource>) context
@@ -305,7 +308,8 @@ public class JDBCService implements Serializable {
             if (dataSources != null) {
                 DataSource datasource = dataSources.get(dataStore.getDataSourceAlias());
                 if (datasource == null) {
-                    throw new RuntimeException("No DataSource with alias: " + dataStore.getDataSourceAlias() + " available!");
+                    throw new RuntimeException(
+                            "No DataSource with alias: " + dataStore.getDataSourceAlias() + " available!");
                 }
                 conn = datasource.getConnection();
                 if (conn == null) {
@@ -315,12 +319,13 @@ public class JDBCService implements Serializable {
                 conn = createConnection(dataStore);
             }
         } else {
-            //TODO check this readonly before: conn = createConnection(dataStore, readonly);
+            // TODO check this readonly before: conn = createConnection(dataStore, readonly);
             conn = createConnection(dataStore);
             // somebody add it for performance for dataprep
             if (readonly) {
                 try {
-                    conn.setReadOnly(true);//TODO check why we get the value by "setting.isReadOnly()" before, here now use "true" directly
+                    conn.setReadOnly(true);// TODO check why we get the value by "setting.isReadOnly()" before, here now
+                                           // use "true" directly
                 } catch (SQLException e) {
                     log.debug("JDBC driver '{}' does not support read only mode.", dataStore.getJdbcClass(), e);
                 }
@@ -466,7 +471,8 @@ public class JDBCService implements Serializable {
             mapping = CommonUtils.getMapping(mappingFileDir, dataSet.getDataStore(), null, dbTypeInComponentSetting);
         }
 
-        try (final JDBCDataSource dataSource = createJDBCConnection(dataSet.getDataStore());final Connection conn = dataSource.getConnection()) {
+        try (final JDBCDataSource dataSource = createJDBCConnection(dataSet.getDataStore());
+                final Connection conn = dataSource.getConnection()) {
             try (Statement statement = conn.createStatement()) {
                 try (ResultSet resultSet = statement.executeQuery(dataSet.getSqlQuery())) {
                     ResultSetMetaData metaData = resultSet.getMetaData();
@@ -490,7 +496,8 @@ public class JDBCService implements Serializable {
             mapping = CommonUtils.getMapping(mappingFileDir, dataSet.getDataStore(), null, dbTypeInComponentSetting);
         }
 
-        try (final JDBCDataSource dataSource = createJDBCConnection(dataSet.getDataStore());final Connection conn = dataSource.getConnection()) {
+        try (final JDBCDataSource dataSource = createJDBCConnection(dataSet.getDataStore());
+                final Connection conn = dataSource.getConnection()) {
             JDBCTableMetadata tableMetadata = new JDBCTableMetadata();
             tableMetadata.setDatabaseMetaData(conn.getMetaData()).setTablename(dataSet.getTableName());
 

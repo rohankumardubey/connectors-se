@@ -51,6 +51,7 @@ public class QueryEmitter implements Serializable {
     private transient Map<String, Object> context;
 
     private transient JDBCService.JDBCDataSource dataSource;
+
     @Connection
     private transient java.sql.Connection connection;
 
@@ -96,11 +97,11 @@ public class QueryEmitter implements Serializable {
     @PreDestroy
     public void release() throws SQLException {
         try {
-            if(reader!=null) {
+            if (reader != null) {
                 reader.close();
             }
-        }finally {
-            if(dataSource!=null) {
+        } finally {
+            if (dataSource != null) {
                 dataSource.close();
             }
         }

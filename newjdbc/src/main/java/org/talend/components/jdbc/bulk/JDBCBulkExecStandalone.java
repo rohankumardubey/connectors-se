@@ -83,7 +83,7 @@ public class JDBCBulkExecStandalone implements Serializable {
 
     @PreDestroy
     public void release() {
-        if(dataSource!=null) {
+        if (dataSource != null) {
             dataSource.close();
         }
     }

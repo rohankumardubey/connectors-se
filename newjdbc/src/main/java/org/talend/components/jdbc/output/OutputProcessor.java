@@ -168,7 +168,7 @@ public class OutputProcessor implements Serializable {
                 writer.close();
             }
         } finally {
-            if(dataSource!=null) {
+            if (dataSource != null) {
                 dataSource.close();
             }
         }

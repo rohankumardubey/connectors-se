@@ -46,6 +46,7 @@ public class JDBCRowProcessor implements Serializable {
     private final RecordBuilderFactory recordBuilderFactory;
 
     private transient JDBCService.JDBCDataSource dataSource;
+
     @Connection
     private transient java.sql.Connection connection;
 
@@ -116,11 +117,11 @@ public class JDBCRowProcessor implements Serializable {
     @PreDestroy
     public void release() throws SQLException {
         try {
-            if(writer!=null) {
+            if (writer != null) {
                 writer.close();
             }
         } finally {
-            if(dataSource!=null) {
+            if (dataSource != null) {
                 dataSource.close();
             }
         }

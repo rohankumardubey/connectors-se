@@ -111,16 +111,16 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
     @PreDestroy
     public void close() throws IOException, SQLException {
         // we import bulk file here to database by sql commmand/or database cmd
-        if(writer!=null) {
+        if (writer != null) {
             writer.close();
         }
 
         try {
-            if(runtime!=null) {
+            if (runtime != null) {
                 runtime.runDriver();
             }
         } finally {
-            if(dataSource!=null) {
+            if (dataSource != null) {
                 dataSource.close();
             }
         }

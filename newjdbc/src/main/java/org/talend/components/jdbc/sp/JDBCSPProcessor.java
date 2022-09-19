@@ -52,6 +52,7 @@ public class JDBCSPProcessor implements Serializable {
     private transient boolean init;
 
     private transient JDBCService.JDBCDataSource dataSource;
+
     @Connection
     private transient java.sql.Connection connection;
 
@@ -111,7 +112,7 @@ public class JDBCSPProcessor implements Serializable {
                 writer.close();
             }
         } finally {
-            if(dataSource!=null) {
+            if (dataSource != null) {
                 dataSource.close();
             }
         }
