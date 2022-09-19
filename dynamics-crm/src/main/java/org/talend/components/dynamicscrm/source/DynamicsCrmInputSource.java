@@ -70,8 +70,8 @@ public class DynamicsCrmInputSource implements Serializable {
     @PostConstruct
     public void init() {
         try {
-            client = service
-                    .createClient(configuration.getDataset().getDatastore(), configuration.getDataset().getEntitySet());
+            client = DynamicsCrmService.invokeInLoader(() -> service
+                    .createClient(configuration.getDataset().getDatastore(), configuration.getDataset().getEntitySet()), getClass().getClassLoader());
         } catch (AuthenticationException e) {
             throw new DynamicsCrmException(i18n.authenticationFailed(e.getMessage()));
         }

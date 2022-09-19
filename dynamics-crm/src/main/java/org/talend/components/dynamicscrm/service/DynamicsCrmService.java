@@ -62,14 +62,11 @@ public class DynamicsCrmService {
         clientConfig.setTimeout(connection.getTimeout());
         clientConfig.setMaxRetry(connection.getMaxRetries(), INTERVAL_TIME);
         clientConfig.setReuseHttpClient(false);
-        return DynamicsCrmService
-                .invokeInLoader(() -> new DynamicsCRMClient(clientConfig, connection.getServiceRootUrl(), entitySet),
-                        getClass().getClassLoader());
-
+        return new DynamicsCRMClient(clientConfig, connection.getServiceRootUrl(), entitySet);
     }
 
     @SneakyThrows
-    public static <T> T invokeInLoader(final Callable<T> callable, final ClassLoader loader) {
+    public static <T> T invokeInLoader(final Callable<T> callable, final ClassLoader loader) throws AuthenticationException {
         final ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(loader);
         try {
