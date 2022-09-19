@@ -19,6 +19,8 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
+import org.talend.sdk.component.api.configuration.condition.UIScope;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -27,6 +29,8 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.List;
+
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 
 @Data
 @ToString(exclude = { "password" })
@@ -61,6 +65,7 @@ public class JDBCDataStore implements Serializable {
     // TODO new Driver bean class?
     // TODO maybe change it to List<Bean> object
     @Option
+    @ActiveIf(target = UIScope.TARGET, value = { UIScope.STUDIO_SCOPE })
     @Documentation("jdbc driver table")
     private List<Driver> jdbcDriver;// TODO can't use Driver bean class as not editable if that in ui
 
@@ -83,23 +88,27 @@ public class JDBCDataStore implements Serializable {
     // TODO how to hide it for tjdbcinput? expect only appear in tjdbcconnection
     // TODO hot to hide it for studio metadata as sure no meaning for studio metadata
     @Option
+    @ActiveIf(target = UIScope.TARGET, value = { UIScope.STUDIO_SCOPE })
     @Documentation("use or register a shared DB connection")
     private boolean useSharedDBConnection;
 
     // TODO how to pass or get the shared connection in tck runtime?
     @Option
-    @ActiveIf(target = "useSharedDBConnection", value = { "true" })
+    @ActiveIfs(operator = AND, value = { @ActiveIf(target = "useSharedDBConnection", value = { "true" }),
+            @ActiveIf(target = UIScope.TARGET, value = { UIScope.STUDIO_SCOPE }) })
     @Documentation("shared DB connection name for register or fetch")
     private String sharedDBConnectionName;
 
     @Option
+    @ActiveIf(target = UIScope.TARGET, value = { UIScope.STUDIO_SCOPE })
     @Documentation("use data source")
     private boolean useDataSource;
 
     // TODO how to pass or get the shared connection in tck runtime?
     // TODO how to hide it in cloud as sure no meaning for cloud
     @Option
-    @ActiveIf(target = "useDataSource", value = { "true" })
+    @ActiveIfs(operator = AND, value = { @ActiveIf(target = "useDataSource", value = { "true" }),
+            @ActiveIf(target = UIScope.TARGET, value = { UIScope.STUDIO_SCOPE }) })
     @Documentation("data source alias for fetch")
     private String dataSourceAlias;
 
@@ -111,6 +120,7 @@ public class JDBCDataStore implements Serializable {
     // about runtime, that only works for studio metadata to fetch schema part, not for component button runtime/job
     // runtime
     @Option
+    @ActiveIf(target = UIScope.TARGET, value = { UIScope.STUDIO_SCOPE })
     @Documentation("select db mapping file for type convert")
     private String dbMapping;
 
