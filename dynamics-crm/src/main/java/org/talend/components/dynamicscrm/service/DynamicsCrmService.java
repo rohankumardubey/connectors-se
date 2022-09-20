@@ -63,14 +63,6 @@ public class DynamicsCrmService {
         clientConfig.setTimeout(connection.getTimeout());
         clientConfig.setMaxRetry(connection.getMaxRetries(), INTERVAL_TIME);
         clientConfig.setReuseHttpClient(false);
-        try {
-            getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.AadInstanceDiscoveryProvider");
-            getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.HttpHelper");
-            getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.TelemetryHelper");
-            getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.HttpHeaders");
-        } catch (ClassNotFoundException e) {
-            throw new ComponentException("Can't load AadInstanceDiscoveryProvider");
-        }
         return new DynamicsCRMClient(clientConfig, connection.getServiceRootUrl(), entitySet);
     }
 
