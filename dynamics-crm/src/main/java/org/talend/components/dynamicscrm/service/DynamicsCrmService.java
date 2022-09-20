@@ -32,6 +32,7 @@ import org.talend.ms.crm.odata.ClientConfiguration;
 import org.talend.ms.crm.odata.ClientConfigurationFactory;
 import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.ms.crm.odata.QueryOptionConfig;
+import org.talend.sdk.component.api.exception.ComponentException;
 import org.talend.sdk.component.api.service.Service;
 
 import lombok.SneakyThrows;
@@ -62,6 +63,11 @@ public class DynamicsCrmService {
         clientConfig.setTimeout(connection.getTimeout());
         clientConfig.setMaxRetry(connection.getMaxRetries(), INTERVAL_TIME);
         clientConfig.setReuseHttpClient(false);
+        try {
+            getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.AadInstanceDiscoveryProvider");
+        } catch (ClassNotFoundException e) {
+            throw new ComponentException("Can't load AadInstanceDiscoveryProvider");
+        }
         return new DynamicsCRMClient(clientConfig, connection.getServiceRootUrl(), entitySet);
     }
 
