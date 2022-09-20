@@ -67,6 +67,7 @@ public class DynamicsCrmService {
             getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.AadInstanceDiscoveryProvider");
             getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.HttpHelper");
             getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.TelemetryHelper");
+            getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.HttpHeaders");
         } catch (ClassNotFoundException e) {
             throw new ComponentException("Can't load AadInstanceDiscoveryProvider");
         }
