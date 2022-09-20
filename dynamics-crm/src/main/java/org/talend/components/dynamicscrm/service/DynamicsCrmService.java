@@ -65,6 +65,7 @@ public class DynamicsCrmService {
         clientConfig.setReuseHttpClient(false);
         try {
             getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.AadInstanceDiscoveryProvider");
+            getClass().getClassLoader().loadClass("com.microsoft.aad.msal4j.HttpHelper");
         } catch (ClassNotFoundException e) {
             throw new ComponentException("Can't load AadInstanceDiscoveryProvider");
         }
