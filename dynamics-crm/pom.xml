@@ -45,7 +45,7 @@
         TIP: it is recommended to set this property into your settings.xml in an active by default profile.
         -->
         <talend.component.studioHome />
-        <talend-mscrm.version>3.10-20211021</talend-mscrm.version>
+        <talend-mscrm.version>3.14-20220707</talend-mscrm.version>
     </properties>
 
     <dependencies>
