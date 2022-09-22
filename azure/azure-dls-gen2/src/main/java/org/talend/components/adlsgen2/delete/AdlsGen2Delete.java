@@ -72,7 +72,7 @@ public class AdlsGen2Delete implements Serializable {
             DataLakeDirectoryClient directoryClient =
                     fileSystemClient.getDirectoryClient(configuration.getBlobPath());
             directoryClient.deleteWithResponse(configuration.isRecursive(), null,
-                    Duration.of(injectedConnection.getTimeout().longValue(), SECONDS), Context.NONE);
+                    Duration.of(configuration.getConnection().getTimeout().longValue(), SECONDS), Context.NONE);
         } catch (RuntimeException e) {
             if (configuration.isDieOnError()) {
                 throw new AdlsGen2RuntimeException(e.getMessage());

@@ -25,6 +25,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 import static org.talend.components.adlsgen2.service.UIActionService.ACTION_FILESYSTEMS;
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
 
 @Data
 @GridLayout(value = { //
@@ -36,6 +37,7 @@ import static org.talend.components.adlsgen2.service.UIActionService.ACTION_FILE
         @GridLayout.Row("keepRemoteDirStructure"), //
         @GridLayout.Row("dieOnError"), //
 })
+@GridLayout(names = ADVANCED, value = { @GridLayout.Row({ "connection" }) })
 @Documentation("ADLS get configuration")
 public class AdlsGen2GetConfiguration implements Serializable {
 
