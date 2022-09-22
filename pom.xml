@@ -85,7 +85,7 @@
 
         <beanutils.version>1.9.4</beanutils.version>
 
-        <beam.version>2.36.0</beam.version>
+        <beam.version>2.37.0</beam.version>
         <spark.version>3.2.2</spark.version>
         <shrinkwrap.version>3.1.4</shrinkwrap.version>
         <avro.version>1.8.2</avro.version>
