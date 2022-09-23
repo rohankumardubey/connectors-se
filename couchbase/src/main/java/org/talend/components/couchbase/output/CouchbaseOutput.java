@@ -148,6 +148,7 @@ public class CouchbaseOutput implements Serializable {
         case DOUBLE:
             return rec.getDouble(entryName);
         case STRING:
+        case DECIMAL:
             return createJsonFromString(rec.getString(entryName));
         case BOOLEAN:
             return rec.getBoolean(entryName);

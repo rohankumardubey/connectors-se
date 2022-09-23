@@ -157,6 +157,7 @@ public class MongoCommonOutput implements Serializable {
         case DOUBLE:
             return record.getDouble(entryName);
         case STRING:
+        case DECIMAL:
             return createJsonFromString(record.getString(entryName));
         case BOOLEAN:
             return record.getBoolean(entryName);

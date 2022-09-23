@@ -93,6 +93,7 @@ public class RecordToDocument {
             document.put(fieldName, array);
             break;
         case STRING:
+        case DECIMAL:
             DocumentToRecord.DataType origin_datatype = getOriginDataType(entry);
             document.put(fieldName, convertToMongoDataTypeIfNecessary(record.getString(fieldName), origin_datatype));
             break;
