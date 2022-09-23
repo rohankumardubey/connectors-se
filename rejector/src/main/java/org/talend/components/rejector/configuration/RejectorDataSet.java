@@ -44,27 +44,27 @@ public class RejectorDataSet implements Serializable {
     private RejectorDataStore dataStore;
 
     @Option
-    @Documentation("Schema.")
+    @Documentation(value = "Schema.", tooltip = true)
     @Structure(type = Structure.Type.OUT, discoverSchema = "RejectorDataSet")
     private List<String> schema;
 
     @Option
-    @Documentation("Misc informations.")
+    @Documentation(value = "Misc informations.", tooltip = true)
     private String informations;
 
     @Option
-    @Documentation("Time informations.")
+    @Documentation(value = "Time informations.", tooltip = true)
     private LocalTime timy;
 
     @Option
-    @Documentation("Date informations.")
+    @Documentation(value = "Date informations.", tooltip = true)
     private LocalDate daty;
 
     @Option
-    @Documentation("An Int.")
+    @Documentation(value = "An Int.", tooltip = true)
     private Integer anInteger;
 
     @Option
-    @Documentation("Zoned informations.")
+    @Documentation(value = "Zoned informations.", tooltip = true)
     private ZonedDateTime zndaty;
 }

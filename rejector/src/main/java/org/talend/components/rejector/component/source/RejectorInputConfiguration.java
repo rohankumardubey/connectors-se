@@ -37,12 +37,12 @@ public class RejectorInputConfiguration implements Serializable {
     private RejectorDataSet dataSet;
 
     @Option
-    @Documentation("Number of records.")
+    @Documentation(value = "Number of records.", tooltip = true)
     @DefaultValue("50")
     private int recordsNumber = 50;
 
     @Option
-    @Documentation("Record emitter latency.")
+    @Documentation(value = "Record emitter latency.", tooltip = true)
     @DefaultValue("-1")
     private int recordLatency = -1;
 

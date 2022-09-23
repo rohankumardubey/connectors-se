@@ -30,7 +30,7 @@ import lombok.Data;
 public class RejectorDataStore implements Serializable {
 
     @Option
-    @Documentation("URL.")
+    @Documentation(value = "URL.", tooltip = true)
     private String url;
 
 }
