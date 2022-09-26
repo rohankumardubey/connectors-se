@@ -205,12 +205,20 @@ pipeline {
                 container(tsbiImage) {
                     withCredentials([nexusCredentials, gitCredentials, artifactoryCredentials]) {
                         script {
-                            if (params.POST_LOGIN_SCRIPT?.trim()) {
-                                try {
+                            try {
+                                //Clean possible M2 corruptions - TDI-48532
+                                echo 'Clean possible M2 corruptions'
+                                sh """
+                                    grep --recursive --word-regexp --files-with-matches --regexp '\u0000' ~/.m2/repository | xargs -I % rm %
+                                """
+
+                                //Execute content of Post Login Script parameter
+                                if (params.POST_LOGIN_SCRIPT?.trim()) {
                                     sh "bash -c '${params.POST_LOGIN_SCRIPT}'"
-                                } catch (ignored) {
-                                    // The job must not fail if the script fails
                                 }
+                            }
+                            catch (ignored) {
+                                // The job must not fail if the script fails
                             }
                         }
                     }
