@@ -89,17 +89,17 @@ public class MongoDBTest {
     public static void beforeClass(@TempDir Path tempDir) throws Exception {
         port = getAvailableLocalPort();
         log.info("Starting MongoDB on port {}", port);
-        IMongodConfig mongodConfig = new MongodConfigBuilder()
+        MongodConfig mongodConfig = MongodConfig.builder()
                 .version(Version.Main.PRODUCTION)
-                .configServer(false)
+                .isConfigServer(false)
                 .replication(new Storage(tempDir.toFile().getPath(), null, 0))
                 .net(new Net("localhost", port, Network.localhostIsIPv6()))
-                .cmdOptions(new MongoCmdOptionsBuilder()
+                .cmdOptions(MongoCmdOptions.builder()
                         .syncDelay(10)
                         .useNoPrealloc(true)
                         .useSmallFiles(true)
                         .useNoJournal(true)
-                        .verbose(false)
+                        .isVerbose(false)
                         .build())
                 .build();
         mongodExecutable = MongodStarter.getDefaultInstance().prepare(mongodConfig);
