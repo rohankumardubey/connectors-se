@@ -14,6 +14,7 @@ package org.talend.components.jdbc.output;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.schema.SchemaInferer;
+import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -30,7 +31,7 @@ import java.util.List;
 @Slf4j
 abstract public class JDBCOutputWriter {
 
-    protected Connection conn;
+    protected JDBCService.DataSourceWrapper conn;
 
     protected int successCount;
 
@@ -82,7 +83,7 @@ abstract public class JDBCOutputWriter {
 
     protected long totalCount;
 
-    public JDBCOutputWriter(JDBCOutputConfig config, boolean useExistedConnection, Connection conn,
+    public JDBCOutputWriter(JDBCOutputConfig config, boolean useExistedConnection, JDBCService.DataSourceWrapper conn,
             RecordBuilderFactory recordBuilderFactory) {
         this.config = config;
         this.useExistedConnection = useExistedConnection;
@@ -143,7 +144,7 @@ abstract public class JDBCOutputWriter {
 
         String sql = JDBCSQLBuilder.getInstance().generateSQL4DeleteTable(config.getDataSet().getTableName());
         try {
-            try (Statement statement = conn.createStatement()) {
+            try (Statement statement = conn.getConnection().createStatement()) {
                 if (useQueryTimeout) {
                     statement.setQueryTimeout(queryTimeout);
                 }
@@ -195,7 +196,7 @@ abstract public class JDBCOutputWriter {
 
                 if (conn != null) {
                     log.debug("Committing the transaction.");
-                    conn.commit();
+                    conn.getConnection().commit();
                 }
             }
 
@@ -275,7 +276,7 @@ abstract public class JDBCOutputWriter {
                 batchCount = 0;
             }
             log.debug("Committing the transaction.");
-            conn.commit();
+            conn.getConnection().commit();
         }
 
         return result;

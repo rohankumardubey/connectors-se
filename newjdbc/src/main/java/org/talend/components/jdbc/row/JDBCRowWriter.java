@@ -15,6 +15,7 @@ package org.talend.components.jdbc.row;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.input.JDBCRuntimeUtils;
 import org.talend.components.jdbc.schema.SchemaInferer;
+import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -31,7 +32,7 @@ import java.util.List;
 @Slf4j
 public class JDBCRowWriter {
 
-    private Connection conn;
+    private JDBCService.DataSourceWrapper conn;
 
     private JDBCRowConfig config;
 
@@ -80,7 +81,7 @@ public class JDBCRowWriter {
     // TODO support this
     private boolean detectErrorOnMultipleSQL;
 
-    public JDBCRowWriter(JDBCRowConfig config, boolean useExistedConnection, Connection conn,
+    public JDBCRowWriter(JDBCRowConfig config, boolean useExistedConnection, JDBCService.DataSourceWrapper conn,
             RecordBuilderFactory recordBuilderFactory) {
         this.config = config;
         this.useExistedConnection = useExistedConnection;
@@ -114,12 +115,12 @@ public class JDBCRowWriter {
 
             if (usePreparedStatement) {
                 log.debug("Prepared statement: " + sql);
-                prepared_statement = conn.prepareStatement(sql);
+                prepared_statement = conn.getConnection().prepareStatement(sql);
                 if (useQueryTimeout) {
                     prepared_statement.setQueryTimeout(queryTimeout);
                 }
             } else {
-                statement = conn.createStatement();
+                statement = conn.getConnection().createStatement();
                 if (useQueryTimeout) {
                     statement.setQueryTimeout(queryTimeout);
                 }
@@ -206,7 +207,7 @@ public class JDBCRowWriter {
 
                 if (conn != null) {
                     log.debug("Committing the transaction.");
-                    conn.commit();
+                    conn.getConnection().commit();
                 }
             }
 
@@ -215,7 +216,7 @@ public class JDBCRowWriter {
                 // resultset
                 if (useCommit) {
                     log.debug("Committing the transaction.");
-                    conn.commit();
+                    conn.getConnection().commit();
                 }
                 log.debug("Closing connection");
                 conn.close();
@@ -332,7 +333,7 @@ public class JDBCRowWriter {
             } else {
                 commitCount = 0;
                 log.debug("Committing the transaction.");
-                conn.commit();
+                conn.getConnection().commit();
             }
         }
     }

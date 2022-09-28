@@ -18,6 +18,7 @@ import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.context.RuntimeContext;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
@@ -29,6 +30,7 @@ import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Version(1)
@@ -45,10 +47,11 @@ public class JDBCRowProcessor implements Serializable {
 
     private final RecordBuilderFactory recordBuilderFactory;
 
-    private transient JDBCService.JDBCDataSource dataSource;
-
     @Connection
-    private transient java.sql.Connection connection;
+    private transient JDBCService.DataSourceWrapper dataSource;
+
+    @RuntimeContext
+    private transient Map<String, Object> context;
 
     private transient JDBCRowWriter writer;
 
@@ -72,10 +75,10 @@ public class JDBCRowProcessor implements Serializable {
         if (!init) {
             boolean useExistedConnection = false;
 
-            if (connection == null) {
+            if (dataSource == null) {
                 try {
-                    dataSource = service.createJDBCConnection(configuration.getDataSet().getDataStore());
-                    connection = dataSource.getConnection();
+                    dataSource = service.createConnectionOrGetFromSharedConnectionPoolOrDataSource(
+                            configuration.getDataSet().getDataStore(), context, false);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -83,7 +86,7 @@ public class JDBCRowProcessor implements Serializable {
                 useExistedConnection = true;
             }
 
-            writer = new JDBCRowWriter(configuration, useExistedConnection, connection,
+            writer = new JDBCRowWriter(configuration, useExistedConnection, dataSource,
                     recordBuilderFactory);
 
             writer.open();
@@ -116,14 +119,8 @@ public class JDBCRowProcessor implements Serializable {
 
     @PreDestroy
     public void release() throws SQLException {
-        try {
-            if (writer != null) {
-                writer.close();
-            }
-        } finally {
-            if (dataSource != null) {
-                dataSource.close();
-            }
+        if (writer != null) {
+            writer.close();
         }
     }
 

@@ -17,6 +17,7 @@ import org.talend.components.jdbc.common.DBType;
 import org.talend.components.jdbc.schema.CommonUtils;
 import org.talend.components.jdbc.schema.Dbms;
 import org.talend.components.jdbc.schema.SchemaInferer;
+import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -34,7 +35,7 @@ public class JDBCInputReader {
 
     protected JDBCInputConfig config;
 
-    protected Connection conn;
+    protected JDBCService.DataSourceWrapper conn;
 
     protected ResultSet resultSet;
 
@@ -50,7 +51,7 @@ public class JDBCInputReader {
 
     private long totalCount;
 
-    public JDBCInputReader(JDBCInputConfig config, boolean useExistedConnection, Connection conn,
+    public JDBCInputReader(JDBCInputConfig config, boolean useExistedConnection, JDBCService.DataSourceWrapper conn,
             RecordBuilderFactory recordBuilderFactory) {
         this.config = config;
         this.useExistedConnection = useExistedConnection;
@@ -107,13 +108,15 @@ public class JDBCInputReader {
             if (driverClass != null && driverClass.toLowerCase().contains("mysql")) {
                 if (usePreparedStatement) {
                     log.debug("Prepared statement: " + config.getDataSet().getSqlQuery());
-                    PreparedStatement prepared_statement = conn.prepareStatement(config.getDataSet().getSqlQuery(),
-                            ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                    PreparedStatement prepared_statement = conn.getConnection()
+                            .prepareStatement(config.getDataSet().getSqlQuery(),
+                                    ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                     JDBCRuntimeUtils.setPreparedStatement(prepared_statement, config.getPreparedStatementParameters());
                     statement = prepared_statement;
                 } else {
                     log.debug("Create statement.");
-                    statement = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                    statement = conn.getConnection()
+                            .createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                 }
                 Class clazz = statement.getClass();
                 try {
@@ -130,12 +133,13 @@ public class JDBCInputReader {
             } else {
                 if (usePreparedStatement) {
                     log.debug("Prepared statement: " + config.getDataSet().getSqlQuery());
-                    PreparedStatement prepared_statement = conn.prepareStatement(config.getDataSet().getSqlQuery());
+                    PreparedStatement prepared_statement =
+                            conn.getConnection().prepareStatement(config.getDataSet().getSqlQuery());
                     JDBCRuntimeUtils.setPreparedStatement(prepared_statement, config.getPreparedStatementParameters());
                     statement = prepared_statement;
 
                 } else {
-                    statement = conn.createStatement();
+                    statement = conn.getConnection().createStatement();
                 }
             }
 

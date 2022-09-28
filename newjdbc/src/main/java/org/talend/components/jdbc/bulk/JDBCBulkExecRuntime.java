@@ -15,6 +15,7 @@ package org.talend.components.jdbc.bulk;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.dataset.JDBCTableDataSet;
 import org.talend.components.jdbc.schema.SchemaInferer;
+import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -36,14 +37,14 @@ public class JDBCBulkExecRuntime {
 
     private boolean useExistedConnection;
 
-    private Connection conn;
+    private JDBCService.DataSourceWrapper conn;
 
     private RecordBuilderFactory recordBuilderFactory;
 
     private Schema designSchema;
 
     public JDBCBulkExecRuntime(JDBCTableDataSet dataSet, JDBCBulkCommonConfig bulkCommonConfig,
-            boolean useExistedConnection, Connection conn,
+            boolean useExistedConnection, JDBCService.DataSourceWrapper conn,
             RecordBuilderFactory recordBuilderFactory) {
         // log.debug("Parameters: [{}]", "");//TODO
         this.dataSet = dataSet;
@@ -101,7 +102,7 @@ public class JDBCBulkExecRuntime {
 
     public void runDriver() throws SQLException {
         try {
-            try (Statement stmt = conn.createStatement()) {
+            try (Statement stmt = conn.getConnection().createStatement()) {
                 String bulkSql = createBulkSQL();
                 log.debug("Executing the query: '{}'", bulkSql);
                 stmt.execute(bulkSql);

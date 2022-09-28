@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.output;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -34,7 +35,8 @@ public class JDBCOutputUpdateOrInsertWriter extends JDBCOutputWriter {
 
     private PreparedStatement statementUpdate;
 
-    public JDBCOutputUpdateOrInsertWriter(JDBCOutputConfig config, boolean useExistedConnection, Connection conn,
+    public JDBCOutputUpdateOrInsertWriter(JDBCOutputConfig config, boolean useExistedConnection,
+            JDBCService.DataSourceWrapper conn,
             RecordBuilderFactory recordBuilderFactory) {
         super(config, useExistedConnection, conn, recordBuilderFactory);
     }
@@ -46,11 +48,11 @@ public class JDBCOutputUpdateOrInsertWriter extends JDBCOutputWriter {
             if (!isDynamic) {
                 sqlInsert =
                         JDBCSQLBuilder.getInstance().generateSQL4Insert(config.getDataSet().getTableName(), columnList);
-                statementInsert = conn.prepareStatement(sqlInsert);
+                statementInsert = conn.getConnection().prepareStatement(sqlInsert);
 
                 sqlUpdate =
                         JDBCSQLBuilder.getInstance().generateSQL4Update(config.getDataSet().getTableName(), columnList);
-                statementUpdate = conn.prepareStatement(sqlUpdate);
+                statementUpdate = conn.getConnection().prepareStatement(sqlUpdate);
             }
         } catch (SQLException e) {
             throw e;
@@ -77,11 +79,11 @@ public class JDBCOutputUpdateOrInsertWriter extends JDBCOutputWriter {
                     columnList = JDBCSQLBuilder.getInstance().createColumnList(config, currentSchema);
                     sqlInsert = JDBCSQLBuilder.getInstance()
                             .generateSQL4Insert(config.getDataSet().getTableName(), columnList);
-                    statementInsert = conn.prepareStatement(sqlInsert);
+                    statementInsert = conn.getConnection().prepareStatement(sqlInsert);
 
                     sqlUpdate = JDBCSQLBuilder.getInstance()
                             .generateSQL4Update(config.getDataSet().getTableName(), columnList);
-                    statementUpdate = conn.prepareStatement(sqlUpdate);
+                    statementUpdate = conn.getConnection().prepareStatement(sqlUpdate);
                 } catch (SQLException e) {
                     throw e;
                 }

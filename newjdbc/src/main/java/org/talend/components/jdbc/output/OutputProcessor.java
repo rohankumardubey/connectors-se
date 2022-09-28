@@ -55,10 +55,8 @@ public class OutputProcessor implements Serializable {
     @RuntimeContext
     private transient Map<String, Object> context;
 
-    private transient JDBCService.JDBCDataSource dataSource;
-
     @Connection
-    private transient java.sql.Connection connection;
+    private transient JDBCService.DataSourceWrapper dataSource;
 
     private transient boolean init;
 
@@ -87,10 +85,10 @@ public class OutputProcessor implements Serializable {
         if (!init) {
             boolean useExistedConnection = false;
 
-            if (connection == null) {
+            if (dataSource == null) {
                 try {
-                    dataSource = jdbcService.createJDBCConnection(configuration.getDataSet().getDataStore());
-                    connection = dataSource.getConnection();
+                    dataSource = jdbcService.createConnectionOrGetFromSharedConnectionPoolOrDataSource(
+                            configuration.getDataSet().getDataStore(), context, false);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -100,23 +98,23 @@ public class OutputProcessor implements Serializable {
 
             switch (configuration.getDataAction()) {
             case INSERT:
-                writer = new JDBCOutputInsertWriter(configuration, useExistedConnection, connection,
+                writer = new JDBCOutputInsertWriter(configuration, useExistedConnection, dataSource,
                         recordBuilderFactory);
                 break;
             case UPDATE:
-                writer = new JDBCOutputUpdateWriter(configuration, useExistedConnection, connection,
+                writer = new JDBCOutputUpdateWriter(configuration, useExistedConnection, dataSource,
                         recordBuilderFactory);
                 break;
             case INSERT_OR_UPDATE:
-                writer = new JDBCOutputInsertOrUpdateWriter(configuration, useExistedConnection, connection,
+                writer = new JDBCOutputInsertOrUpdateWriter(configuration, useExistedConnection, dataSource,
                         recordBuilderFactory);
                 break;
             case UPDATE_OR_INSERT:
-                writer = new JDBCOutputUpdateOrInsertWriter(configuration, useExistedConnection, connection,
+                writer = new JDBCOutputUpdateOrInsertWriter(configuration, useExistedConnection, dataSource,
                         recordBuilderFactory);
                 break;
             case DELETE:
-                writer = new JDBCOutputDeleteWriter(configuration, useExistedConnection, connection,
+                writer = new JDBCOutputDeleteWriter(configuration, useExistedConnection, dataSource,
                         recordBuilderFactory);
                 break;
             }
@@ -163,14 +161,8 @@ public class OutputProcessor implements Serializable {
 
     @PreDestroy
     public void release() throws SQLException {
-        try {
-            if (writer != null) {
-                writer.close();
-            }
-        } finally {
-            if (dataSource != null) {
-                dataSource.close();
-            }
+        if (writer != null) {
+            writer.close();
         }
     }
 

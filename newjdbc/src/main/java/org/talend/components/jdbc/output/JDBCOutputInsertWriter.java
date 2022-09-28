@@ -13,6 +13,7 @@
 package org.talend.components.jdbc.output;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -27,7 +28,8 @@ public class JDBCOutputInsertWriter extends JDBCOutputWriter {
 
     private String sql;
 
-    public JDBCOutputInsertWriter(JDBCOutputConfig config, boolean useExistedConnection, Connection conn,
+    public JDBCOutputInsertWriter(JDBCOutputConfig config, boolean useExistedConnection,
+            JDBCService.DataSourceWrapper conn,
             RecordBuilderFactory recordBuilderFactory) {
         super(config, useExistedConnection, conn, recordBuilderFactory);
     }
@@ -39,7 +41,7 @@ public class JDBCOutputInsertWriter extends JDBCOutputWriter {
             // if not dynamic, we can computer it now for "fail soon" way, not fail in main part if fail
             if (!isDynamic) {
                 sql = JDBCSQLBuilder.getInstance().generateSQL4Insert(config.getDataSet().getTableName(), columnList);
-                statement = conn.prepareStatement(sql);
+                statement = conn.getConnection().prepareStatement(sql);
             }
         } catch (SQLException e) {
             throw e;
@@ -59,7 +61,7 @@ public class JDBCOutputInsertWriter extends JDBCOutputWriter {
                     columnList = JDBCSQLBuilder.getInstance().createColumnList(config, currentSchema);
                     sql = JDBCSQLBuilder.getInstance()
                             .generateSQL4Insert(config.getDataSet().getTableName(), columnList);
-                    statement = conn.prepareStatement(sql);
+                    statement = conn.getConnection().prepareStatement(sql);
                 } catch (SQLException e) {
                     throw e;
                 }

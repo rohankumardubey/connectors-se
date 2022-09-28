@@ -15,6 +15,7 @@ package org.talend.components.jdbc.sp;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.schema.CommonUtils;
 import org.talend.components.jdbc.schema.SchemaInferer;
+import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -34,7 +35,7 @@ import java.util.List;
 @Slf4j
 public class JDBCSPWriter {
 
-    private Connection conn;
+    private JDBCService.DataSourceWrapper conn;
 
     private JDBCSPConfig config;
 
@@ -54,7 +55,7 @@ public class JDBCSPWriter {
 
     private int totalCount;
 
-    public JDBCSPWriter(JDBCSPConfig config, boolean useExistedConnection, Connection conn,
+    public JDBCSPWriter(JDBCSPConfig config, boolean useExistedConnection, JDBCService.DataSourceWrapper conn,
             RecordBuilderFactory recordBuilderFactory) {
         this.config = config;
         this.useExistedConnection = useExistedConnection;
@@ -69,7 +70,7 @@ public class JDBCSPWriter {
 
     public void open() throws SQLException {
         try {
-            cs = conn.prepareCall(getSPStatement());
+            cs = conn.getConnection().prepareCall(getSPStatement());
         } catch (SQLException e) {
             throw e;
         }

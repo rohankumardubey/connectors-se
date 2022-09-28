@@ -18,6 +18,7 @@ import org.talend.components.jdbc.service.JDBCService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.context.RuntimeContext;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.processor.*;
 import org.talend.sdk.component.api.record.Record;
@@ -29,6 +30,7 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.Map;
 
 @Slf4j
 @Getter
@@ -52,10 +54,11 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
 
     private transient JDBCBulkExecRuntime runtime;
 
-    private transient JDBCService.JDBCDataSource dataSource;
-
     @Connection
-    private transient java.sql.Connection connection;
+    private transient JDBCService.DataSourceWrapper dataSource;
+
+    @RuntimeContext
+    private transient Map<String, Object> context;
 
     // private final I18nMessage i18n;
 
@@ -88,10 +91,10 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
     public void init() throws IOException {
         boolean useExistedConnection = false;
 
-        if (connection == null) {
+        if (dataSource == null) {
             try {
-                dataSource = jdbcService.createJDBCConnection(configuration.getDataSet().getDataStore());
-                connection = dataSource.getConnection();
+                dataSource = jdbcService.createConnectionOrGetFromSharedConnectionPoolOrDataSource(
+                        configuration.getDataSet().getDataStore(), context, false);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -105,7 +108,7 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
         writer.open();
 
         runtime = new JDBCBulkExecRuntime(configuration.getDataSet(), configuration.getBulkCommonConfig(),
-                useExistedConnection, connection, recordBuilderFactory);
+                useExistedConnection, dataSource, recordBuilderFactory);
     }
 
     @PreDestroy
@@ -115,14 +118,8 @@ public class JDBCOutputBulkExecProcessor implements Serializable {
             writer.close();
         }
 
-        try {
-            if (runtime != null) {
-                runtime.runDriver();
-            }
-        } finally {
-            if (dataSource != null) {
-                dataSource.close();
-            }
+        if (runtime != null) {
+            runtime.runDriver();
         }
     }
 

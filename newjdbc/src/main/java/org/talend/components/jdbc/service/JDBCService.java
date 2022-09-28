@@ -170,7 +170,7 @@ public class JDBCService implements Serializable {
 
     @HealthCheck("CheckConnection")
     public HealthCheckStatus validateBasicDataStore(@Option final JDBCDataStore dataStore) {
-        try (final JDBCDataSource dataSource = this.createJDBCConnection(dataStore);
+        try (final DataSourceWrapper dataSource = this.createConnection(dataStore, false);
                 final Connection ignored = dataSource.getConnection()) {
 
         } catch (Exception e) {
@@ -180,19 +180,18 @@ public class JDBCService implements Serializable {
     }
 
     @CreateConnection
-    public Connection createConnection(@Option("configuration") final JDBCDataStore dataStore) throws SQLException {
-        return createJDBCConnection(dataStore).getConnection();
+    public DataSourceWrapper createConnection(@Option("configuration") final JDBCDataStore dataStore)
+            throws SQLException {
+        return createConnectionOrGetFromSharedConnectionPoolOrDataSource(dataStore, context, false);
     }
 
     @CloseConnection
     public CloseConnectionObject closeConnection() {
-        // TODO create jdbc connection
         return new CloseConnectionObject() {
 
             public boolean close() {
-                // TODO close connection here
                 Optional.ofNullable(this.getConnection())
-                        .map(Connection.class::cast)
+                        .map(DataSourceWrapper.class::cast)
                         .ifPresent(conn -> {
                             try {
                                 conn.close();
@@ -219,7 +218,7 @@ public class JDBCService implements Serializable {
 
     private List<String> getSchemaNames(final JDBCDataStore dataStore) throws SQLException {
         List<String> result = new ArrayList<>();
-        try (final JDBCDataSource dataSource = createJDBCConnection(dataStore);
+        try (final DataSourceWrapper dataSource = createConnection(dataStore, false);
                 final Connection conn = dataSource.getConnection()) {
             DatabaseMetaData dbMetaData = conn.getMetaData();
 
@@ -281,16 +280,30 @@ public class JDBCService implements Serializable {
         return availableTableTypes;
     }
 
-    public JDBCDataSource createJDBCConnection(final JDBCDataStore dataStore) throws SQLException {
-        return new JDBCDataSource(this.resolver, dataStore);
+    public DataSourceWrapper createConnection(final JDBCDataStore dataStore, final boolean readonly)
+            throws SQLException {
+        // TODO check this readonly before: conn = createConnection(dataStore, readonly);
+        JDBCDataSource dataSource = new JDBCDataSource(this.resolver, dataStore);
+        Connection conn = dataSource.getConnection();
+        // somebody add it for performance for dataprep
+        if (readonly) {
+            try {
+                conn.setReadOnly(true);// TODO check why we get the value by "setting.isReadOnly()" before, here now
+                // use "true" directly
+            } catch (SQLException e) {
+                log.debug("JDBC driver '{}' does not support read only mode.", dataStore.getJdbcClass(), e);
+            }
+        }
+
+        return new DataSourceWrapper(dataSource, conn);
     }
 
     private static final String GLOBAL_CONNECTION_POOL_KEY = "GLOBAL_CONNECTION_POOL";
 
     private static final String KEY_DB_DATASOURCES_RAW = "KEY_DB_DATASOURCES_RAW";
 
-    private Connection createConnectionOrGetFromSharedConnectionPoolOrDataSource(final JDBCDataStore dataStore,
-            final Map<String, Object> context, final boolean readonly) throws SQLException, ClassNotFoundException {
+    public DataSourceWrapper createConnectionOrGetFromSharedConnectionPoolOrDataSource(final JDBCDataStore dataStore,
+            final Map<String, Object> context, final boolean readonly) throws SQLException {
         Connection conn = null;
         log.debug("Connection attempt to '{}' with the username '{}'", dataStore.getJdbcUrl(), dataStore.getUserId());
 
@@ -299,9 +312,14 @@ public class JDBCService implements Serializable {
                     .get(GLOBAL_CONNECTION_POOL_KEY);
             log.debug("Uses shared connection with name: '{}'", dataStore.getSharedDBConnectionName());
             log.debug("Connection URL: '{}', User name: '{}'", dataStore.getJdbcUrl(), dataStore.getUserId());
-            conn = sharedConnectionPool.getDBConnection(dataStore.getJdbcClass(), dataStore.getJdbcUrl(),
-                    dataStore.getUserId(),
-                    dataStore.getPassword(), dataStore.getSharedDBConnectionName());
+            try {
+                conn = sharedConnectionPool.getDBConnection(dataStore.getJdbcClass(), dataStore.getJdbcUrl(),
+                        dataStore.getUserId(),
+                        dataStore.getPassword(), dataStore.getSharedDBConnectionName());
+                return new DataSourceWrapper(null, conn);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("class not found: " + e.getMessage());
+            }
         } else if (dataStore.isUseDataSource()) {
             java.util.Map<String, DataSource> dataSources = (java.util.Map<String, javax.sql.DataSource>) context
                     .get(KEY_DB_DATASOURCES_RAW);
@@ -315,24 +333,14 @@ public class JDBCService implements Serializable {
                 if (conn == null) {
                     throw new RuntimeException("Unable to get a pooled database connection from pool");
                 }
+
+                return new DataSourceWrapper(null, conn);
             } else {
-                conn = createConnection(dataStore);
+                return createConnection(dataStore, false);
             }
         } else {
-            // TODO check this readonly before: conn = createConnection(dataStore, readonly);
-            conn = createConnection(dataStore);
-            // somebody add it for performance for dataprep
-            if (readonly) {
-                try {
-                    conn.setReadOnly(true);// TODO check why we get the value by "setting.isReadOnly()" before, here now
-                                           // use "true" directly
-                } catch (SQLException e) {
-                    log.debug("JDBC driver '{}' does not support read only mode.", dataStore.getJdbcClass(), e);
-                }
-            }
+            return createConnection(dataStore, readonly);
         }
-
-        return conn;
     }
 
     // studio will pass like this : mvn:mysql/mysql-connector-java/8.0.18/jar
@@ -457,6 +465,42 @@ public class JDBCService implements Serializable {
         }
     }
 
+    public class DataSourceWrapper implements AutoCloseable {
+
+        private JDBCDataSource dataSource;
+
+        private Connection connection;
+
+        public DataSourceWrapper(JDBCDataSource dataSource, Connection connection) {
+            this.dataSource = dataSource;
+            this.connection = connection;
+        }
+
+        public Connection getConnection() throws SQLException {
+            if (connection != null) {
+                return connection;
+            }
+
+            if (dataSource != null) {
+                return dataSource.getConnection();
+            }
+
+            return null;
+        }
+
+        @Override
+        public void close() throws SQLException {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
+
+            if (dataSource != null) {
+                dataSource.close();
+            }
+        }
+
+    }
+
     @DiscoverSchema(value = "JDBCQueryDataSet")
     public Schema guessSchemaByQuery(@Option final JDBCQueryDataSet dataSet) throws SQLException {
         // TODO provide a way to get the mapping files in studio platform, also this should work for cloud platform
@@ -471,7 +515,7 @@ public class JDBCService implements Serializable {
             mapping = CommonUtils.getMapping(mappingFileDir, dataSet.getDataStore(), null, dbTypeInComponentSetting);
         }
 
-        try (final JDBCDataSource dataSource = createJDBCConnection(dataSet.getDataStore());
+        try (final DataSourceWrapper dataSource = createConnection(dataSet.getDataStore(), false);
                 final Connection conn = dataSource.getConnection()) {
             try (Statement statement = conn.createStatement()) {
                 try (ResultSet resultSet = statement.executeQuery(dataSet.getSqlQuery())) {
@@ -496,7 +540,7 @@ public class JDBCService implements Serializable {
             mapping = CommonUtils.getMapping(mappingFileDir, dataSet.getDataStore(), null, dbTypeInComponentSetting);
         }
 
-        try (final JDBCDataSource dataSource = createJDBCConnection(dataSet.getDataStore());
+        try (final DataSourceWrapper dataSource = createConnection(dataSet.getDataStore(), false);
                 final Connection conn = dataSource.getConnection()) {
             JDBCTableMetadata tableMetadata = new JDBCTableMetadata();
             tableMetadata.setDatabaseMetaData(conn.getMetaData()).setTablename(dataSet.getTableName());

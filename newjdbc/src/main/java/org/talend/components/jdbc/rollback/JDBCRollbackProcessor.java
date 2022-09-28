@@ -43,7 +43,7 @@ public class JDBCRollbackProcessor implements Serializable {
     private final JDBCService jdbcService;
 
     @Connection
-    private transient java.sql.Connection connection;
+    private transient JDBCService.DataSourceWrapper connection;
 
     // private final I18nMessage i18n;
 
@@ -66,8 +66,8 @@ public class JDBCRollbackProcessor implements Serializable {
             throw new RuntimeException("can't find the connection object");
         }
 
-        if (!connection.isClosed()) {
-            connection.rollback();
+        if (!connection.getConnection().isClosed()) {
+            connection.getConnection().rollback();
 
             if (configuration.isClose()) {
                 connection.close();
