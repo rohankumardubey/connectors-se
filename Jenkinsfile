@@ -241,9 +241,9 @@ pipeline {
             }
             post {
                 always {
+                    discoverGitReferenceBuild referenceJob: REFERENCE_BUILD_NAME
                     recordIssues(
                         enabledForFailure: true,
-                        referenceJobName: REFERENCE_BUILD_NAME,
                         tools: [
                             junitParser(
                                 id: 'unit-test',
@@ -332,9 +332,9 @@ pipeline {
         }
         always {
             container(tsbiImage) {
+                discoverGitReferenceBuild referenceJob: REFERENCE_BUILD_NAME
                 recordIssues(
                     enabledForFailure: true,
-                    referenceJobName: REFERENCE_BUILD_NAME,
                     tools: [
                         taskScanner(
                             id: 'disabled',
