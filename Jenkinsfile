@@ -20,6 +20,7 @@ def sonarCredentials = usernamePassword(
 //----------------- Global variables
 final String slackChannel = 'components-ci'
 final String PRODUCTION_DEPLOYMENT_REPOSITORY = "TalendOpenSourceSnapshot"
+final String REFERENCE_BUILD_NAME = 'connectors%20se/job/build/job/master'
 
 //-----------------
 final String branchName = BRANCH_NAME.startsWith("PR-")
@@ -238,11 +239,11 @@ pipeline {
                     }
                 }
             }
-
             post {
                 always {
                     recordIssues(
                         enabledForFailure: true,
+                        referenceJobName: REFERENCE_BUILD_NAME,
                         tools: [
                             junitParser(
                                 id: 'unit-test',
@@ -333,6 +334,7 @@ pipeline {
             container(tsbiImage) {
                 recordIssues(
                     enabledForFailure: true,
+                    referenceJobName: REFERENCE_BUILD_NAME,
                     tools: [
                         taskScanner(
                             id: 'disabled',
