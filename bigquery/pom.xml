@@ -54,6 +54,11 @@
             <artifactId>stream-csv</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+            <version>${netty4.version}</version>
+        </dependency>
 
         <!-- Tests -->
         <dependency>
