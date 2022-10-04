@@ -95,7 +95,7 @@
         <jackson-codehaus.version>1.9.16-TALEND</jackson-codehaus.version>
 
         <jsoup.version>1.14.3</jsoup.version>
-        <protobuf-java.version>3.19.2</protobuf-java.version>
+        <protobuf-java.version>3.19.6</protobuf-java.version>
 
         <tcomp0.version>0.23.2</tcomp0.version> <!-- until they are rewritten -->
         <daikon.version>0.31.0</daikon.version>
