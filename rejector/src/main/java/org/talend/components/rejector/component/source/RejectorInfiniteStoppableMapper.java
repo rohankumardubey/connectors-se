@@ -30,11 +30,11 @@ import org.talend.sdk.component.api.input.Split;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-@PartitionMapper(name = "RejectorInfiniteSource", infinite = true)
+@PartitionMapper(name = "RejectorInfiniteStoppableSource", infinite = true, stoppable = true)
 @Icon(value = IconType.CUSTOM, custom = "rejector")
 @Version(1)
 @Documentation("Mapper for Rejector.")
-public class RejectorInfiniteMapper implements Serializable {
+public class RejectorInfiniteStoppableMapper implements Serializable {
 
     private final RecordBuilderFactory recordBuilder;
 
@@ -42,7 +42,7 @@ public class RejectorInfiniteMapper implements Serializable {
 
     private final UiServices uiServices;
 
-    public RejectorInfiniteMapper(@Option("configuration") final RejectorInputConfiguration configuration,
+    public RejectorInfiniteStoppableMapper(@Option("configuration") final RejectorInputConfiguration configuration,
             RecordBuilderFactory recordBuilder, UiServices uiServices) {
         this.configuration = configuration;
         this.recordBuilder = recordBuilder;
@@ -55,7 +55,7 @@ public class RejectorInfiniteMapper implements Serializable {
     }
 
     @Split
-    public List<RejectorInfiniteMapper> split(@PartitionSize final long desiredSize) {
+    public List<RejectorInfiniteStoppableMapper> split(@PartitionSize final long desiredSize) {
         return singletonList(this);
     }
 
