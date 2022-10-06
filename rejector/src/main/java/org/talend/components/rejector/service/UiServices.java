@@ -12,15 +12,18 @@
  */
 package org.talend.components.rejector.service;
 
+import org.talend.components.rejector.component.sink.RejectorProcessorConfiguration;
 import org.talend.components.rejector.configuration.RejectorDataSet;
 import org.talend.components.rejector.configuration.RejectorDataStore;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Type;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.api.service.schema.DiscoverProcessorSchema;
 import org.talend.sdk.component.api.service.schema.DiscoverSchema;
 
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +39,38 @@ public class UiServices {
     public HealthCheckStatus healthCheck(@Option("configuration") final RejectorDataStore datastore) {
         log.warn("[healthCheck] {}", datastore);
         return new HealthCheckStatus(Status.OK, "Connection OK");
+    }
+
+    @DiscoverProcessorSchema("RejectorProcessorSchema")
+    public Schema discoverProcessorSchema(final Schema incomingSchema,
+            @Option final RejectorProcessorConfiguration configuration, final String branch) {
+        log.warn("[discoverProcessorSchema]branch: {}, incoming: {}, conf: {}.", branch, incomingSchema, configuration);
+        final Schema.Builder outgoingSchema = factory.newSchemaBuilder(incomingSchema);
+        final String code = configuration.getCode();
+        final String infos = configuration.getDataSet().getInformations();
+        final String url = configuration.getDataSet().getDataStore().getUrl();
+        outgoingSchema.withEntry(factory.newEntryBuilder()
+                .withName("code")
+                .withType(Type.STRING)
+                .withComment(infos)
+                .withProp("talend.studio.key", "true")
+                .build());
+        outgoingSchema.withEntry(factory.newEntryBuilder()
+                .withName(branch)
+                .withType(Type.FLOAT)
+                .withComment(infos)
+                .withProp("talend.studio.length", "10")
+                .withProp("talend.studio.precision", "3")
+                .build());
+        if ("REJECT".equals(branch.toUpperCase())) {
+            outgoingSchema.withEntry(factory.newEntryBuilder()
+                    .withName("ERROR_MESSAGE")
+                    .withType(Type.STRING)
+                    .withComment(url)
+                    .withDefaultValue(code)
+                    .build());
+        }
+        return outgoingSchema.build();
     }
 
     @DiscoverSchema("RejectorDataSet")
